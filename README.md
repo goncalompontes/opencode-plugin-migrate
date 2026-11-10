@@ -167,7 +167,7 @@ Current fixers: missing parameter annotations (`TS7006`) inside carried V1 bodie
 ## Providers and auth
 
 - `provider` hooks convert to `ctx.provider.transform`: the V1 `models` function is resolved once at setup and its entries are installed with `editor.models.set(...)`.
-- `auth` hooks are reported with the closest V2 surface (`ctx.integration.transform()` with typed forms/OAuth methods); they are not guessed because V2 integrations are structurally different.
+- `auth` hooks register API-key and OAuth methods through `ctx.integration.transform`; OAuth results are mapped to `Credential.OAuth`. V1 `loader` and `prompts` have no direct V2 equivalent and are reported for review.
 - `config` supports `command` today; other domains are reported with the exact keys that were written.
 
 ## Scaffolding
@@ -295,7 +295,8 @@ files each building TypeScript programs contend for CPU and trip timeouts.
 - Custom tools keep their Zod shape at runtime and are registered through `z.toJSONSchema()`; plugins still on Zod 3 need a Zod 4 upgrade.
 - JavaScript/JSX sources are converted structurally: hooks and tool definitions are read from the AST, but there is no type information, and the emitted module is TypeScript.
 - Provider models are resolved once at setup, so dynamically changing model inventories need a manual provider transform.
-- V1 `auth` hooks are reported, not converted; V2 integrations use typed forms and OAuth method registrations.
+- V1 auth `loader` and prompt validation are reported, not converted; OAuth results without refresh/access throw a descriptive error at runtime.
+- Auth method IDs are derived from the V1 method id/label (`oauth` fallback); confirm them against the integration's V2 expectations.
 - Conditional custom tools and complex branch bodies are reported, not converted.
 - Layout changes are reported as a plan, not applied: automatic moves need import rewriting to stay safe.
 - V1 `client` calls are adapted, not rewritten: mapped methods preserve the `{ data }` envelope, adapted methods are reported, and unmapped methods throw at the call site so the gap is visible.

@@ -390,6 +390,7 @@ export async function convertPlugin(
       diagnostics: [],
       tools: [],
       providers: [],
+      auths: [],
       rewrittenFiles: [],
       remainingV1Imports: [],
     }

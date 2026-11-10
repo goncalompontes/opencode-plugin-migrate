@@ -41,7 +41,11 @@ export const PackageReport = z.object({
 export type PackageReport = z.infer<typeof PackageReport>
 
 export const RuntimeReport = z.object({
-  bundle: z.object({ ok: z.boolean(), errors: z.array(z.string()) }),
+  bundle: z.object({
+    ok: z.boolean(),
+    errors: z.array(z.string()),
+    skipped: z.boolean().optional(),
+  }),
   entry: z.object({ ok: z.boolean(), message: z.string() }),
 })
 export type RuntimeReport = z.infer<typeof RuntimeReport>

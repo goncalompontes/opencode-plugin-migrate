@@ -1,28 +1,67 @@
 {
   "name": "opencode-plugin-migrate",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Convert OpenCode V1 plugins to V2 with typed AST rewriting and a compile/runtime gate",
+  "license": "MIT",
   "type": "module",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/goncalompontes/opencode-plugin-migrate.git"
+  },
+  "homepage": "https://github.com/goncalompontes/opencode-plugin-migrate#readme",
+  "bugs": {
+    "url": "https://github.com/goncalompontes/opencode-plugin-migrate/issues"
+  },
+  "keywords": [
+    "opencode",
+    "plugin",
+    "migration",
+    "codemod",
+    "typescript",
+    "ast"
+  ],
+  "engines": {
+    "node": ">=20",
+    "bun": ">=1.1.0"
+  },
   "bin": {
-    "opencode-plugin-migrate": "./src/cli/index.ts"
+    "opencode-plugin-migrate": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./cli": "./dist/cli.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "analyze": "bun src/cli/index.ts analyze",
     "convert": "bun src/cli/index.ts convert",
+    "build": "bun scripts/build.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test test/migration.test.ts",
-    "bench": "bun benchmarks/run.ts"
+    "bench": "bun benchmarks/run.ts",
+    "smoke:pack": "bun scripts/pack-smoke.ts"
   },
   "dependencies": {
     "citty": "^0.2.2",
     "ts-morph": "^28.0.0",
+    "typescript": "^5.9.3",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@opencode-ai/plugin": "1.19.5",
     "@opencode/plugin": "^2.2.7",
     "@types/bun": "^1.4.4",
-    "@types/node": "^26.6.6",
-    "typescript": "5.9.3"
+    "@types/node": "^26.6.6"
   }
 }

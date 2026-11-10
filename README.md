@@ -12,6 +12,28 @@ bun run src/cli/index.ts convert ./my-plugin --dual   # also keep a V1 server() 
 
 **Status: MVP.** Across 8 real public plugins (including a `.mjs` entry): 14/16 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
+## Install
+
+```sh
+npm install -g opencode-plugin-migrate    # or: bun install -g opencode-plugin-migrate
+opencode-plugin-migrate --help
+```
+
+The published CLI runs under Node 20+ and Bun. Bundle validation uses `Bun.build`; under
+Node it is skipped and reported as `bundle skipped (Node)`. Type checking, conversion,
+reports and repair work on both runtimes.
+
+## Packaging
+
+```sh
+bun run build          # dist/index.js (library) + dist/cli.js (CLI, node shebang)
+bun run smoke:pack     # build, pack, install the tarball in a temp project, run the CLI
+```
+
+The release workflow (`.github/workflows/release.yml`) bumps the version, runs tests and
+the pack smoke test, tags `v<version>`, uploads the tarball to a GitHub release, and
+publishes to npm when `NPM_TOKEN` is configured. MIT licensed.
+
 ## CLI
 
 ```sh

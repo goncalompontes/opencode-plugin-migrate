@@ -44,7 +44,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-smartsnip/`
-- Findings: 5
+- Findings: 7
 
 - `tool.execute.before` — converted -> ctx.tool.hook('execute.before')
 - `event` — converted -> ctx.event.subscribe()
@@ -87,7 +87,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-smart-voice-notify/`
-- Findings: 9
+- Findings: 10
 
 - `dispose` — converted -> cleanup returned from setup()
 - `event` — converted -> ctx.event.subscribe()

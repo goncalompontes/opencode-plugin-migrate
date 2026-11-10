@@ -224,6 +224,25 @@ describe("config command transform", () => {
   })
 })
 
+describe("conditional hook maps", () => {
+  const conditional = path.join(import.meta.dir, "..", "fixtures", "conditional")
+
+  test("emits branch-aware registrations", async () => {
+    const { report } = await analyzePlugin(conditional)
+    expect(report.hooks.map((hook) => hook.name).sort()).toEqual([
+      "event",
+      "tool.execute.before",
+    ])
+    const result = await convertPlugin(conditional, { outDir: path.join(root, "conditional") })
+    expect(result.module.source).toContain("if (!enabled) {")
+    expect(result.module.source).toContain("else {")
+    expect(result.module.source).toContain('hook("execute.before"')
+    expect(result.module.source).toContain("event.subscribe")
+    expect(result.report.typecheck?.clean).toBe(true)
+    expect(result.report.runtime?.bundle.ok).toBe(true)
+  })
+})
+
 describe("incremental conversion", () => {
   test("is byte-identical when nothing changed", async () => {
     const outDir = path.join(root, "incremental")

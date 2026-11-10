@@ -60,11 +60,18 @@ Coverage from the curated corpus: **18/22 hooks converted**, **8/8 tools registe
 
 ## Install
 
-Every release ships a packed tarball. Install the CLI globally:
+Every release ships a packed tarball. Download it and install the local file:
 
 ```sh
-npm install --global https://github.com/goncalompontes/opencode-plugin-migrate/releases/download/v0.2.0/opencode-plugin-migrate-0.2.0.tgz
+gh release download v0.2.0 --pattern '*.tgz'
+npm install --global ./opencode-plugin-migrate-0.2.0.tgz
 opencode-plugin-migrate --help
+```
+
+npm 12+ blocks remote tarballs by default; if you prefer one command, allow it:
+
+```sh
+npm install --global --allow-remote=root https://github.com/goncalompontes/opencode-plugin-migrate/releases/download/v0.2.0/opencode-plugin-migrate-0.2.0.tgz
 ```
 
 From source:

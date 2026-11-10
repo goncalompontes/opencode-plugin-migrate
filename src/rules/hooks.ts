@@ -152,6 +152,31 @@ export function classify(ir: PluginIR): ClassifiedPluginIR {
     ...ir,
     hooks: ir.hooks.map((hook) => {
       const rule = ruleFor(hook.name)
+      if (hook.name === "config") {
+        const keys = [...new Set([...hook.body.matchAll(/\binput\.([A-Za-z_$][\w$]*)/g)].map((match) => match[1]))]
+        const commandOnly = keys.length > 0 && keys.every((key) => key === "command")
+        if (commandOnly && !hook.usesAwait) {
+          return {
+            ...hook,
+            classification: "converted" as const,
+            adapter: "config-command" as const,
+            v2: "ctx.command.transform()",
+            reason:
+              "only config.command is written; templates become command definitions and are sent as prompt text.",
+          }
+        }
+        return {
+          ...hook,
+          classification: "review" as const,
+          adapter: "none" as const,
+          v2: "domain transforms (ctx.command / agent / provider / mcp / ...)",
+          reason:
+            keys.length > 0
+              ? `writes config.${keys.join(", ")}; only config.command can be converted automatically right now.`
+              : "config hook shape could not be read statically.",
+        }
+      }
+
       // `event: async ({ event }) => ...` maps cleanly onto ctx.event.subscribe().
       const eventShorthand =
         hook.name === "event" &&

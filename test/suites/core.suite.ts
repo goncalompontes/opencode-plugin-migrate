@@ -207,6 +207,19 @@ describe("runtime validation", () => {
   })
 })
 
+describe("config command transform", () => {
+  const configFixture = path.join(import.meta.dir, "..", "fixtures", "config")
+
+  test("converts a command-only config hook and reports template limits", async () => {
+    const result = await convertPlugin(configFixture, { outDir: path.join(root, "config") })
+    expect(result.report.counts.converted).toBe(1)
+    expect(result.module.source).toContain("command.transform")
+    expect(result.module.source).toContain("new Proxy")
+    expect(result.report.typecheck?.clean).toBe(true)
+    expect(result.report.diagnostics.some((item) => item.code === "config/command-template")).toBe(true)
+  })
+})
+
 describe("pipeline platform", () => {
   test("rejects a stage whose output violates its schema", async () => {
     const bad = pipeline<{ n: number }>()

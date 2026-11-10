@@ -84,6 +84,7 @@ export const AdapterKind = z.enum([
   "session-context",
   "model-request",
   "system-transform",
+  "config-command",
   "dispose",
   "none",
 ])

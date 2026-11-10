@@ -5,7 +5,7 @@
 [![CI](https://github.com/goncalompontes/opencode-plugin-migrate/actions/workflows/ci.yml/badge.svg)](https://github.com/goncalompontes/opencode-plugin-migrate/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-48%20passing-brightgreen)](test/migration.test.ts)
-[![Corpus](https://img.shields.io/badge/corpus-10%20packages%20%C2%B7%2022%20hooks-informational)](benchmarks/RESULTS.md)
+[![Corpus](https://img.shields.io/badge/corpus-10%20curated%20%C2%B7%20150%20community-informational)](benchmarks/RESULTS.md)
 
 V1 plugins do not load in V2: the entrypoint, context, hook signatures, client API,
 and tool schema all changed. This tool performs the mechanical conversion, keeps every
@@ -53,35 +53,37 @@ call anything "converted" until the result typechecks and bundles.
 | Conditional maps | `if (x) return { ... }` | `if (x) { ... } else { ... }` registration |
 | Scaffolding | `plugin` config, layout files, TUI | normalized config, move plans, TUI detection, `--dual` |
 
-Coverage from the real-plugin corpus: **18/22 hooks converted**, **9/9 tools registered**,
+Coverage from the curated corpus: **18/22 hooks converted**, **8/8 tools registered**,
 **10/10 modules typecheck**, **9/10 bundle** (the tenth is a known upstream checkout gap).
 
 ## Install
 
+The package is not published to npm yet; install from source:
+
 ```sh
-npm install -g opencode-plugin-migrate
-# or
-bun install -g opencode-plugin-migrate
-# or from source
 git clone https://github.com/goncalompontes/opencode-plugin-migrate.git
-cd opencode-plugin-migrate && bun install && bun run build
+cd opencode-plugin-migrate
+bun install
+bun run build
+./dist/cli.js --help
 ```
 
-The published CLI runs on Node 20+ and Bun. Bundle validation uses `Bun.build`; under
-Node it is skipped and reported as `bundle skipped (Node)`. Type checking, conversion,
-reports and repair work on both runtimes.
+The CLI runs on Node 20+ and Bun. Bundle validation uses `Bun.build`; under Node it is
+skipped and reported as `bundle skipped (Node)`. Type checking, conversion, reports and
+repair work on both runtimes. Publishing is wired in the release workflow and activates
+when an `NPM_TOKEN` secret is configured.
 
 ## Quick start
 
 ```sh
 # 1. See what will happen. No writes.
-opencode-plugin-migrate analyze ./plugin
+bun src/cli/index.ts analyze ./plugin
 
 # 2. Convert into .migrate/<plugin>/. Writes MIGRATION.md + JSON.
-opencode-plugin-migrate convert ./plugin
+bun src/cli/index.ts convert ./plugin
 
-# 3. Review the report, then typecheck the result in its project.
-opencode-plugin-migrate convert ./plugin --check --quiet
+# 3. Review the report, then fail on anything left to port.
+bun src/cli/index.ts convert ./plugin --check --quiet
 ```
 
 `convert` copies the package, rewrites every V1 authoring import, emits the V2 module,
@@ -219,12 +221,15 @@ bun test                  # one entrypoint, 60s per-test budget
 bun run coverage:check    # floors for src/rules and src/emit
 bun run build             # dist library + Node CLI
 bun run smoke:pack        # packed-tarball install smoke test
-bun run bench
+bun run bench:core        # curated corpus, cached, for PR feedback
+bun run bench             # curated + community, cached after the first run
+bun run corpus:discover   # refresh the community list from GitHub
 ```
 
 CI runs Biome, typecheck, tests and the Node CLI on Bun `1.4.4` and `latest`, coverage
 floors, pack smoke on Node 20/22, a compatibility matrix for two `@opencode/plugin`
-versions, and a PR benchmark that posts the results table as a comment.
+versions, a PR benchmark for the curated corpus, and a weekly workflow for the full
+community corpus.
 
 ## Limitations
 
@@ -238,6 +243,15 @@ versions, and a PR benchmark that posts the results table as a comment.
 - Conditional custom tools and complex branch bodies are reported, not converted.
 - Layout changes are a plan, not applied.
 - Validation proves types and loading, not behavior. Run a smoke test in a real V2 session.
+
+## Project docs
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
+- [Code of conduct](CODE_OF_CONDUCT.md)
+- [Changelog](CHANGELOG.md)
+- [Agent instructions](AGENTS.md)
 
 ## License
 

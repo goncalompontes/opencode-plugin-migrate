@@ -8,6 +8,7 @@ import { z } from "zod"
 import { Diagnostic } from "./core/diagnostics"
 import { pipeline, stage } from "./core/pipeline"
 import { copyProject, resolveProject } from "./env/project"
+import { readTargetVersion, upgradePackageJson } from "./env/package"
 import { extractPlugin } from "./ir/extract"
 import {
   ClassifiedPluginIR,
@@ -88,6 +89,8 @@ const emitStage = stage({
     }
     fs.mkdirSync(path.dirname(file), { recursive: true })
     fs.writeFileSync(file, module.source)
+    const version = readTargetVersion(ctx.root)
+    module.diagnostics.push(...upgradePackageJson(target, version))
     return { ir, module }
   },
 })

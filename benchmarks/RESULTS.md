@@ -29,7 +29,7 @@ is visible instead of silently dropped.
 
 - Emitted: 3 hooks, kept for manual porting: 0
 - Generated: `.out/openslimedit/`
-- Findings: 1
+- Findings: 2
 
 - `tool.definition` — converted -> ctx.tool.transform() and editor.update()
 - `tool.execute.after` — converted -> ctx.tool.hook('execute.after')
@@ -39,7 +39,7 @@ is visible instead of silently dropped.
 
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-smartsnip/`
-- Findings: 2
+- Findings: 3
 
 - `tool.execute.before` — converted -> ctx.tool.hook('execute.before')
 - `event` — converted -> ctx.event.subscribe()
@@ -57,7 +57,7 @@ is visible instead of silently dropped.
 
 - Emitted: 0 hooks, kept for manual porting: 1
 - Generated: `.out/opencode-request-logger/`
-- Findings: 3
+- Findings: 4
 
 - `chat.params` — review -> ctx.session.hook('context') and event.options
 
@@ -65,7 +65,7 @@ is visible instead of silently dropped.
 
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-message-notify/`
-- Findings: 0
+- Findings: 1
 
 - `event` — converted -> ctx.event.subscribe()
 - `permission.ask` — converted -> ctx.permission.hook('evaluate')
@@ -74,7 +74,7 @@ is visible instead of silently dropped.
 
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-smart-voice-notify/`
-- Findings: 4
+- Findings: 5
 
 - `dispose` — converted -> cleanup returned from setup()
 - `event` — converted -> ctx.event.subscribe()
@@ -83,7 +83,7 @@ is visible instead of silently dropped.
 
 - Emitted: 1 hooks, kept for manual porting: 2
 - Generated: `.out/opencode-pty/`
-- Findings: 7
+- Findings: 8
 
 - `command.execute.before` — unsupported -> ctx.command.transform() when the plugin owns the command, otherwise the prompt hook
 - `config` — review -> domain transforms (ctx.agent/provider/model/command/mcp/... transform)

@@ -45,7 +45,7 @@ export default Plugin.define({
 })
 ```
 
-Alongside it:
+Alongside it, `package.json` is moved from `@opencode-ai/plugin` to `@opencode/plugin`, and:
 
 - `MIGRATION.md` — per-hook status, V2 destination, diagnostics, and the original body of everything that was not converted.
 - `migration-report.json` — the same, machine-readable.

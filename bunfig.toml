@@ -1,0 +1,3 @@
+[test]
+# Conversion runs a real TypeScript program per plugin; give those tests room.
+timeout = 60000

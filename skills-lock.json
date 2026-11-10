@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skills": {
+    "repo-standardizer": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/repo-standardizer/SKILL.md",
+      "computedHash": "cfd60e67af66d41187a83905c7dda6e22d175b92b2208f22fe7afa1b8c3f94ae",
+      "installMode": "copy"
+    }
+  }
+}

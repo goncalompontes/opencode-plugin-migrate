@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-10T17:13:35.449Z",
+  "generatedAt": "2026-11-10T21:50:22.798Z",
   "entries": {
     "affaan-m/ECC": {
       "status": "crashed",
@@ -102,7 +102,7 @@
       "review": 0,
       "unsupported": 0,
       "tools": 0,
-      "error": "Could not find a declaration file for module 'cross-spawn'. '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/node_modules/cross-spawn/index.js' implicitly has an 'any' type."
+      "error": "Could not find a declaration file for module 'cross-spawn'. '<repo>/node_modules/cross-spawn/index.js' implicitly has an 'any' type."
     },
     "different-ai/opencode-browser": {
       "status": "crashed",
@@ -354,7 +354,7 @@
       "review": 0,
       "unsupported": 0,
       "tools": 0,
-      "error": "File '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/opencode-plugin-openspec/src/config.ts' is not listed within the file list of project ''. Projects must list all files or use an 'include' pattern."
+      "error": "File '<out>/opencode-plugin-openspec/src/config.ts' is not listed within the file list of project ''. Projects must list all files or use an 'include' pattern."
     },
     "psinetron/echoes-vault-opencode": {
       "status": "clean",
@@ -599,7 +599,7 @@
       "review": 0,
       "unsupported": 0,
       "tools": 0,
-      "error": "File '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/opencode-skills-collection/bundled-skills/electron-drive-skill/scripts/lib.ts' is not under 'rootDir' '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/opencode-skills-collection/src'. 'rootDir' is expected to contain all source files."
+      "error": "File '<out>/opencode-skills-collection/bundled-skills/electron-drive-skill/scripts/lib.ts' is not under 'rootDir' '<out>/opencode-skills-collection/src'. 'rootDir' is expected to contain all source files."
     },
     "crisogray/claudius": {
       "status": "clean",
@@ -930,7 +930,7 @@
       "review": 0,
       "unsupported": 0,
       "tools": 1,
-      "error": "Module '\"/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/fixseo/src/index\"' has no default export. Did you mean to use 'import { execute } from \"/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/fixseo/src/index\"' instead?"
+      "error": "Module '\"<out>/fixseo/src/index\"' has no default export. Did you mean to use 'import { execute } from \"<out>/fixseo/src/index\"' instead?"
     },
     "DVNghiem/FlowDeck": {
       "status": "issues",

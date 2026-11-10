@@ -60,7 +60,7 @@ describe("analyze", () => {
     expect(byName["chat.message"]).toBe("converted")
     expect(byName["chat.params"]).toBe("converted")
     expect(byName["chat.headers"]).toBe("converted")
-    expect(report.counts).toEqual({ converted: 7, review: 0, unsupported: 0 })
+    expect(report.counts).toEqual({ converted: 8, review: 0, unsupported: 0 })
   })
 
   test("writes nothing", async () => {
@@ -91,6 +91,7 @@ describe("convert", () => {
       "chat.params",
       "dispose",
       "event",
+      "experimental.chat.system.transform",
       "permission.ask",
       "tool.execute.before",
     ])
@@ -106,6 +107,8 @@ describe("convert", () => {
     expect(result.module.source).toContain('hook("prompt"')
     expect(result.module.source).toContain('hook("context"')
     expect(result.module.source).toContain('hook("model.request"')
+    expect(result.module.source).toContain("__originalSystem")
+    expect(result.module.source).toContain('type: "text"')
   })
 
   test("refuses to re-convert an already converted module", async () => {

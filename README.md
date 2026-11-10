@@ -76,8 +76,8 @@ Errors inside code carried over from V1 are downgraded to review findings with a
 
 | Status | V1 hooks |
 | --- | --- |
-| **Converted** | `dispose`, `event`, `tool.execute.before`, `tool.execute.after`, `tool.definition`, `shell.env`, `permission.ask`, `chat.message`, `chat.params`, `chat.headers`, custom `tool` maps |
-| **Review** (reported, body preserved) | `config`, `provider`, `auth`, `experimental.chat.system.transform`, `experimental.chat.messages.transform`, `experimental.session.compacting` |
+| **Converted** | `dispose`, `event`, `tool.execute.before`, `tool.execute.after`, `tool.definition`, `shell.env`, `permission.ask`, `chat.message`, `chat.params`, `chat.headers`, `experimental.chat.system.transform`, custom `tool` maps |
+| **Review** (reported, body preserved) | `config`, `provider`, `auth`, `experimental.chat.messages.transform`, `experimental.session.compacting` |
 | **Unsupported** (no V2 equivalent) | `command.execute.before` (no global hook), `experimental.provider.small_model`, `experimental.compaction.autocontinue`, `experimental.text.complete` |
 
 The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
@@ -183,5 +183,6 @@ files each building TypeScript programs contend for CPU and trip timeouts.
 - `chat.message` is bridged through prompt text: non-text parts and a real V1 `UserMessage` are not reconstructed, and the report says so.
 - `chat.params` maps generation options onto `event.options`; the V1 `provider` and `message` inputs have no direct V2 field and are stubbed for the body.
 - `chat.headers` maps onto the `model.request` event; plugins that need the raw HTTP exchange should use `http.request`.
+- `experimental.chat.system.transform` exposes string entries; existing `SystemPart` cache/metadata are preserved by position, but new entries are plain text parts.
 - `command.execute.before` has no one-to-one V2 hook; the correct destination depends on whether the plugin owns the command.
 - The tool validates types, not behavior. A converted plugin still needs a smoke test in a real V2 session.

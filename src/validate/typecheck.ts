@@ -116,15 +116,16 @@ export function typecheck(
 
   // Regions emitted verbatim from V1: compile errors there are findings about the old
   // body, not about the generated V2 scaffolding, so they are reported for review.
-  const carried = new Set<number>()
+  const carried = new Map<number, string>()
   if (fs.existsSync(target)) {
-    let inside = false
+    let inside: string | null = null
     fs.readFileSync(target, "utf8")
       .split("\n")
       .forEach((line, index) => {
-        if (line.includes("#region carried-v1")) inside = true
-        else if (line.includes("#endregion carried-v1")) inside = false
-        else if (inside) carried.add(index + 1)
+        const start = /#region carried-v1(?:\s+(.+))?/.exec(line)
+        if (start) inside = (start[1] ?? "carried").trim()
+        else if (line.includes("#endregion carried-v1")) inside = null
+        else if (inside) carried.set(index + 1, inside)
       })
   }
 
@@ -160,6 +161,7 @@ export function typecheck(
     return {
       ...item,
       severity: "warning" as const,
+      origin: item.range ? carried.get(item.range.line) : undefined,
       hint: "this error is inside code carried over from V1; fix the body while porting it.",
     }
   })

@@ -22,6 +22,7 @@ import { emitModule } from "./emit/emit"
 import { classify } from "./rules/hooks"
 import { typecheck } from "./validate/typecheck"
 import { validateRuntime } from "./validate/bundle"
+import { implicitAnyParameter, runRepair } from "./validate/repair"
 import { MigrationReport } from "./report/schema"
 
 export const PluginProjectSchema = z.object({
@@ -46,6 +47,18 @@ const ValidateOutput = EmitOutput.extend({
     bundle: z.object({ ok: z.boolean(), errors: z.array(z.string()) }),
     entry: z.object({ ok: z.boolean(), message: z.string() }),
     diagnostics: z.array(Diagnostic),
+  }),
+  repair: z.object({
+    passes: z.number().int().nonnegative(),
+    fixes: z.array(
+      z.object({
+        pass: z.number().int().positive(),
+        code: z.string(),
+        origin: z.string().optional(),
+        detail: z.string(),
+      }),
+    ),
+    stopped: z.enum(["clean", "no-fix", "no-progress", "max-passes"]),
   }),
 })
 
@@ -143,13 +156,45 @@ const validateStage = stage({
     const owned = [module.file, ...module.rewrittenFiles]
     if (module.shim) owned.push(module.shim)
     const projectRoot = path.join(ctx.outDir, ir.id)
-    const result = typecheck(projectRoot, module.file, owned)
+    let result = typecheck(projectRoot, module.file, owned)
+    let repair: ReturnType<typeof runRepair>["result"] = {
+      passes: 0,
+      fixes: [],
+      stopped: "clean",
+    }
+    const fixable = result.diagnostics.some(
+      (item) =>
+        item.code === "ts/7006" &&
+        item.range !== undefined &&
+        path.resolve(item.range.file) === path.resolve(module.file),
+    )
+    if (fixable) {
+      const outcome = runRepair({
+        file: module.file,
+        projectRoot,
+        owned,
+        fixers: [implicitAnyParameter()],
+        maxPasses: 4,
+        initialDiagnostics: result.diagnostics,
+      })
+      repair = outcome.result
+      if (repair.fixes.length) {
+        module.source = fs.readFileSync(module.file, "utf8")
+        module.diagnostics.push({
+          code: "repair/applied",
+          severity: "info",
+          message: `auto-repaired ${repair.fixes.length} issue(s) in ${repair.passes} pass(es): ${repair.fixes.map((fix) => `${fix.code}${fix.origin ? ` (${fix.origin})` : ""}`).join(", ")}.`,
+        })
+      }
+      result = typecheck(projectRoot, module.file, owned)
+    }
     const runtime = await validateRuntime(module.file)
     return {
       ir,
       module,
       typecheck: { clean: result.clean, diagnostics: result.diagnostics },
       runtime,
+      repair,
     }
   },
 })
@@ -253,7 +298,7 @@ export async function convertPlugin(
   const outRoot = options.outDir ?? path.join(root, ".migrate")
   const dual = options.dual === true
   const ctx = { root, outDir: outRoot, log: () => {}, options: { dual } }
-  const { ir, module, typecheck: check, runtime } = await convertPipeline.run(
+  const { ir, module, typecheck: check, runtime, repair } = await convertPipeline.run(
     { dir, outDir: outRoot, dual },
     ctx,
   )
@@ -291,6 +336,7 @@ export async function convertPlugin(
       warnings: relevant.filter((item) => item.severity === "warning").length,
     },
     runtime: { bundle: runtime.bundle, entry: runtime.entry },
+    repair,
     scaffolding: module.diagnostics
       .filter((item) => /^(config|layout|tui|dual)\//.test(item.code))
       .map((item) => ({ kind: item.code, detail: item.message })),

@@ -59,6 +59,20 @@ export const MigrationReport = z.object({
   typecheck: TypecheckReport.optional(),
   runtime: RuntimeReport.optional(),
   scaffolding: z.array(z.object({ kind: z.string(), detail: z.string() })).optional(),
+  repair: z
+    .object({
+      passes: z.number().int().nonnegative(),
+      fixes: z.array(
+        z.object({
+          pass: z.number().int().positive(),
+          code: z.string(),
+          origin: z.string().optional(),
+          detail: z.string(),
+        }),
+      ),
+      stopped: z.enum(["clean", "no-fix", "no-progress", "max-passes"]),
+    })
+    .optional(),
   package: PackageReport.optional(),
   /** Original source of every hook that was not emitted, for manual porting. */
   leftovers: z.array(

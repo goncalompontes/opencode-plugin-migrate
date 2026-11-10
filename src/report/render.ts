@@ -26,6 +26,9 @@ export function renderMarkdown(report: MigrationReport): string {
       `- Typecheck: ${report.typecheck.clean ? "**clean**" : "**failed**"} (${report.typecheck.errors} errors, ${report.typecheck.warnings} warnings)`,
     )
   }
+  if (report.repair && report.repair.passes > 0) {
+    lines.push(`- Repair: **${report.repair.passes} fix(es)** (${report.repair.stopped})`)
+  }
   if (report.runtime) {
     lines.push(
       `- Runtime: ${report.runtime.bundle.ok && report.runtime.entry.ok ? "**bundle + entry ok**" : "**failed**"}`,
@@ -47,6 +50,16 @@ export function renderMarkdown(report: MigrationReport): string {
     lines.push("")
     lines.push(`- Bundle: ${report.runtime.bundle.ok ? "ok" : report.runtime.bundle.errors.join("; ")}`)
     lines.push(`- Entry: ${report.runtime.entry.message}`)
+  }
+  if (report.repair && report.repair.fixes.length) {
+    lines.push("")
+    lines.push("## Auto-repair")
+    lines.push("")
+    for (const fix of report.repair.fixes) {
+      lines.push(
+        `- pass ${fix.pass}: \`${fix.code}\`${fix.origin ? ` in \`${fix.origin}\`` : ""} — ${fix.detail}`,
+      )
+    }
   }
   if (report.scaffolding && report.scaffolding.length) {
     lines.push("")

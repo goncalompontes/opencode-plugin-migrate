@@ -20,6 +20,8 @@ export const Diagnostic = z.object({
   message: z.string(),
   range: SourceRange.optional(),
   hint: z.string().optional(),
+  /** Hook, tool, or module region this finding came from. */
+  origin: z.string().optional(),
 })
 export type Diagnostic = z.infer<typeof Diagnostic>
 

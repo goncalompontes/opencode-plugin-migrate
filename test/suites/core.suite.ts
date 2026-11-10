@@ -6,6 +6,7 @@ import { HOOK_RULES } from "../../src/rules/hooks"
 import { pipeline, stage } from "../../src/core/pipeline"
 import { countV1ImportFiles } from "../../src/env/imports"
 import { validateRuntime } from "../../src/validate/bundle"
+import { runRepair } from "../../src/validate/repair"
 import { z } from "zod"
 
 const fixture = path.join(import.meta.dir, "..", "fixtures", "basic")
@@ -265,6 +266,48 @@ describe("JavaScript sources", () => {
     expect(fs.existsSync(path.join(result.outDir, "index.mjs"))).toBe(false)
     const manifest = await Bun.file(path.join(result.outDir, "package.json")).json()
     expect(manifest.main).toBe("./index.ts")
+  })
+})
+
+describe("auto-repair", () => {
+  test("adds type annotations to carried parameters across passes", async () => {
+    const result = await convertPlugin(path.join(import.meta.dir, "..", "fixtures", "repair"), {
+      outDir: path.join(root, "repair"),
+    })
+    expect(result.report.repair?.passes).toBe(2)
+    expect(result.report.repair?.fixes).toHaveLength(2)
+    expect(result.report.repair?.stopped).toBe("clean")
+    expect(result.report.typecheck?.clean).toBe(true)
+    expect(result.module.source).toContain("value: any")
+  })
+
+  test("stops when a fixer cannot make progress", async () => {
+    const dir = path.join(root, "repair-unit")
+    fs.mkdirSync(dir, { recursive: true })
+    const file = path.join(dir, "entry.ts")
+    await Bun.write(file, "const a = 1\n")
+    const check = (): Array<{
+      code: string
+      severity: "error"
+      message: string
+      range: { file: string; start: number; end: number; line: number; column: number }
+    }> => [
+      {
+        code: "ts/7006",
+        severity: "error",
+        message: "Parameter 'a' implicitly has an 'any' type.",
+        range: { file, start: 6, end: 7, line: 1, column: 7 },
+      },
+    ]
+    const outcome = runRepair({
+      file,
+      projectRoot: dir,
+      owned: [file],
+      check,
+      fixers: [{ id: "noop", codes: ["ts/7006"], apply: () => null }],
+    })
+    expect(outcome.result.stopped).toBe("no-fix")
+    expect(outcome.result.passes).toBe(0)
   })
 })
 

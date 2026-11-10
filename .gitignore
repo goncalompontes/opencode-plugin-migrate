@@ -1,0 +1,6 @@
+node_modules/
+.migrate/
+dist/
+benchmarks/corpus/
+benchmarks/.out/
+test/.tmp/

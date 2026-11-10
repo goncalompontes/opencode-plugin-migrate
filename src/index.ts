@@ -1,0 +1,6 @@
+export { analyzePlugin, convertPlugin, type AnalyzeResult, type ConvertResult } from "./api"
+export { HOOK_RULES, ruleFor, classify, type HookRule } from "./rules/hooks"
+export type { MigrationReport } from "./report/schema"
+export { renderMarkdown } from "./report/render"
+export { pipeline, stage, type Pipeline, type RunContext } from "./core/pipeline"
+export type { ClassifiedPluginIR, PluginIR } from "./ir/schema"

@@ -152,6 +152,17 @@ export function classify(ir: PluginIR): ClassifiedPluginIR {
     ...ir,
     hooks: ir.hooks.map((hook) => {
       const rule = ruleFor(hook.name)
+      if (hook.name === "chat.message" && /\boutput\??\.message\??\.model\b/.test(hook.body)) {
+        return {
+          ...hook,
+          classification: "review" as const,
+          adapter: "none" as const,
+          v2: "ctx.session.hook('context') or ctx.provider.transform()",
+          reason:
+            "the body mutates output.message.model, but the V2 prompt hook has no message model; model selection is a context/provider concern.",
+        }
+      }
+
       if (hook.name === "config") {
         const keys = [...new Set([...hook.body.matchAll(/\binput\.([A-Za-z_$][\w$]*)/g)].map((match) => match[1]))]
         const commandOnly = keys.length > 0 && keys.every((key) => key === "command")

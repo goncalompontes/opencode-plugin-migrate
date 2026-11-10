@@ -101,7 +101,7 @@ export function typecheck(
     skipLibCheck: true,
     esModuleInterop: true,
     resolveJsonModule: true,
-    allowJs: fromConfig.allowJs ?? false,
+    allowJs: true,
     allowImportingTsExtensions: true,
     // Migration may leave imports that the V1 implementation used; that is reported,
     // not a type error.

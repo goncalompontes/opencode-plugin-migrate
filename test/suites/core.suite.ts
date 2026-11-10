@@ -251,6 +251,23 @@ describe("scaffolding", () => {
   })
 })
 
+describe("JavaScript sources", () => {
+  const jsFixture = path.join(import.meta.dir, "..", "fixtures", "js")
+
+  test("converts a .mjs entry to a typechecking .ts module", async () => {
+    const result = await convertPlugin(jsFixture, { outDir: path.join(root, "js") })
+    expect(result.report.typecheck?.clean).toBe(true)
+    expect(result.report.runtime?.bundle.ok).toBe(true)
+    const codes = result.report.diagnostics.map((item) => item.code)
+    expect(codes).toContain("js/entry")
+    expect(codes).toContain("js/emitted")
+    expect(fs.existsSync(path.join(result.outDir, "index.ts"))).toBe(true)
+    expect(fs.existsSync(path.join(result.outDir, "index.mjs"))).toBe(false)
+    const manifest = await Bun.file(path.join(result.outDir, "package.json")).json()
+    expect(manifest.main).toBe("./index.ts")
+  })
+})
+
 describe("pipeline platform", () => {
   test("rejects a stage whose output violates its schema", async () => {
     const bad = pipeline<{ n: number }>()

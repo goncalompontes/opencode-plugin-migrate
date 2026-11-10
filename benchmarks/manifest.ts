@@ -58,6 +58,13 @@ export const CORPUS: readonly CorpusEntry[] = [
     note: "one PluginInput parameter, conditional early return, dispose, intervals",
   },
   {
+    name: "OpenCode-Image-Router-Plugin",
+    repo: "adrivansoft/OpenCode-Image-Router-Plugin",
+    commit: "0aec547ef3611540c2ddc31bec1196ad6719add0",
+    license: "MIT",
+    note: "JavaScript entry; chat.message mutates message.model and stays in review",
+  },
+  {
     name: "opencode-pty",
     repo: "shekohex/opencode-pty",
     commit: "b6c2067f1fb29d5fd3b2e744a7c05d7df1a6e7c1",

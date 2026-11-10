@@ -38,6 +38,7 @@ export function upgradePackageJson(
   version: string,
   canUpgrade = true,
   needsZod = false,
+  entryRename?: { from: string; to: string },
 ): Diagnostic[] {
   const file = path.join(dir, "package.json")
   if (!fs.existsSync(file)) {
@@ -88,9 +89,40 @@ export function upgradePackageJson(
     changed = true
   }
 
-  if (!changed) return []
+  const normalized = (value: unknown): string | undefined =>
+    typeof value === "string" ? value.replace(/^\.\//, "") : undefined
+  const renamed =
+    entryRename !== undefined &&
+    (normalized(manifest.main) === normalized(entryRename.from) ||
+      (typeof manifest.exports === "object" &&
+        manifest.exports !== null &&
+        normalized((manifest.exports as Record<string, unknown>)["."]) ===
+          normalized(entryRename.from)))
+
+  if (renamed && entryRename) {
+    const to = `./${entryRename.to.replace(/^\.\//, "")}`
+    if (normalized(manifest.main) === normalized(entryRename.from)) manifest.main = to
+    if (
+      typeof manifest.exports === "object" &&
+      manifest.exports !== null &&
+      normalized((manifest.exports as Record<string, unknown>)["."]) === normalized(entryRename.from)
+    ) {
+      ;(manifest.exports as Record<string, unknown>)["."] = to
+    }
+  }
+
+  if (!changed && !renamed) return []
   fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`)
   return [
+    ...(renamed && entryRename
+      ? [
+          {
+            code: "package/entry",
+            severity: "info" as const,
+            message: `package entry moved from ${entryRename.from} to ${entryRename.to}.`,
+          },
+        ]
+      : []),
     ...(zodAdded
       ? [
           {

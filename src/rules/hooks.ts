@@ -46,21 +46,24 @@ export const HOOK_RULES: Record<keyof Hooks, HookRule> = {
     adapter: "none",
   },
   "chat.message": {
-    classification: "review",
+    classification: "converted",
     v2: "ctx.session.hook('prompt')",
-    adapter: "none",
-    reason: "The V2 prompt hook runs before durable prompt admission and exposes a different event shape.",
+    adapter: "session-prompt",
+    reason:
+      "V1 message parts are bridged into the V2 prompt text; non-text parts are reported, not silently kept.",
   },
   "chat.params": {
-    classification: "review",
+    classification: "converted",
     v2: "ctx.session.hook('context') and event.options",
-    adapter: "none",
-    reason: "Generation options are semantic fields on the context event, not a free-form output object.",
+    adapter: "session-context",
+    reason:
+      "generation options map onto event.options; V1 provider/message inputs have no direct V2 field.",
   },
   "chat.headers": {
-    classification: "review",
-    v2: "ctx.session.hook('model.request') or 'http.request'",
-    adapter: "none",
+    classification: "converted",
+    v2: "ctx.session.hook('model.request')",
+    adapter: "model-request",
+    reason: "V1 request headers map onto the model.request event headers.",
   },
   "permission.ask": {
     classification: "converted",

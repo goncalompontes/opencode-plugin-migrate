@@ -80,6 +80,9 @@ export const AdapterKind = z.enum([
   "tool-transform",
   "shell-env",
   "permission-evaluate",
+  "session-prompt",
+  "session-context",
+  "model-request",
   "dispose",
   "none",
 ])

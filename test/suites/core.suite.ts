@@ -57,8 +57,10 @@ describe("analyze", () => {
     expect(byName["tool.execute.before"]).toBe("converted")
     expect(byName["event"]).toBe("converted")
     expect(byName["dispose"]).toBe("converted")
-    expect(byName["chat.message"]).toBe("review")
-    expect(report.counts).toEqual({ converted: 4, review: 1, unsupported: 0 })
+    expect(byName["chat.message"]).toBe("converted")
+    expect(byName["chat.params"]).toBe("converted")
+    expect(byName["chat.headers"]).toBe("converted")
+    expect(report.counts).toEqual({ converted: 7, review: 0, unsupported: 0 })
   })
 
   test("writes nothing", async () => {
@@ -84,21 +86,26 @@ describe("convert", () => {
     expect(result.report.runtime?.bundle.ok).toBe(true)
     expect(result.report.runtime?.entry.ok).toBe(true)
     expect(result.module.emitted.sort()).toEqual([
+      "chat.headers",
+      "chat.message",
+      "chat.params",
       "dispose",
       "event",
       "permission.ask",
       "tool.execute.before",
     ])
-    expect(result.module.skipped).toEqual(["chat.message"])
+    expect(result.module.skipped).toEqual([])
     expect(result.module.source).toContain("Plugin.define")
     expect(result.module.source).toContain("export default BasicPlugin")
     expect(result.module.source).toContain("#region carried-v1")
-    expect(result.module.source).toContain("Not converted automatically")
+    expect(result.module.source).not.toContain("Not converted automatically")
     const manifest = await Bun.file(path.join(result.outDir, "package.json")).json()
     expect(manifest.dependencies["@opencode/plugin"]).toStartWith("^2")
     expect(manifest.dependencies["@opencode-ai/plugin"]).toBeUndefined()
-    expect(result.report.leftovers).toHaveLength(1)
-    expect(result.report.leftovers[0]?.v2).toContain("session.hook('prompt')")
+    expect(result.report.leftovers).toHaveLength(0)
+    expect(result.module.source).toContain('hook("prompt"')
+    expect(result.module.source).toContain('hook("context"')
+    expect(result.module.source).toContain('hook("model.request"')
   })
 
   test("refuses to re-convert an already converted module", async () => {

@@ -250,6 +250,68 @@ function adapterBody(hook: ClassifiedHook, id: string, index: number, level: num
         `${pad}})`,
       ].join("\n")
 
+    case "session-prompt":
+      return [
+        `${pad}await __opencode.session.hook("prompt", async (event: any) => {`,
+        `${pad}${INDENT}const input: any = { sessionID: event.sessionID, messageID: event.messageID, agent: undefined, model: undefined }`,
+        `${pad}${INDENT}const output: any = {`,
+        `${pad}${INDENT}${INDENT}message: { id: event.messageID, sessionID: event.sessionID },`,
+        `${pad}${INDENT}${INDENT}parts: [{ type: "text", id: event.messageID, sessionID: event.sessionID, messageID: event.messageID, text: event.prompt?.text ?? "" }],`,
+        `${pad}${INDENT}}`,
+        `${pad}${INDENT}try {`,
+        inner2,
+        `${pad}${INDENT}} finally {`,
+        `${pad}${INDENT}${INDENT}const text = output.parts`,
+        `${pad}${INDENT}${INDENT}  .filter((part: any) => part?.type === "text")`,
+        `${pad}${INDENT}${INDENT}  .map((part: any) => part.text)`,
+        `${pad}${INDENT}${INDENT}  .join("")`,
+        `${pad}${INDENT}${INDENT}event.prompt.text = text`,
+        `${pad}${INDENT}}`,
+        `${pad}})`,
+      ].join("\n")
+
+    case "session-context":
+      return [
+        `${pad}await __opencode.session.hook("context", async (event: any) => {`,
+        `${pad}${INDENT}const input: any = {`,
+        `${pad}${INDENT}${INDENT}sessionID: event.sessionID,`,
+        `${pad}${INDENT}${INDENT}agent: event.agent,`,
+        `${pad}${INDENT}${INDENT}model: { ...event.model, id: event.model?.modelID },`,
+        `${pad}${INDENT}${INDENT}provider: {},`,
+        `${pad}${INDENT}${INDENT}message: undefined,`,
+        `${pad}${INDENT}}`,
+        `${pad}${INDENT}const output: any = {`,
+        `${pad}${INDENT}${INDENT}temperature: event.options?.temperature,`,
+        `${pad}${INDENT}${INDENT}topP: event.options?.topP,`,
+        `${pad}${INDENT}${INDENT}topK: event.options?.topK,`,
+        `${pad}${INDENT}${INDENT}maxOutputTokens: event.options?.maxTokens,`,
+        `${pad}${INDENT}${INDENT}options: event.options ?? {},`,
+        `${pad}${INDENT}}`,
+        `${pad}${INDENT}try {`,
+        inner2,
+        `${pad}${INDENT}} finally {`,
+        `${pad}${INDENT}${INDENT}event.options = output.options ?? event.options`,
+        `${pad}${INDENT}${INDENT}event.options.temperature = output.temperature`,
+        `${pad}${INDENT}${INDENT}event.options.topP = output.topP`,
+        `${pad}${INDENT}${INDENT}event.options.topK = output.topK`,
+        `${pad}${INDENT}${INDENT}event.options.maxTokens = output.maxOutputTokens`,
+        `${pad}${INDENT}}`,
+        `${pad}})`,
+      ].join("\n")
+
+    case "model-request":
+      return [
+        `${pad}await __opencode.session.hook("model.request", async (event: any) => {`,
+        `${pad}${INDENT}const input: any = { sessionID: event.sessionID, agent: event.agent, model: event.model, provider: {}, message: undefined }`,
+        `${pad}${INDENT}const output: any = { headers: event.headers }`,
+        `${pad}${INDENT}try {`,
+        inner2,
+        `${pad}${INDENT}} finally {`,
+        `${pad}${INDENT}${INDENT}event.headers = output.headers`,
+        `${pad}${INDENT}}`,
+        `${pad}})`,
+      ].join("\n")
+
     case "shell-env":
       return [
         `${pad}await __opencode.shell.hook("create.before", async (event) => {`,

@@ -1,0 +1,1098 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import type { NotificationEventType, PluginConfig } from '../types/config.js';
+
+type JsonRecord = Record<string, unknown>;
+
+const isPlainObject = (value: unknown): value is JsonRecord => {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+};
+
+const getErrorMessage = (error: unknown): string => {
+  const maybeError = error as { message?: unknown };
+  return String(maybeError?.message);
+};
+
+/**
+ * Debug logging to file (no console output).
+ * Logs are written to ~/.config/opencode/logs/smart-voice-notify-debug.log
+ * @param message - Message to log
+ * @param configDir - Config directory path
+ */
+const debugLogToFile = (message: string, configDir: string): void => {
+  try {
+    const logsDir = path.join(configDir, 'logs');
+    if (!fs.existsSync(logsDir)) {
+      fs.mkdirSync(logsDir, { recursive: true });
+    }
+    const logFile = path.join(logsDir, 'smart-voice-notify-debug.log');
+    const timestamp = new Date().toISOString();
+    fs.appendFileSync(logFile, `[${timestamp}] [config] ${message}\n`);
+  } catch {
+    // Silently fail - logging should never break the plugin
+  }
+};
+
+/**
+ * Basic JSONC parser that strips single-line and multi-line comments,
+ * and handles trailing commas (which Prettier often adds).
+ * @param jsonc
+ * @returns parsed JSON object
+ */
+export const parseJSONC = <T = unknown>(jsonc: string): T => {
+  // Step 1: Strip comments while preserving strings
+  // This regex matches strings (handling escaped quotes) or comments
+  // If it's a comment, we replace it with empty string
+  let stripped = jsonc.replace(/\\"|"(?:\\"|[^"])*"|(\/\/.*|\/\*[\s\S]*?\*\/)/g, (m, g: string | undefined) => (g ? '' : m));
+
+  // Step 2: Strip trailing commas (e.g. [1, 2,] or {"a":1,})
+  // This helps when formatters like Prettier are used
+  stripped = stripped.replace(/,(\s*[\]}])/g, '$1');
+
+  // Step 3: Handle literal control characters that might be present
+  // JSON.parse fails on literal control characters (U+0000 to U+001F).
+  // Some are allowed as whitespace (space, tab, newline, cr), but literal
+  // tabs or newlines INSIDE strings are strictly forbidden.
+  // We'll strip most of them, but preserve allowed whitespace outside strings.
+  // A safer approach for user-edited files is to remove characters that
+  // definitely shouldn't be there.
+  stripped = stripped.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
+
+  return JSON.parse(stripped) as T;
+};
+
+/**
+ * Helper to format JSON values for the template.
+ * @param val
+ * @param indent
+ * @returns string
+ */
+export const formatJSON = (val: unknown, indent = 0): string => {
+  const json = JSON.stringify(val, null, 4);
+  return indent > 0 ? json.replace(/\n/g, '\n' + ' '.repeat(indent)) : json;
+};
+
+/**
+ * Deep merge two objects. User values take precedence over defaults.
+ * - For objects: recursively merge, adding new keys from defaults
+ * - For arrays: user's array completely replaces default (no merge)
+ * - For primitives: user's value takes precedence if it exists
+ *
+ * @param defaults - The default configuration object
+ * @param user - The user's existing configuration object
+ * @returns Merged configuration with user values preserved
+ */
+export const deepMerge = <T>(defaults: T, user: unknown): T => {
+  // If user value doesn't exist, use default
+  if (user === undefined || user === null) {
+    return defaults;
+  }
+
+  // If either is not an object (or is array), user value wins
+  if (!isPlainObject(defaults)) {
+    return user as T;
+  }
+  if (!isPlainObject(user)) {
+    return user as T;
+  }
+
+  // Both are objects - merge them
+  const result: JsonRecord = { ...user };
+
+  for (const key of Object.keys(defaults)) {
+    if (!(key in user)) {
+      // Key doesn't exist in user config - add it from defaults
+      result[key] = defaults[key];
+    } else if (isPlainObject(defaults[key])) {
+      // Both have this key and it's an object - recurse
+      result[key] = deepMerge(defaults[key], user[key]);
+    }
+    // else: user has this key and it's not an object to merge - keep user's value
+  }
+
+  return result as T;
+};
+
+const defaultWebhookEvents: NotificationEventType[] = ['idle', 'permission', 'error', 'question'];
+
+/**
+ * Get the default configuration object.
+ * This is the source of truth for all default values.
+ * @returns Default configuration object
+ */
+export const getDefaultConfigObject = (): PluginConfig => ({
+
+  _configVersion: null, // Will be set by caller
+  enabled: true,
+  notificationMode: 'sound-first',
+  enableTTSReminder: true,
+  enableIdleNotification: true,
+  enablePermissionNotification: true,
+  enableQuestionNotification: true,
+  enableErrorNotification: false,
+  enableIdleReminder: true,
+  enablePermissionReminder: true,
+  enableQuestionReminder: true,
+  enableErrorReminder: false,
+  ttsReminderDelaySeconds: 30,
+  idleReminderDelaySeconds: 30,
+  permissionReminderDelaySeconds: 20,
+  enableFollowUpReminders: true,
+  maxFollowUpReminders: 3,
+  reminderBackoffMultiplier: 1.5,
+  ttsEngine: 'elevenlabs',
+  enableTTS: true,
+  // elevenLabsApiKey is intentionally omitted - users must set it
+  elevenLabsVoiceId: 'cgSgspJ2msm6clMCkdW9',
+  elevenLabsModel: 'eleven_turbo_v2_5',
+  elevenLabsStability: 0.5,
+  elevenLabsSimilarity: 0.75,
+  elevenLabsStyle: 0.5,
+  edgeVoice: 'en-US-JennyNeural',
+  edgePitch: '+0Hz',
+  edgeRate: '+10%',
+  sapiVoice: 'Microsoft Zira Desktop',
+  sapiRate: -1,
+  sapiPitch: 'medium',
+  sapiVolume: 'loud',
+  openaiTtsEndpoint: '',
+  openaiTtsApiKey: '',
+  openaiTtsModel: 'tts-1',
+  openaiTtsVoice: 'alloy',
+  openaiTtsFormat: 'mp3',
+  openaiTtsSpeed: 1.0,
+  enableVoiceCache: false,
+  voiceCacheDir: 'voice-cache',
+  voiceCacheMaxSizeMB: 100,
+  idleTTSMessages: [
+    'All done! Your task has been completed successfully.',
+    'Hey there! I finished working on your request.',
+    'Task complete! Ready for your review whenever you are.',
+    'Good news! Everything is done and ready for you.',
+    'Finished! Let me know if you need anything else.',
+  ],
+  permissionTTSMessages: [
+    'Attention please! I need your permission to continue.',
+    'Hey! Quick approval needed to proceed with the task.',
+    'Heads up! There is a permission request waiting for you.',
+    'Excuse me! I need your authorization before I can continue.',
+    'Permission required! Please review and approve when ready.',
+  ],
+  permissionTTSMessagesMultiple: [
+    'Attention please! There are {count} permission requests waiting for your approval.',
+    'Hey! {count} permissions need your approval to continue.',
+    'Heads up! You have {count} pending permission requests.',
+    'Excuse me! I need your authorization for {count} different actions.',
+    '{count} permissions required! Please review and approve when ready.',
+  ],
+  idleReminderTTSMessages: [
+    'Hey, are you still there? Your task has been waiting for review.',
+    'Just a gentle reminder - I finished your request a while ago!',
+    'Hello? I completed your task. Please take a look when you can.',
+    'Still waiting for you! The work is done and ready for review.',
+    'Knock knock! Your completed task is patiently waiting for you.',
+  ],
+  permissionReminderTTSMessages: [
+    'Hey! I still need your permission to continue. Please respond!',
+    'Reminder: There is a pending permission request. I cannot proceed without you.',
+    'Hello? I am waiting for your approval. This is getting urgent!',
+    'Please check your screen! I really need your permission to move forward.',
+    'Still waiting for authorization! The task is on hold until you respond.',
+  ],
+  permissionReminderTTSMessagesMultiple: [
+    'Hey! I still need your approval for {count} permissions. Please respond!',
+    'Reminder: There are {count} pending permission requests. I cannot proceed without you.',
+    'Hello? I am waiting for your approval on {count} items. This is getting urgent!',
+    'Please check your screen! {count} permissions are waiting for your response.',
+    'Still waiting for authorization on {count} requests! The task is on hold.',
+  ],
+  permissionBatchWindowMs: 800,
+  questionTTSMessages: [
+    'Hey! I have a question for you. Please check your screen.',
+    'Attention! I need your input to continue.',
+    'Quick question! Please take a look when you have a moment.',
+    'I need some clarification. Could you please respond?',
+    'Question time! Your input is needed to proceed.',
+  ],
+  questionTTSMessagesMultiple: [
+    'Hey! I have {count} questions for you. Please check your screen.',
+    'Attention! I need your input on {count} items to continue.',
+    '{count} questions need your attention. Please take a look!',
+    'I need some clarifications. There are {count} questions waiting for you.',
+    'Question time! {count} questions need your response to proceed.',
+  ],
+  questionReminderTTSMessages: [
+    'Hey! I am still waiting for your answer. Please check the questions!',
+    'Reminder: There is a question waiting for your response.',
+    'Hello? I need your input to continue. Please respond when you can.',
+    'Still waiting for your answer! The task is on hold.',
+    'Your input is needed! Please check the pending question.',
+  ],
+  questionReminderTTSMessagesMultiple: [
+    'Hey! I am still waiting for answers to {count} questions. Please respond!',
+    'Reminder: There are {count} questions waiting for your response.',
+    'Hello? I need your input on {count} items. Please respond when you can.',
+    'Still waiting for your answers on {count} questions! The task is on hold.',
+    'Your input is needed! {count} questions are pending your response.',
+  ],
+  questionReminderDelaySeconds: 25,
+  questionBatchWindowMs: 800,
+  errorTTSMessages: [
+    'Oops! Something went wrong. Please check for errors.',
+    'Alert! The agent encountered an error and needs your attention.',
+    'Error detected! Please review the issue when you can.',
+    'Houston, we have a problem! An error occurred during the task.',
+    'Heads up! There was an error that requires your attention.',
+  ],
+  errorTTSMessagesMultiple: [
+    'Oops! There are {count} errors that need your attention.',
+    'Alert! The agent encountered {count} errors. Please review.',
+    '{count} errors detected! Please check when you can.',
+    'Houston, we have {count} problems! Multiple errors occurred.',
+    'Heads up! {count} errors require your attention.',
+  ],
+  errorReminderTTSMessages: [
+    "Hey! There's still an error waiting for your attention.",
+    "Reminder: An error occurred and hasn't been addressed yet.",
+    'The agent is stuck! Please check the error when you can.',
+    'Still waiting! That error needs your attention.',
+    "Don't forget! There's an unresolved error in your session.",
+  ],
+  errorReminderTTSMessagesMultiple: [
+    'Hey! There are still {count} errors waiting for your attention.',
+    "Reminder: {count} errors occurred and haven't been addressed yet.",
+    'The agent is stuck! Please check the {count} errors when you can.',
+    'Still waiting! {count} errors need your attention.',
+    "Don't forget! There are {count} unresolved errors in your session.",
+  ],
+  errorReminderDelaySeconds: 20,
+  enableAIMessages: false,
+  aiEndpoint: 'http://localhost:11434/v1',
+  aiModel: 'llama3',
+  aiApiKey: '',
+  aiTimeout: 15000,
+  aiFallbackToStatic: true,
+  enableContextAwareAI: false,
+  aiPrompts: {
+    idle: 'Generate a single brief, friendly notification sentence (max 15 words) saying a coding task is complete. Be encouraging and warm. Output only the message, no quotes.',
+    permission: 'Generate a single brief, urgent but friendly notification sentence (max 15 words) asking the user to approve a permission request. Output only the message, no quotes.',
+    question: 'Generate a single brief, polite notification sentence (max 15 words) saying the assistant has a question and needs user input. Output only the message, no quotes.',
+    error: 'Generate a single brief, concerned but calm notification sentence (max 15 words) saying an error occurred and needs attention. Output only the message, no quotes.',
+    idleReminder: 'Generate a single brief, gentle reminder sentence (max 15 words) that a completed task is waiting for review. Be slightly more insistent. Output only the message, no quotes.',
+    permissionReminder: 'Generate a single brief, urgent reminder sentence (max 15 words) that permission approval is still needed. Convey importance. Output only the message, no quotes.',
+    questionReminder: 'Generate a single brief, polite but persistent reminder sentence (max 15 words) that a question is still waiting for an answer. Output only the message, no quotes.',
+    errorReminder: 'Generate a single brief, urgent reminder sentence (max 15 words) that an error still needs attention. Convey urgency. Output only the message, no quotes.',
+  },
+  idleSound: 'assets/Soft-high-tech-notification-sound-effect.mp3',
+  permissionSound: 'assets/Machine-alert-beep-sound-effect.mp3',
+  questionSound: 'assets/Machine-alert-beep-sound-effect.mp3',
+  errorSound: 'assets/Machine-alert-beep-sound-effect.mp3',
+  wakeMonitor: true,
+  forceVolume: false,
+  volumeThreshold: 50,
+  enableToast: true,
+  enableSound: true,
+  enableDesktopNotification: true,
+  desktopNotificationTimeout: 5,
+  showProjectInNotification: true,
+  suppressWhenFocused: false,
+  alwaysNotify: false,
+  enableWebhook: false,
+  webhookUrl: '',
+  webhookUsername: 'OpenCode Notify',
+  webhookEvents: [...defaultWebhookEvents],
+  webhookMentionOnPermission: false,
+  soundThemeDir: '',
+  randomizeSoundFromTheme: true,
+  perProjectSounds: false,
+  projectSoundSeed: 0,
+  idleThresholdSeconds: 60,
+  debugLog: false,
+});
+
+/**
+ * Find new fields that exist in defaults but not in user config.
+ * Used for logging what was added during migration.
+ * @param defaults
+ * @param user
+ * @param prefix
+ * @returns Array of field paths that were added
+ */
+export const findNewFields = (defaults: unknown, user: unknown, prefix = ''): string[] => {
+
+  const newFields: string[] = [];
+
+  if (!isPlainObject(defaults)) {
+    return newFields;
+  }
+
+  const userRecord = user as JsonRecord;
+
+  for (const key of Object.keys(defaults)) {
+    const fieldPath = prefix ? `${prefix}.${key}` : key;
+
+    if (!(key in userRecord)) {
+      newFields.push(fieldPath);
+    } else if (isPlainObject(defaults[key])) {
+      if (isPlainObject(userRecord[key])) {
+        newFields.push(...findNewFields(defaults[key], userRecord[key], fieldPath));
+      }
+    }
+  }
+
+  return newFields;
+};
+
+/**
+ * Get the directory where this plugin is installed.
+ * Used to find bundled assets like example.config.jsonc
+ */
+const getPluginDir = (): string => {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+
+  // Support running from src/util, dist/util, or legacy util paths.
+  const candidates = [
+    path.resolve(__dirname, '..', '..'),
+    path.resolve(__dirname, '..'),
+    path.resolve(__dirname),
+  ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(path.join(candidate, 'package.json'))) {
+      return candidate;
+    }
+  }
+
+  return path.resolve(__dirname, '..');
+};
+
+/**
+ * Generate a comprehensive default configuration file content.
+ * This provides users with ALL available options fully documented.
+ * @param overrides - Existing configuration to preserve
+ * @param version - Current version to set in config
+ */
+const generateDefaultConfig = (overrides: Partial<PluginConfig> = {}, version = '1.0.0'): string => {
+  return `{
+    // ============================================================
+    // OpenCode Smart Voice Notify - Configuration
+    // ============================================================
+    // 
+    // This file was auto-generated with all available options.
+    // Customize the settings below to your preference.
+    // 
+    // Sound files have been automatically copied to:
+    //   ~/.config/opencode/assets/
+    //
+    // Documentation: https://github.com/MasuRii/opencode-smart-voice-notify
+    //
+    // ============================================================
+
+    // Internal version tracking - DO NOT REMOVE
+    "_configVersion": "${version}",
+
+    // ============================================================
+    // PLUGIN ENABLE/DISABLE
+    // ============================================================
+    // Master switch to enable or disable the entire plugin.
+    // Set to false to disable all notifications without uninstalling.
+    "enabled": ${overrides.enabled !== undefined ? overrides.enabled : true},
+
+    // ============================================================
+    // GRANULAR NOTIFICATION CONTROL
+    // ============================================================
+    // Enable or disable notifications for specific event types.
+    // If disabled, no sound, TTS, desktop, or webhook notifications
+    // will be sent for that specific category.
+    "enableIdleNotification": ${overrides.enableIdleNotification !== undefined ? overrides.enableIdleNotification : true},       // Agent finished work
+    "enablePermissionNotification": ${overrides.enablePermissionNotification !== undefined ? overrides.enablePermissionNotification : true}, // Agent needs permission
+    "enableQuestionNotification": ${overrides.enableQuestionNotification !== undefined ? overrides.enableQuestionNotification : true},     // Agent asks a question
+    "enableErrorNotification": ${overrides.enableErrorNotification !== undefined ? overrides.enableErrorNotification : false},       // Agent encountered an error
+
+    // Enable or disable reminders for specific event types.
+    // If disabled, the initial notification will still fire, but no
+    // follow-up TTS reminders will be scheduled.
+    "enableIdleReminder": ${overrides.enableIdleReminder !== undefined ? overrides.enableIdleReminder : true},
+    "enablePermissionReminder": ${overrides.enablePermissionReminder !== undefined ? overrides.enablePermissionReminder : true},
+    "enableQuestionReminder": ${overrides.enableQuestionReminder !== undefined ? overrides.enableQuestionReminder : true},
+    "enableErrorReminder": ${overrides.enableErrorReminder !== undefined ? overrides.enableErrorReminder : false},
+
+    // ============================================================
+    // NOTIFICATION MODE SETTINGS (Smart Notification System)
+    // ============================================================
+    // Controls how notifications are delivered:
+    //   'sound-first' - Play sound immediately, TTS reminder after delay (RECOMMENDED)
+    //   'tts-first'   - Speak TTS immediately, no sound
+    //   'both'        - Play sound AND speak TTS immediately
+    //   'sound-only'  - Only play sound, no TTS at all
+    "notificationMode": "${overrides.notificationMode || 'sound-first'}",
+    
+    // ============================================================
+    // TTS REMINDER SETTINGS (When user doesn't respond to sound)
+    // ============================================================
+    
+    // Enable TTS reminder if user doesn't respond after sound notification
+    "enableTTSReminder": ${overrides.enableTTSReminder !== undefined ? overrides.enableTTSReminder : true},
+    
+    // Delay (in seconds) before TTS reminder fires
+    // Set globally or per-notification type
+    "ttsReminderDelaySeconds": ${overrides.ttsReminderDelaySeconds !== undefined ? overrides.ttsReminderDelaySeconds : 30},         // Global default
+    "idleReminderDelaySeconds": ${overrides.idleReminderDelaySeconds !== undefined ? overrides.idleReminderDelaySeconds : 30},        // For task completion notifications
+    "permissionReminderDelaySeconds": ${overrides.permissionReminderDelaySeconds !== undefined ? overrides.permissionReminderDelaySeconds : 20},  // For permission requests (more urgent)
+    
+    // Follow-up reminders if user STILL doesn't respond after first TTS
+    "enableFollowUpReminders": ${overrides.enableFollowUpReminders !== undefined ? overrides.enableFollowUpReminders : true},
+    "maxFollowUpReminders": ${overrides.maxFollowUpReminders !== undefined ? overrides.maxFollowUpReminders : 3},              // Max number of follow-up TTS reminders
+    "reminderBackoffMultiplier": ${overrides.reminderBackoffMultiplier !== undefined ? overrides.reminderBackoffMultiplier : 1.5},       // Each follow-up waits longer (30s, 45s, 67s...)
+
+    // ============================================================
+    // TTS ENGINE SELECTION
+    // ============================================================
+    // 'openai'     - OpenAI-compatible TTS (Self-hosted/Cloud, e.g. Kokoro, LocalAI)
+    // 'elevenlabs' - Best quality, anime-like voices (requires API key, free tier: 10k chars/month)
+    // 'edge'       - Good quality neural voices (Python edge-tts CLI RECOMMENDED, with msedge-tts npm fallback)
+    // 'sapi'       - Windows built-in voices (free, offline, robotic)
+    "ttsEngine": "${overrides.ttsEngine || 'elevenlabs'}",
+    
+    // Enable TTS for notifications (falls back to sound files if TTS fails)
+    "enableTTS": ${overrides.enableTTS !== undefined ? overrides.enableTTS : true},
+    
+    // ============================================================
+    // ELEVENLABS SETTINGS (Best Quality - Anime-like Voices)
+    // ============================================================
+    // Get your API key from: https://elevenlabs.io/app/settings/api-keys
+    // Free tier: 10,000 characters/month
+    // 
+    // To use ElevenLabs:
+    // 1. Uncomment elevenLabsApiKey and add your key
+    // 2. Change ttsEngine above to "elevenlabs"
+    //
+    ${overrides.elevenLabsApiKey ? `"elevenLabsApiKey": "${overrides.elevenLabsApiKey}",` : `// "elevenLabsApiKey": "YOUR_API_KEY_HERE",`}
+    
+    // Voice ID - Recommended cute/anime-like voices:
+    //   'cgSgspJ2msm6clMCkdW9' - Jessica (Playful, Bright, Warm) - RECOMMENDED
+    //   'FGY2WhTYpPnrIDTdsKH5' - Laura (Enthusiast, Quirky)
+    //   'jsCqWAovK2LkecY7zXl4' - Freya (Expressive, Confident)
+    //   'EXAVITQu4vr4xnSDxMaL' - Sarah (Soft, Warm)
+    // Browse more at: https://elevenlabs.io/voice-library
+    "elevenLabsVoiceId": "${overrides.elevenLabsVoiceId || 'cgSgspJ2msm6clMCkdW9'}",
+    
+    // Model: 'eleven_turbo_v2_5' (fast, good), 'eleven_multilingual_v2' (highest quality)
+    "elevenLabsModel": "${overrides.elevenLabsModel || 'eleven_turbo_v2_5'}",
+    
+    // Voice tuning (0.0 to 1.0)
+    "elevenLabsStability": ${overrides.elevenLabsStability !== undefined ? overrides.elevenLabsStability : 0.5},       // Lower = more expressive, Higher = more consistent
+    "elevenLabsSimilarity": ${overrides.elevenLabsSimilarity !== undefined ? overrides.elevenLabsSimilarity : 0.75},     // How closely to match the original voice
+    "elevenLabsStyle": ${overrides.elevenLabsStyle !== undefined ? overrides.elevenLabsStyle : 0.5},           // Style exaggeration (higher = more expressive)
+    
+    // ============================================================
+    // EDGE TTS SETTINGS (Free Neural Voices)
+    // ============================================================
+    // Uses Python edge-tts CLI (RECOMMENDED, pip install edge-tts) with automatic
+    // fallback to msedge-tts npm package if Python is not available.
+    
+    // Voice options (run 'edge-tts --list-voices' to see all):
+    //   'en-US-AnaNeural'   - Young, cute, cartoon-like (RECOMMENDED)
+    //   'en-US-JennyNeural' - Friendly, warm
+    //   'en-US-AriaNeural'  - Confident, clear
+    //   'en-GB-SoniaNeural' - British, friendly
+    //   'en-AU-NatashaNeural' - Australian, warm
+    "edgeVoice": "${overrides.edgeVoice || 'en-US-JennyNeural'}",
+    
+    // Pitch adjustment: +0Hz to +100Hz (higher = more anime-like)
+    "edgePitch": "${overrides.edgePitch || '+0Hz'}",
+    
+    // Speech rate: -50% to +100%
+    "edgeRate": "${overrides.edgeRate || '+10%'}",
+    
+    // ============================================================
+    // SAPI SETTINGS (Windows Built-in - Last Resort Fallback)
+    // ============================================================
+    
+    // Voice (run PowerShell to list all installed voices):
+    //   Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).GetInstalledVoices() | % { $_.VoiceInfo.Name }
+    //
+    // Common Windows voices:
+    //   'Microsoft Zira Desktop' - Female, US English
+    //   'Microsoft David Desktop' - Male, US English
+    //   'Microsoft Hazel Desktop' - Female, UK English
+    "sapiVoice": "${overrides.sapiVoice || 'Microsoft Zira Desktop'}",
+    
+    // Speech rate: -10 (slowest) to +10 (fastest), 0 is normal
+    "sapiRate": ${overrides.sapiRate !== undefined ? overrides.sapiRate : -1},
+    
+    // Pitch: 'x-low', 'low', 'medium', 'high', 'x-high'
+    "sapiPitch": "${overrides.sapiPitch || 'medium'}",
+    
+    // Volume: 'silent', 'x-soft', 'soft', 'medium', 'loud', 'x-loud'
+    "sapiVolume": "${overrides.sapiVolume || 'loud'}",
+    
+    // ============================================================
+    // OPENAI-COMPATIBLE TTS SETTINGS (Kokoro, LocalAI, OpenAI, etc.)
+    // ============================================================
+    // Any OpenAI-compatible /v1/audio/speech endpoint.
+    // Examples: Kokoro, OpenAI, LocalAI, Coqui, AllTalk, etc.
+    //
+    // To use OpenAI-compatible TTS:
+    // 1. Set ttsEngine above to "openai"
+    // 2. Set openaiTtsEndpoint to your server URL (without /v1/audio/speech)
+    // 3. Configure voice and model for your server
+    
+    // Base URL for your TTS server (e.g., "http://192.168.86.43:8880")
+    "openaiTtsEndpoint": "${overrides.openaiTtsEndpoint || ''}",
+    
+    // API key (leave empty if your server doesn't require auth)
+    "openaiTtsApiKey": "${overrides.openaiTtsApiKey || ''}",
+    
+    // Model name (server-dependent, e.g., "tts-1", "kokoro", "xtts")
+    "openaiTtsModel": "${overrides.openaiTtsModel || 'tts-1'}",
+    
+    // Voice name (server-dependent)
+    // Kokoro voices: "af_heart", "af_bella", "am_adam", etc.
+    // OpenAI voices: "alloy", "echo", "fable", "onyx", "nova", "shimmer"
+    "openaiTtsVoice": "${overrides.openaiTtsVoice || 'alloy'}",
+    
+    // Audio format: "mp3", "opus", "aac", "flac", "wav", "pcm"
+    "openaiTtsFormat": "${overrides.openaiTtsFormat || 'mp3'}",
+    
+    // Speech speed: 0.25 to 4.0 (1.0 = normal)
+    "openaiTtsSpeed": ${overrides.openaiTtsSpeed !== undefined ? overrides.openaiTtsSpeed : 1.0},
+    
+    // ============================================================
+    // VOICE CACHE SETTINGS (Optional local TTS audio cache)
+    // ============================================================
+    // Cache generated TTS audio locally so repeated messages can replay
+    // without calling cloud/self-hosted TTS services again.
+    // Disabled by default to preserve existing behavior and disk usage.
+    "enableVoiceCache": ${overrides.enableVoiceCache !== undefined ? overrides.enableVoiceCache : false},
+    
+    // Directory for cached voice audio. Relative paths are resolved from
+    // ~/.config/opencode/; absolute paths are used as-is.
+    "voiceCacheDir": ${JSON.stringify(overrides.voiceCacheDir !== undefined ? overrides.voiceCacheDir : 'voice-cache')},
+    
+    // Maximum cache size in megabytes. Oldest cached audio is removed first.
+    "voiceCacheMaxSizeMB": ${overrides.voiceCacheMaxSizeMB !== undefined ? overrides.voiceCacheMaxSizeMB : 100},
+    
+    // ============================================================
+    // INITIAL TTS MESSAGES (Used immediately or after sound)
+    // These are randomly selected each time for variety
+    // ============================================================
+    
+    // Messages when agent finishes work (task completion)
+    "idleTTSMessages": ${formatJSON(overrides.idleTTSMessages || [
+        'All done! Your task has been completed successfully.',
+        'Hey there! I finished working on your request.',
+        'Task complete! Ready for your review whenever you are.',
+        'Good news! Everything is done and ready for you.',
+        'Finished! Let me know if you need anything else.',
+    ], 4)},
+    
+    // Messages for permission requests
+    "permissionTTSMessages": ${formatJSON(overrides.permissionTTSMessages || [
+        'Attention please! I need your permission to continue.',
+        'Hey! Quick approval needed to proceed with the task.',
+        'Heads up! There is a permission request waiting for you.',
+        'Excuse me! I need your authorization before I can continue.',
+        'Permission required! Please review and approve when ready.',
+    ], 4)},
+    
+    // Messages for MULTIPLE permission requests (use {count} placeholder)
+    // Used when several permissions arrive simultaneously
+    "permissionTTSMessagesMultiple": ${formatJSON(overrides.permissionTTSMessagesMultiple || [
+        'Attention please! There are {count} permission requests waiting for your approval.',
+        'Hey! {count} permissions need your approval to continue.',
+        'Heads up! You have {count} pending permission requests.',
+        'Excuse me! I need your authorization for {count} different actions.',
+        '{count} permissions required! Please review and approve when ready.',
+    ], 4)},
+
+    // ============================================================
+    // TTS REMINDER MESSAGES (More urgent - used after delay if no response)
+    // These are more personalized and urgent to get user attention
+    // ============================================================
+    
+    // Reminder messages when agent finished but user hasn't responded
+    "idleReminderTTSMessages": ${formatJSON(overrides.idleReminderTTSMessages || [
+        'Hey, are you still there? Your task has been waiting for review.',
+        'Just a gentle reminder - I finished your request a while ago!',
+        'Hello? I completed your task. Please take a look when you can.',
+        'Still waiting for you! The work is done and ready for review.',
+        'Knock knock! Your completed task is patiently waiting for you.',
+    ], 4)},
+    
+    // Reminder messages when permission still needed
+    "permissionReminderTTSMessages": ${formatJSON(overrides.permissionReminderTTSMessages || [
+        'Hey! I still need your permission to continue. Please respond!',
+        'Reminder: There is a pending permission request. I cannot proceed without you.',
+        'Hello? I am waiting for your approval. This is getting urgent!',
+        'Please check your screen! I really need your permission to move forward.',
+        'Still waiting for authorization! The task is on hold until you respond.',
+    ], 4)},
+    
+    // Reminder messages for MULTIPLE permissions (use {count} placeholder)
+    "permissionReminderTTSMessagesMultiple": ${formatJSON(overrides.permissionReminderTTSMessagesMultiple || [
+        'Hey! I still need your approval for {count} permissions. Please respond!',
+        'Reminder: There are {count} pending permission requests. I cannot proceed without you.',
+        'Hello? I am waiting for your approval on {count} items. This is getting urgent!',
+        'Please check your screen! {count} permissions are waiting for your response.',
+        'Still waiting for authorization on {count} requests! The task is on hold.',
+    ], 4)},
+    
+    // ============================================================
+    // PERMISSION BATCHING (Multiple permissions at once)
+    // ============================================================
+    // When multiple permissions arrive simultaneously, batch them into one notification
+    // This prevents overlapping sounds when 5+ permissions come at once
+    
+    // Batch window (ms) - how long to wait for more permissions before notifying
+    "permissionBatchWindowMs": ${overrides.permissionBatchWindowMs !== undefined ? overrides.permissionBatchWindowMs : 800},
+    
+    // ============================================================
+    // QUESTION TOOL SETTINGS (SDK v1.1.7+ - Agent asking user questions)
+    // ============================================================
+    // The "question" tool allows the LLM to ask users questions during execution.
+    // This is useful for gathering preferences, clarifying instructions, or getting
+    // decisions on implementation choices.
+    
+    // Messages when agent asks user a question
+    "questionTTSMessages": ${formatJSON(overrides.questionTTSMessages || [
+        'Hey! I have a question for you. Please check your screen.',
+        'Attention! I need your input to continue.',
+        'Quick question! Please take a look when you have a moment.',
+        'I need some clarification. Could you please respond?',
+        'Question time! Your input is needed to proceed.',
+    ], 4)},
+    
+    // Messages for MULTIPLE questions (use {count} placeholder)
+    "questionTTSMessagesMultiple": ${formatJSON(overrides.questionTTSMessagesMultiple || [
+        'Hey! I have {count} questions for you. Please check your screen.',
+        'Attention! I need your input on {count} items to continue.',
+        '{count} questions need your attention. Please take a look!',
+        'I need some clarifications. There are {count} questions waiting for you.',
+        'Question time! {count} questions need your response to proceed.',
+    ], 4)},
+    
+    // Reminder messages for questions (more urgent - used after delay)
+    "questionReminderTTSMessages": ${formatJSON(overrides.questionReminderTTSMessages || [
+        'Hey! I am still waiting for your answer. Please check the questions!',
+        'Reminder: There is a question waiting for your response.',
+        'Hello? I need your input to continue. Please respond when you can.',
+        'Still waiting for your answer! The task is on hold.',
+        'Your input is needed! Please check the pending question.',
+    ], 4)},
+    
+    // Reminder messages for MULTIPLE questions (use {count} placeholder)
+    "questionReminderTTSMessagesMultiple": ${formatJSON(overrides.questionReminderTTSMessagesMultiple || [
+        'Hey! I am still waiting for answers to {count} questions. Please respond!',
+        'Reminder: There are {count} questions waiting for your response.',
+        'Hello? I need your input on {count} items. Please respond when you can.',
+        'Still waiting for your answers on {count} questions! The task is on hold.',
+        'Your input is needed! {count} questions are pending your response.',
+    ], 4)},
+    
+    // Delay (in seconds) before question reminder fires
+    "questionReminderDelaySeconds": ${overrides.questionReminderDelaySeconds !== undefined ? overrides.questionReminderDelaySeconds : 25},
+    
+    // Question batch window (ms) - how long to wait for more questions before notifying
+    "questionBatchWindowMs": ${overrides.questionBatchWindowMs !== undefined ? overrides.questionBatchWindowMs : 800},
+    
+    // ============================================================
+    // ERROR NOTIFICATION SETTINGS (Session Errors)
+    // ============================================================
+    // Notify users when the agent encounters an error during execution.
+    // Error notifications use more urgent messaging to get user attention.
+    
+    // Messages when agent encounters an error
+    "errorTTSMessages": ${formatJSON(overrides.errorTTSMessages || [
+        'Oops! Something went wrong. Please check for errors.',
+        'Alert! The agent encountered an error and needs your attention.',
+        'Error detected! Please review the issue when you can.',
+        'Houston, we have a problem! An error occurred during the task.',
+        'Heads up! There was an error that requires your attention.',
+    ], 4)},
+    
+    // Messages for MULTIPLE errors (use {count} placeholder)
+    "errorTTSMessagesMultiple": ${formatJSON(overrides.errorTTSMessagesMultiple || [
+        'Oops! There are {count} errors that need your attention.',
+        'Alert! The agent encountered {count} errors. Please review.',
+        '{count} errors detected! Please check when you can.',
+        'Houston, we have {count} problems! Multiple errors occurred.',
+        'Heads up! {count} errors require your attention.',
+    ], 4)},
+    
+    // Reminder messages for errors (more urgent - used after delay)
+    "errorReminderTTSMessages": ${formatJSON(overrides.errorReminderTTSMessages || [
+        "Hey! There's still an error waiting for your attention.",
+        "Reminder: An error occurred and hasn't been addressed yet.",
+        'The agent is stuck! Please check the error when you can.',
+        'Still waiting! That error needs your attention.',
+        "Don't forget! There's an unresolved error in your session.",
+    ], 4)},
+    
+    // Reminder messages for MULTIPLE errors (use {count} placeholder)
+    "errorReminderTTSMessagesMultiple": ${formatJSON(overrides.errorReminderTTSMessagesMultiple || [
+        'Hey! There are still {count} errors waiting for your attention.',
+        "Reminder: {count} errors occurred and haven't been addressed yet.",
+        'The agent is stuck! Please check the {count} errors when you can.',
+        'Still waiting! {count} errors need your attention.',
+        "Don't forget! There are {count} unresolved errors in your session.",
+    ], 4)},
+    
+    // Delay (in seconds) before error reminder fires (shorter than idle for urgency)
+    "errorReminderDelaySeconds": ${overrides.errorReminderDelaySeconds !== undefined ? overrides.errorReminderDelaySeconds : 20},
+    
+    // ============================================================
+    // AI MESSAGE GENERATION (OpenAI-Compatible Endpoints)
+    // ============================================================
+    // Use a local/self-hosted AI to generate dynamic notification messages
+    // instead of using preset static messages. The AI generates the text,
+    // which is then spoken by your configured TTS engine (ElevenLabs, Edge, etc.)
+    //
+    // Supports: Ollama, LM Studio, LocalAI, vLLM, llama.cpp, Jan.ai, and any
+    // OpenAI-compatible endpoint. You provide your own endpoint URL and API key.
+    
+    // Enable AI-generated messages (experimental feature)
+    "enableAIMessages": ${overrides.enableAIMessages !== undefined ? overrides.enableAIMessages : false},
+    
+    // Your AI server endpoint URL (e.g., Ollama: http://localhost:11434/v1)
+    // Common endpoints:
+    //   Ollama:    http://localhost:11434/v1
+    //   LM Studio: http://localhost:1234/v1
+    //   LocalAI:   http://localhost:8080/v1
+    //   vLLM:      http://localhost:8000/v1
+    //   Jan.ai:    http://localhost:1337/v1
+    "aiEndpoint": "${overrides.aiEndpoint || 'http://localhost:11434/v1'}",
+    
+    // Model name to use (depends on what's loaded in your AI server)
+    // Examples: "llama3", "mistral", "phi3", "gemma2", "qwen2"
+    "aiModel": "${overrides.aiModel || 'llama3'}",
+    
+    // API key for your AI server (leave empty for Ollama/LM Studio/LocalAI)
+    // Only needed if your server requires authentication
+    "aiApiKey": "${overrides.aiApiKey || ''}",
+    
+    // Request timeout in milliseconds (local AI can be slow on first request)
+    "aiTimeout": ${overrides.aiTimeout !== undefined ? overrides.aiTimeout : 15000},
+    
+    // Fallback to static preset messages if AI generation fails
+    "aiFallbackToStatic": ${overrides.aiFallbackToStatic !== undefined ? overrides.aiFallbackToStatic : true},
+    
+    // Enable context-aware AI messages (includes project name, task title, and change summary)
+    // When enabled, AI-generated notifications will include relevant context like:
+    // - Project name (e.g., "Your work on MyProject is complete!")
+    // - Task/session title if available
+    // - Change summary (files modified, lines added/deleted)
+    // Disabled by default - enable this for more personalized notifications
+    "enableContextAwareAI": ${overrides.enableContextAwareAI !== undefined ? overrides.enableContextAwareAI : false},
+    
+    // Custom prompts for each notification type
+    // The AI will generate a short message based on these prompts
+    // Keep prompts concise - they're sent with each notification
+    "aiPrompts": ${formatJSON(overrides.aiPrompts || {
+        idle: 'Generate a single brief, friendly notification sentence (max 15 words) saying a coding task is complete. Be encouraging and warm. Output only the message, no quotes.',
+        permission: 'Generate a single brief, urgent but friendly notification sentence (max 15 words) asking the user to approve a permission request. Output only the message, no quotes.',
+        question: 'Generate a single brief, polite notification sentence (max 15 words) saying the assistant has a question and needs user input. Output only the message, no quotes.',
+        error: 'Generate a single brief, concerned but calm notification sentence (max 15 words) saying an error occurred and needs attention. Output only the message, no quotes.',
+        idleReminder: 'Generate a single brief, gentle reminder sentence (max 15 words) that a completed task is waiting for review. Be slightly more insistent. Output only the message, no quotes.',
+        permissionReminder: 'Generate a single brief, urgent reminder sentence (max 15 words) that permission approval is still needed. Convey importance. Output only the message, no quotes.',
+        questionReminder: 'Generate a single brief, polite but persistent reminder sentence (max 15 words) that a question is still waiting for an answer. Output only the message, no quotes.',
+        errorReminder: 'Generate a single brief, urgent reminder sentence (max 15 words) that an error still needs attention. Convey urgency. Output only the message, no quotes.',
+    }, 4)},
+    
+    // ============================================================
+    // SOUND FILES (For immediate notifications)
+    // These are played first before TTS reminder kicks in
+    // ============================================================
+    // Paths are relative to ~/.config/opencode/ directory
+    // Sound files are automatically copied here on first run
+    // You can replace with your own custom MP3/WAV files
+    
+    "idleSound": "${overrides.idleSound || 'assets/Soft-high-tech-notification-sound-effect.mp3'}",
+    "permissionSound": "${overrides.permissionSound || 'assets/Machine-alert-beep-sound-effect.mp3'}",
+    "questionSound": "${overrides.questionSound || 'assets/Machine-alert-beep-sound-effect.mp3'}",
+    "errorSound": "${overrides.errorSound || 'assets/Machine-alert-beep-sound-effect.mp3'}",
+    
+    // ============================================================
+    // GENERAL SETTINGS
+    // ============================================================
+    
+    // Wake monitor from sleep when notifying (Windows/macOS)
+    "wakeMonitor": ${overrides.wakeMonitor !== undefined ? overrides.wakeMonitor : true},
+    
+    // Force system volume up if below threshold
+    "forceVolume": ${overrides.forceVolume !== undefined ? overrides.forceVolume : false},
+    
+    // Volume threshold (0-100): force volume if current level is below this
+    "volumeThreshold": ${overrides.volumeThreshold !== undefined ? overrides.volumeThreshold : 50},
+    
+    // Show TUI toast notifications in OpenCode terminal
+    "enableToast": ${overrides.enableToast !== undefined ? overrides.enableToast : true},
+    
+    // Enable audio notifications (sound files and TTS)
+    "enableSound": ${overrides.enableSound !== undefined ? overrides.enableSound : true},
+    
+    // ============================================================
+    // DESKTOP NOTIFICATION SETTINGS
+    // ============================================================
+    // Native desktop notifications (Windows Toast, macOS Notification Center, Linux notify-send)
+    // These appear as system notifications alongside sound and TTS.
+    //
+    // Note: On Linux, you may need to install libnotify-bin:
+    //   Ubuntu/Debian: sudo apt install libnotify-bin
+    //   Fedora: sudo dnf install libnotify
+    //   Arch: sudo pacman -S libnotify
+    
+    // Enable native desktop notifications
+    "enableDesktopNotification": ${overrides.enableDesktopNotification !== undefined ? overrides.enableDesktopNotification : true},
+    
+    // How long the notification stays on screen (in seconds)
+    // Note: Some platforms may ignore this (especially Windows 10+)
+    "desktopNotificationTimeout": ${overrides.desktopNotificationTimeout !== undefined ? overrides.desktopNotificationTimeout : 5},
+    
+    // Include the project name in notification titles for easier identification
+    // Example: "OpenCode - MyProject" instead of just "OpenCode"
+    "showProjectInNotification": ${overrides.showProjectInNotification !== undefined ? overrides.showProjectInNotification : true},
+    
+    // ============================================================
+    // FOCUS DETECTION SETTINGS
+    // ============================================================
+    // Suppress sound/desktop notifications when terminal window is focused.
+    // Cross-platform: Windows, macOS, and Linux (X11 via xdotool/xprop, Wayland via gdbus).
+    // Default: false (notifications always play regardless of focus)
+    // Set to true to avoid notification spam when actively working in terminal
+    "suppressWhenFocused": ${overrides.suppressWhenFocused !== undefined ? overrides.suppressWhenFocused : false},
+    
+    // Override focus detection: always send notifications even when terminal is focused
+    // Set to true to disable focus-based suppression entirely
+    "alwaysNotify": ${overrides.alwaysNotify !== undefined ? overrides.alwaysNotify : false},
+    
+    // ============================================================
+    // WEBHOOK NOTIFICATION SETTINGS (Discord/Generic)
+    // ============================================================
+    // Send notifications to a Discord webhook or any compatible endpoint.
+    // This allows you to receive notifications on your phone or other devices.
+    
+    // Enable webhook notifications
+    "enableWebhook": ${overrides.enableWebhook !== undefined ? overrides.enableWebhook : false},
+    
+    // Webhook URL (e.g., https://discord.com/api/webhooks/...)
+    "webhookUrl": "${overrides.webhookUrl || ''}",
+    
+    // Username to show in the webhook message
+    "webhookUsername": "${overrides.webhookUsername || 'OpenCode Notify'}",
+    
+    // Events that should trigger a webhook notification
+    // Options: "idle", "permission", "error", "question"
+    "webhookEvents": ${formatJSON(overrides.webhookEvents || defaultWebhookEvents, 4)},
+    
+    // Mention @everyone on permission requests (Discord only)
+    "webhookMentionOnPermission": ${overrides.webhookMentionOnPermission !== undefined ? overrides.webhookMentionOnPermission : false},
+    
+    // ============================================================
+    // SOUND THEME SETTINGS (Themed Sound Packs)
+    // ============================================================
+    // Configure a directory containing custom sound files for notifications.
+    // This allows you to use themed sound packs (e.g., Warcraft, StarCraft, etc.)
+    //
+    // Directory structure should contain:
+    //   /path/to/theme/idle/       - Sounds for task completion
+    //   /path/to/theme/permission/ - Sounds for permission requests
+    //   /path/to/theme/error/      - Sounds for agent errors
+    //   /path/to/theme/question/   - Sounds for agent questions
+    //
+    // If a specific event folder is missing, it falls back to default sounds.
+    
+    // Path to your custom sound theme directory (absolute path recommended)
+    "soundThemeDir": "${overrides.soundThemeDir || ''}",
+    
+    // Pick a random sound from the appropriate theme folder for each notification
+    "randomizeSoundFromTheme": ${overrides.randomizeSoundFromTheme !== undefined ? overrides.randomizeSoundFromTheme : true},
+    
+    // ============================================================
+    // PER-PROJECT SOUND SETTINGS
+    // ============================================================
+    // Assign a unique notification sound to each project based on its path.
+    // This helps you distinguish which project is notifying you when working
+    // on multiple tasks simultaneously.
+    //
+    // Note: Requires sounds named 'ding1.mp3' through 'ding6.mp3' in your 
+    // assets/ folder. If disabled, default sound files are used.
+    
+    // Enable unique sounds per project
+    "perProjectSounds": ${overrides.perProjectSounds !== undefined ? overrides.perProjectSounds : false},
+    
+    // Seed value to change sound assignments (0-999)
+    "projectSoundSeed": ${overrides.projectSoundSeed !== undefined ? overrides.projectSoundSeed : 0},
+    
+    // Consider monitor asleep after this many seconds of inactivity (Windows only)
+    "idleThresholdSeconds": ${overrides.idleThresholdSeconds !== undefined ? overrides.idleThresholdSeconds : 60},
+    
+    // Enable debug logging to ~/.config/opencode/logs/smart-voice-notify-debug.log
+    // The logs folder is created automatically when debug logging is enabled
+    // Useful for troubleshooting notification issues
+    "debugLog": ${overrides.debugLog !== undefined ? overrides.debugLog : false}
+}`;
+};
+
+/**
+ * Copy bundled assets (sound files) to the OpenCode config directory.
+ * @param configDir - The OpenCode config directory path
+ */
+const copyBundledAssets = (configDir: string): void => {
+  try {
+    const pluginDir = getPluginDir();
+    const sourceAssetsDir = path.join(pluginDir, 'assets');
+    const targetAssetsDir = path.join(configDir, 'assets');
+
+    // Check if source assets exist (they should be bundled with the plugin)
+    if (!fs.existsSync(sourceAssetsDir)) {
+      return; // No bundled assets to copy
+    }
+
+    // Create target assets directory if it doesn't exist
+    if (!fs.existsSync(targetAssetsDir)) {
+      fs.mkdirSync(targetAssetsDir, { recursive: true });
+    }
+
+    // Copy each asset file if it doesn't already exist in target
+    const assetFiles = fs.readdirSync(sourceAssetsDir);
+    for (const file of assetFiles) {
+      const sourcePath = path.join(sourceAssetsDir, file);
+      const targetPath = path.join(targetAssetsDir, file);
+
+      // Only copy if target doesn't exist (don't overwrite user customizations)
+      if (!fs.existsSync(targetPath) && fs.statSync(sourcePath).isFile()) {
+        fs.copyFileSync(sourcePath, targetPath);
+      }
+    }
+  } catch {
+    // Silently fail - assets are optional
+  }
+};
+
+/**
+ * Loads a configuration file from the OpenCode config directory.
+ * If the file doesn't exist, creates a default config file with full documentation.
+ * If the file exists, performs smart merging to add new fields without overwriting user values.
+ *
+ * IMPORTANT: User values are NEVER overwritten. Only new fields from plugin updates are added.
+ *
+ * @param name - Name of the config file (without .jsonc extension)
+ * @param defaults - Default values if file doesn't exist or is invalid
+ * @returns merged plugin config
+ */
+export const loadConfig = (name: string, defaults: Partial<PluginConfig> = {}): PluginConfig => {
+  const configDir = process.env.OPENCODE_CONFIG_DIR || path.join(os.homedir(), '.config', 'opencode');
+  const filePath = path.join(configDir, `${name}.jsonc`);
+
+  // Get current version from package.json
+  const pluginDir = getPluginDir();
+  const pkg = JSON.parse(fs.readFileSync(path.join(pluginDir, 'package.json'), 'utf-8')) as { version: string };
+  const currentVersion = pkg.version;
+
+  // Get default config object with current version early so it can be used for peeking
+  const defaultConfig = getDefaultConfigObject();
+  defaultConfig._configVersion = currentVersion;
+
+  // Always ensure bundled assets are present
+  copyBundledAssets(configDir);
+
+  // Try to load existing config
+  let existingConfig: Partial<PluginConfig> | null = null;
+  if (fs.existsSync(filePath)) {
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      existingConfig = parseJSONC<Partial<PluginConfig>>(content);
+    } catch (error) {
+      // If file is invalid JSONC, we'll use defaults for this run but NOT overwrite the user's file
+      // This prevents accidental loss of configuration due to a simple syntax error
+      debugLogToFile(`Warning: Config file at ${filePath} is invalid (${getErrorMessage(error)}). Using default values for now. Please check your config for syntax errors.`, configDir);
+      existingConfig = null; // Forces CASE 1 logic but we'll modify it to avoid writing
+
+      // SMART PEEK: Even if parsing fails, try to see if "enabled" field is set to false/disabled
+      // to respect the user's intent to disable the plugin even with syntax errors.
+      try {
+        const rawContent = fs.readFileSync(filePath, 'utf-8');
+        // Match both boolean and string values for "enabled"
+        const enabledMatch = rawContent.match(/"enabled"\s*:\s*(false|true|"disabled"|"enabled"|'disabled'|'enabled')/i);
+        if (enabledMatch && enabledMatch[1]) {
+          const val = enabledMatch[1].replace(/["']/g, '').toLowerCase();
+          const isActuallyEnabled = val === 'true' || val === 'enabled';
+
+          // Inject into defaults and defaultConfig so it's picked up
+          defaults.enabled = isActuallyEnabled;
+          defaultConfig.enabled = isActuallyEnabled;
+          debugLogToFile(`Detected 'enabled: ${isActuallyEnabled}' via emergency regex peek (syntax error in file)`, configDir);
+        }
+      } catch {
+        // Peek failed, just proceed with CASE 1
+      }
+    }
+
+  }
+
+  // CASE 1: No existing config (missing or invalid)
+  if (!existingConfig) {
+
+    try {
+      // Ensure config directory exists
+      if (!fs.existsSync(configDir)) {
+        fs.mkdirSync(configDir, { recursive: true });
+      }
+
+      // ONLY write a fresh config file if it doesn't exist at all.
+      // If it exists but was invalid, we already logged a warning and we'll just return defaults.
+      if (!fs.existsSync(filePath)) {
+        // Generate new config file with all documentation comments
+        const newConfigContent = generateDefaultConfig({}, currentVersion);
+        fs.writeFileSync(filePath, newConfigContent, 'utf-8');
+        debugLogToFile(`Initialized default config at ${filePath}`, configDir);
+      }
+
+      // Return the default config merged with any passed defaults
+      return { ...defaults, ...defaultConfig } as PluginConfig;
+    } catch {
+      // If creation fails, return defaults
+      return { ...defaults, ...defaultConfig } as PluginConfig;
+    }
+  }
+
+
+  // CASE 2: Existing config - smart merge to add new fields only
+  // Find what new fields need to be added (for logging)
+  const newFields = findNewFields(defaultConfig, existingConfig);
+
+  // Deep merge: user values preserved, only new fields added from defaults
+  const mergedConfig = deepMerge(defaultConfig, existingConfig) as PluginConfig;
+
+  // Update version in merged config
+  mergedConfig._configVersion = currentVersion;
+
+  // Only write back if there are new fields to add OR version changed
+  const versionChanged = existingConfig._configVersion !== currentVersion;
+
+  if (newFields.length > 0 || versionChanged) {
+    try {
+      // Regenerate the config file with full documentation comments
+      // Pass the merged config so user values are preserved in the output
+      const newConfigContent = generateDefaultConfig(mergedConfig, currentVersion);
+      fs.writeFileSync(filePath, newConfigContent, 'utf-8');
+
+      if (newFields.length > 0) {
+        debugLogToFile(`Added ${newFields.length} new config field(s): ${newFields.join(', ')}`, configDir);
+      }
+      if (versionChanged) {
+        debugLogToFile(`Config version updated to ${currentVersion}`, configDir);
+      }
+    } catch (error) {
+      // If write fails, still return the merged config (just won't persist new fields)
+      debugLogToFile(`Warning: Could not update config file: ${getErrorMessage(error)}`, configDir);
+    }
+  }
+
+  return { ...defaults, ...mergedConfig } as PluginConfig;
+};

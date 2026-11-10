@@ -1,0 +1,67 @@
+{
+  "name": "opencode-smart-voice-notify",
+  "version": "1.4.0",
+  "description": "Smart voice notification plugin for OpenCode with multiple TTS engines (ElevenLabs, Edge TTS, Windows SAPI), AI-generated dynamic messages, and intelligent reminder system",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:types": "tsc -p tsconfig.build.json --emitDeclarationOnly",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage"
+  },
+  "author": "MasuRii",
+  "license": "MIT",
+  "keywords": [
+    "opencode",
+    "opencode-plugins",
+    "plugin",
+    "notification",
+    "tts",
+    "text-to-speech",
+    "elevenlabs",
+    "edge-tts",
+    "sapi",
+    "voice",
+    "alert",
+    "smart",
+    "ai",
+    "ai-generated",
+    "ollama",
+    "local-ai"
+  ],
+  "files": [
+    "dist/",
+    "assets/"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MasuRii/opencode-smart-voice-notify.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MasuRii/opencode-smart-voice-notify/issues"
+  },
+  "homepage": "https://github.com/MasuRii/opencode-smart-voice-notify#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  },
+  "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.52.0",
+    "detect-terminal": "^3.0.0",
+    "msedge-tts": "^2.0.5",
+    "node-notifier": "^10.0.1"
+  },
+  "peerDependencies": {
+    "@opencode/plugin": "^2.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.21",
+    "@types/node-notifier": "^8.0.5",
+    "bun-types": "^1.3.14",
+    "typescript": "^6.0.3"
+  }
+}

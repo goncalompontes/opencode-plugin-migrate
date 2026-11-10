@@ -1,3 +1,3 @@
 [test]
-# Conversion runs a real TypeScript program per plugin; give those tests room.
-timeout = 60000
+# Bare `bun test` must not discover the cloned benchmark repositories.
+root = "test"

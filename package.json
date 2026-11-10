@@ -10,7 +10,7 @@
     "analyze": "bun src/cli/index.ts analyze",
     "convert": "bun src/cli/index.ts convert",
     "typecheck": "tsc --noEmit",
-    "test": "bun test test/migrate.test.ts test/corpus.test.ts",
+    "test": "bun test test/migration.test.ts",
     "bench": "bun benchmarks/run.ts"
   },
   "dependencies": {

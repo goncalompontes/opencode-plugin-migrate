@@ -284,6 +284,9 @@ export function extractPlugin(project: PluginProject): PluginIR {
       allowJs: false,
     },
     skipAddingFilesFromTsConfig: true,
+    // We only need symbols/return types from the plugin itself; skip parsing the
+    // TypeScript standard library into every extraction.
+    skipLoadingLibFiles: true,
   }
   if (project.tsconfigPath) options.tsConfigFilePath = project.tsconfigPath
 

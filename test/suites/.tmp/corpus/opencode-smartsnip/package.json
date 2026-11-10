@@ -1,0 +1,55 @@
+{
+  "name": "opencode-smartsnip",
+  "version": "0.2.1",
+  "description": "Cuts shell-output tokens in opencode. Wraps only what snip can filter — everything else runs byte-identical.",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./server": "./dist/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "bin",
+    "commands"
+  ],
+  "bin": {
+    "smartsnip": "bin/smartsnip.ts",
+    "opencode-smartsnip": "bin/smartsnip.ts"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "build": "bun build src/index.ts --target=node --format=esm --external bun:sqlite --outfile=dist/index.js",
+    "smoke:node": "node test/node-smoke.mjs",
+    "generate:filters": "bun scripts/generate-filters.ts",
+    "measure": "bun scripts/measure-savings.ts",
+    "prepublishOnly": "bun run typecheck && bun test && bun run build && bun run smoke:node"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "snip",
+    "llm",
+    "tokens",
+    "context"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/carson2222/opencode-smartsnip.git"
+  },
+  "homepage": "https://github.com/carson2222/opencode-smartsnip#readme",
+  "bugs": "https://github.com/carson2222/opencode-smartsnip/issues",
+  "author": "Carson (https://github.com/carson2222)",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.6.0",
+    "@opencode/plugin": "^2.2.7"
+  }
+}

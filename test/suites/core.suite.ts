@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test"
 import path from "node:path"
-import { analyzePlugin, convertPlugin } from "../src/api"
-import { HOOK_RULES } from "../src/rules/hooks"
-import { pipeline, stage } from "../src/core/pipeline"
+import { analyzePlugin, convertPlugin } from "../../src/api"
+import { HOOK_RULES } from "../../src/rules/hooks"
+import { pipeline, stage } from "../../src/core/pipeline"
 import { z } from "zod"
 
-const fixture = path.join(import.meta.dir, "fixtures", "basic")
+const fixture = path.join(import.meta.dir, "..", "fixtures", "basic")
 const root = path.join(import.meta.dir, ".tmp")
 
 describe("hook rule table", () => {
@@ -68,7 +68,7 @@ describe("analyze", () => {
 
 describe("already migrated", () => {
   test("recognizes a V2 module instead of guessing", async () => {
-    await expect(analyzePlugin(path.join(import.meta.dir, "fixtures", "already-v2"))).rejects.toThrow(
+    await expect(analyzePlugin(path.join(import.meta.dir, "..", "fixtures", "already-v2"))).rejects.toThrow(
       /already targets the OpenCode V2 plugin API/,
     )
   })

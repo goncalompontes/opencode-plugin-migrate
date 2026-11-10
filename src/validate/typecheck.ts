@@ -8,6 +8,34 @@ import path from "node:path"
 import ts from "typescript"
 import type { Diagnostic } from "../core/diagnostics"
 
+/**
+ * Parsed standard-library and @types declarations never change during a process run,
+ * so parse each one once and share it across every program.
+ */
+const declarationCache = new Map<string, ts.SourceFile>()
+
+function isImmutableDeclaration(fileName: string): boolean {
+  return (
+    fileName.includes("/node_modules/typescript/lib/") ||
+    fileName.includes("/node_modules/@types/")
+  )
+}
+
+function createCachedHost(options: ts.CompilerOptions): ts.CompilerHost {
+  const host = ts.createCompilerHost(options, true)
+  const original = host.getSourceFile.bind(host)
+  host.getSourceFile = (fileName, languageVersionOrOptions, onError, shouldCreateNewSourceFile) => {
+    if (isImmutableDeclaration(fileName) && !shouldCreateNewSourceFile) {
+      const cached = declarationCache.get(fileName)
+      if (cached) return cached
+    }
+    const source = original(fileName, languageVersionOrOptions, onError, shouldCreateNewSourceFile)
+    if (source && isImmutableDeclaration(fileName)) declarationCache.set(fileName, source)
+    return source
+  }
+  return host
+}
+
 export interface TypecheckResult {
   readonly diagnostics: Diagnostic[]
   /** No errors in the generated file (errors in untouched sibling files are reported, not fatal). */
@@ -59,7 +87,7 @@ export function typecheck(_dir: string, emittedFile: string): TypecheckResult {
     lib: ["lib.esnext.d.ts"],
   }
 
-  const program = ts.createProgram({ rootNames, options })
+  const program = ts.createProgram({ rootNames, options, host: createCachedHost(options) })
   const target = path.resolve(emittedFile)
 
   // Regions emitted verbatim from V1: compile errors there are findings about the old

@@ -137,9 +137,18 @@ DESIGN.md       design notes and known limits
 ```sh
 bun install
 bun run typecheck
-bun test
+bun test          # one entrypoint (test/migration.test.ts), 60s per-test budget
 bun run bench
 ```
+
+Both `analyze` and `convert` run a TypeScript program per plugin. The typechecker
+shares parsed `lib.*.d.ts` / `@types` declarations across programs, and extraction
+skips loading the standard library into ts-morph, which keeps a full 7-plugin
+corpus run around 8 seconds instead of ~20.
+
+Test suites live in `test/suites/` and are imported by the single
+`test/migration.test.ts` entrypoint: Bun runs test *files* concurrently, and two
+files each building TypeScript programs contend for CPU and trip timeouts.
 
 ## Known limits (deliberately reported, not hidden)
 

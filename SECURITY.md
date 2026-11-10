@@ -12,15 +12,16 @@ You should receive a response within 7 days.
 ## Scope
 
 This tool reads plugin source code and writes converted files. It never executes
-plugin code, never sends source anywhere, and does not require credentials.
-Reports about generated output that could expose secrets or execute unexpected
-code are in scope.
+plugin code, never sends source anywhere, and does not require credentials. The
+OpenCode plugin exposes the same local API; the skill installer only copies Markdown
+into a skills directory. Reports about generated output that could expose secrets or
+execute unexpected code are in scope.
 
 ## Supported versions
 
 | Version | Supported |
 | --- | --- |
-| latest (0.1.x) | ✅ |
+| latest (0.2.x) | ✅ |
 | older | best effort |
 
 ## Disclosure

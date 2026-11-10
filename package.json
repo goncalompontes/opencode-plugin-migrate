@@ -1,6 +1,6 @@
 {
   "name": "opencode-plugin-migrate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Convert OpenCode V1 plugins to V2 with typed AST rewriting and a compile/runtime gate",
   "license": "MIT",
   "type": "module",

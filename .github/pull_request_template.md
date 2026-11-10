@@ -8,9 +8,10 @@
 
 ## Verification
 
+- [ ] `bun run lint`
 - [ ] `bun run typecheck`
 - [ ] `bun test`
-- [ ] `bun benchmarks/run.ts` (or explain why results are unchanged)
+- [ ] `bun run bench:core` (or explain why results are unchanged)
 
 ## Benchmark delta
 
@@ -18,6 +19,12 @@
 | --- | ---: | ---: |
 | Hooks converted | | |
 | Modules typechecking clean | | |
+
+## Contract changes
+
+- [ ] Report output (`MIGRATION.md` / JSON) updated
+- [ ] `README.md` / `docs/` updated
+- [ ] Skill reference (`skills/opencode-plugin-migrate/references/`) updated
 
 ## Review notes
 

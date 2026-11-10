@@ -28,14 +28,14 @@ export const CORPUS: readonly CorpusEntry[] = [
   {
     name: "opencode-notify",
     repo: "kdcokenny/opencode-notify",
-    commit: "6f43055",
+    commit: "6f430555495fa788347591c53c6770090a479211",
     license: "MIT",
     note: "single PluginInput parameter, long-lived intervals, event fan-out",
   },
   {
     name: "opencode-request-logger",
     repo: "Opencode-DCP/opencode-request-logger",
-    commit: "ecb14d7",
+    commit: "ecb14d7215589aad5efbe811ad9327b53d35fef4",
     license: "MIT",
     note: "chat.params only; nothing mechanically convertible",
   },
@@ -56,7 +56,7 @@ export const CORPUS: readonly CorpusEntry[] = [
   {
     name: "opencode-pty",
     repo: "shekohex/opencode-pty",
-    commit: "b6c2067",
+    commit: "b6c2067f1fb29d5fd3b2e744a7c05d7df1a6e7c1",
     license: "MIT",
     note: "Zod custom tools, command hook, config hook, event hook",
   },

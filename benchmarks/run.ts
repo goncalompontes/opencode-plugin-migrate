@@ -21,7 +21,7 @@ function git(args: string[], cwd: string): void {
 }
 
 function ensure(checkout: string, repo: string, commit: string): void {
-  if (fs.existsSync(path.join(checkout, "package.json"))) return
+  if (fs.existsSync(checkout) && fs.readdirSync(checkout).length > 0) return
   if (!fetchMissing) return
   fs.mkdirSync(checkout, { recursive: true })
   git(["init", "-q"], checkout)

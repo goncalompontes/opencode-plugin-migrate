@@ -546,6 +546,34 @@ export function emitModule(
     })
   }
 
+  if (ir.providers.length) {
+    ir.providers.forEach((provider, index) => {
+      const expression = dedentExpression(provider.reference)
+        .split("\n")
+        .map((line, lineIndex) => (lineIndex === 0 ? line : `${INDENT.repeat(2)}${line}`))
+        .join("\n")
+      blocks.push(`  const __provider${index} = ${expression}`)
+      blocks.push(
+        `  const __providerModels${index}: any = __provider${index}.models ? await __provider${index}.models({} as any, {}) : {}`,
+      )
+      blocks.push(`  await __opencode.provider.transform((editor) => {`)
+      blocks.push(
+        `    const models = Object.entries(__providerModels${index} ?? {}).map(([id, model]) => ({`,
+      )
+      blocks.push(`      ...(model as any),`)
+      blocks.push(`      id: (model as any)?.id ?? id,`)
+      blocks.push(`      providerID: __provider${index}.id,`)
+      blocks.push(`    }))`)
+      blocks.push(`    editor.models.set(__provider${index}.id, models as any)`)
+      blocks.push(`  })`)
+    })
+    diagnostics.push({
+      code: "provider/registration",
+      severity: "info",
+      message: `${ir.providers.length} provider hook(s) registered through ctx.provider.transform; models are resolved once at setup.`,
+    })
+  }
+
   if (skippedHooks.length) {
     const notes = skippedHooks.map((hook) => {
       const why = hook.reason ? `\n//   ${hook.reason}` : ""
@@ -634,6 +662,7 @@ export function emitModule(
     skipped: skippedHooks.map((hook) => hook.name),
     diagnostics,
     tools: ir.tools.map((tool) => tool.name),
+    providers: ir.providers.map((provider) => provider.id.replace(/^["'`]|["'`]$/g, "")),
     rewrittenFiles: [],
     remainingV1Imports: [],
   }

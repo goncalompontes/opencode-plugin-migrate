@@ -55,6 +55,15 @@ export const ToolSite = z.object({
 })
 export type ToolSite = z.infer<typeof ToolSite>
 
+export const ProviderSite = z.object({
+  /** Expression for the V1 provider id. */
+  id: z.string(),
+  /** Object literal carrying id/models, kept verbatim. */
+  reference: z.string(),
+  range: SourceRange,
+})
+export type ProviderSite = z.infer<typeof ProviderSite>
+
 export const PluginIR = z.object({
   /** Stable V2 plugin id. */
   id: z.string(),
@@ -73,6 +82,7 @@ export const PluginIR = z.object({
   /** Every condition that returned early from the factory, including empty hook maps. */
   conditions: z.array(z.string()),
   tools: z.array(ToolSite),
+  providers: z.array(ProviderSite),
   /** Findings produced during extraction (unsupported syntax, ambiguous entrypoints, ...). */
   diagnostics: z.array(Diagnostic),
 })
@@ -134,6 +144,8 @@ export const EmittedModule = z.object({
   diagnostics: z.array(Diagnostic),
   /** Custom tool names registered through ctx.tool.transform. */
   tools: z.array(z.string()),
+  /** Provider ids registered through ctx.provider.transform. */
+  providers: z.array(z.string()),
   /** Other package files whose V1 authoring imports were redirected to the shim. */
   rewrittenFiles: z.array(z.string()),
   /** Files that still import the V1 package (namespace/dynamic forms). */

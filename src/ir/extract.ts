@@ -15,7 +15,7 @@ import {
 import type { Diagnostic } from "../core/diagnostics"
 import type { PluginProject } from "../env/project"
 import { HOOK_RULES } from "../rules/hooks"
-import type { HookSite, ImportIR, PluginIR, ToolSite } from "./schema"
+import type { HookSite, ImportIR, PluginIR, ProviderSite, ToolSite } from "./schema"
 
 function hasKnownHook(object: ObjectLiteralExpression): boolean {
   return object.getProperties().some((property) => {
@@ -517,6 +517,7 @@ export function extractPlugin(project: PluginProject): PluginIR {
 
   const hooks: HookSite[] = []
   const tools: ToolSite[] = []
+  const providers: ProviderSite[] = []
 
   const readProperties = (object: ObjectLiteralExpression | undefined, condition?: string) => {
     for (const property of object?.getProperties() ?? []) {
@@ -540,6 +541,42 @@ export function extractPlugin(project: PluginProject): PluginIR {
         })
         continue
       }
+      if (name === "provider") {
+        const value = callbackOf(property)
+        const object = value && Node.isObjectLiteralExpression(value) ? value : undefined
+        const idProperty = object?.getProperty("id")
+        const idValue =
+          idProperty && Node.isPropertyAssignment(idProperty)
+            ? idProperty.getInitializer()
+            : undefined
+        if (object && idValue) {
+          providers.push({
+            id: idValue.getText(),
+            reference: object.getText(),
+            range: rangeOf(sourceFile, property),
+          })
+        } else {
+          diagnostics.push({
+            code: "provider/shape",
+            severity: "warning",
+            message: "`provider` hook must be an object literal with an id; it was skipped.",
+            range: rangeOf(sourceFile, property),
+          })
+        }
+        continue
+      }
+
+      if (name === "auth") {
+        diagnostics.push({
+          code: "auth/review",
+          severity: "warning",
+          message:
+            "the V1 `auth` hook needs manual porting to ctx.integration.transform() with typed forms and OAuth methods; it was left intact.",
+          range: rangeOf(sourceFile, property),
+        })
+        continue
+      }
+
       if (name === "tool") {
         const value = callbackOf(property)
         const object = value && Node.isObjectLiteralExpression(value) ? value : undefined
@@ -665,6 +702,7 @@ export function extractPlugin(project: PluginProject): PluginIR {
     hooks,
     conditions,
     tools,
+    providers,
     diagnostics,
   }
 }

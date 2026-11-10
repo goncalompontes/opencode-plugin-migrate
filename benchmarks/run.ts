@@ -9,9 +9,10 @@ import path from "node:path"
 import { convertPlugin } from "../src/api"
 import { countV1ImportFiles } from "../src/env/imports"
 import type { MigrationReport } from "../src/report/schema"
-import { CORPUS } from "./manifest"
+import { CORPUS, type ExpectedCounts } from "./manifest"
 
 const here = import.meta.dir
+const repoRoot = path.resolve(here, "..")
 const corpusDir = path.join(here, "corpus")
 const outRoot = path.join(here, ".out")
 const fetchMissing = process.argv.includes("--fetch")
@@ -55,12 +56,14 @@ const rows: Row[] = []
 const failures: string[] = []
 
 for (const entry of CORPUS) {
-  const checkout = path.join(corpusDir, entry.name)
-  try {
-    ensure(checkout, entry.repo, entry.commit)
-  } catch (error) {
-    failures.push(`${entry.name}: could not fetch (${String(error)})`)
-    continue
+  const checkout = entry.local ? path.join(repoRoot, entry.local) : path.join(corpusDir, entry.name)
+  if (!entry.local) {
+    try {
+      ensure(checkout, entry.repo, entry.commit)
+    } catch (error) {
+      failures.push(`${entry.name}: could not fetch (${String(error)})`)
+      continue
+    }
   }
   if (!fs.existsSync(checkout)) {
     console.warn(`skip ${entry.name}: not checked out (run with --fetch)`)
@@ -103,10 +106,24 @@ for (const entry of CORPUS) {
     if (v1After !== 0) {
       failures.push(`${entry.name}: ${v1After} file(s) still import @opencode-ai/plugin`)
     }
-    if (report.toolCounts.converted !== report.tools.length) {
-      failures.push(
-        `${entry.name}: ${report.tools.length - report.toolCounts.converted} tool(s) were not converted`,
-      )
+    const expectations: Array<[keyof ExpectedCounts, unknown, unknown]> = [
+      ["hooks", entry.expect?.hooks, report.hooks.length],
+      ["converted", entry.expect?.converted, report.counts.converted],
+      ["review", entry.expect?.review, report.counts.review],
+      ["unsupported", entry.expect?.unsupported, report.counts.unsupported],
+      ["tools", entry.expect?.tools, report.tools.length],
+      ["toolsConverted", entry.expect?.toolsConverted, report.toolCounts.converted],
+      ["v1After", entry.expect?.v1After, v1After],
+      [
+        "runtime",
+        entry.expect?.runtime,
+        report.runtime?.bundle.ok && report.runtime?.entry.ok ? "ok" : "known-failure",
+      ],
+    ]
+    for (const [label, expected, actual] of expectations) {
+      if (expected !== undefined && expected !== actual) {
+        failures.push(`${entry.name}: expected ${label}=${expected}, got ${actual}`)
+      }
     }
   } catch (error) {
     failures.push(`${entry.name}: ${String(error)}`)
@@ -119,7 +136,7 @@ function table(): string {
     "| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |",
     ...rows.map(
       (row) =>
-        `| [${row.name}](https://github.com/${row.repo}) | ${row.hooks} | ${row.converted} | ${row.review} | ${row.unsupported} | ${row.toolsConverted}/${row.toolsTotal} | ${row.typecheck} | ${row.runtime} | ${row.v1Before} -> ${row.v1After} |`,
+        `| ${row.repo ? `[${row.name}](https://github.com/${row.repo})` : row.name} | ${row.hooks} | ${row.converted} | ${row.review} | ${row.unsupported} | ${row.toolsConverted}/${row.toolsTotal} | ${row.typecheck} | ${row.runtime} | ${row.v1Before} -> ${row.v1After} |`,
     ),
   ]
   return lines.join("\n")

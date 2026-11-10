@@ -1,0 +1,348 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`golden output emits the basic module: basic 1`] = `
+"/**
+ * Migrated from OpenCode V1 by opencode-plugin-migrate.
+ * Source: test/fixtures/basic/index.ts
+ * Review every "not converted automatically" block before shipping.
+ */
+import { Plugin } from "@opencode/plugin"
+
+// #region carried-v1 module
+const _GREETING = "hello"
+// #endregion carried-v1
+
+const BasicPlugin = Plugin.define({
+  id: "basic-v1-plugin",
+  async setup(__opencode) {
+    const directory = __opencode.location.directory
+    // #region v1-client-facade
+    // V1 call shape: { path, body } in, { data } out. Unmapped methods throw loudly.
+    const __clientSessionID = (input: any): any =>
+      input?.path?.id ?? input?.sessionID ?? input?.id
+    const __clientEnvelope = async (value: any): Promise<{ data: any }> => ({ data: value })
+    const client = {
+      ...__opencode,
+      session: {
+        ...__opencode.session,
+        get: async (input: any) =>
+          __clientEnvelope(await __opencode.session.get({ sessionID: __clientSessionID(input) })),
+        list: async (input: any = {}) =>
+          __clientEnvelope(await __opencode.session.list(input?.query ?? input)),
+        messages: async (input: any) =>
+          __clientEnvelope(await __opencode.session.context({ sessionID: __clientSessionID(input) })),
+        abort: async (input: any) =>
+          __clientEnvelope(await __opencode.session.interrupt({ sessionID: __clientSessionID(input) })),
+        summarize: async (input: any) =>
+          __clientEnvelope(await __opencode.session.compact({ sessionID: __clientSessionID(input) })),
+        prompt: async () => {
+          throw new Error("opencode-plugin-migrate: session.prompt needs manual porting to flat text/files")
+        },
+        promptAsync: async () => {
+          throw new Error("opencode-plugin-migrate: session.promptAsync has no V2 equivalent")
+        },
+        command: async () => {
+          throw new Error("opencode-plugin-migrate: session.command needs manual porting to flat text")
+        },
+        status: async () => {
+          throw new Error("opencode-plugin-migrate: session.status needs manual porting")
+        },
+      },
+      app: {
+        ...__opencode.app,
+        log: (input: any) => {
+          console.log(input?.body?.message ?? input)
+          return Promise.resolve({ data: true })
+        },
+      },
+      tool: {
+        ...__opencode.tool,
+        ids: async () =>
+          __clientEnvelope((await __opencode.tool.list()).map((tool: any) => tool.id)),
+      },
+      tui: {
+        showToast: async (input: any) => {
+          console.warn("[opencode-plugin-migrate] V2 server plugins cannot show TUI toasts:", input?.body?.message ?? input)
+          return { data: undefined }
+        },
+      },
+    }
+    // #endregion v1-client-facade
+    // #region carried-v1 setup.init
+    const seen = new Set<string>()
+    void client
+    // #endregion carried-v1
+  const __cleanups: Array<() => void | Promise<void>> = []
+    await __opencode.tool.hook("execute.before", async (event) => {
+      const input: any = { tool: event.tool, sessionID: event.sessionID, callID: event.id }
+      const output: any = { args: event.input }
+      try {
+        // #region carried-v1 tool.execute.before
+        if (input.tool === "bash" && String(output.args.command).includes("rm -rf")) {
+          throw new Error(\`blocked in \${directory}\`)
+        }
+        // #endregion carried-v1
+      } finally {
+        event.input = output.args
+      }
+    })
+    const abort1 = new AbortController()
+    __cleanups.push(() => abort1.abort())
+    void (async () => {
+      try {
+        for await (const __event of __opencode.event.subscribe({ signal: abort1.signal })) {
+          const event: any = __event
+          try {
+            // #region carried-v1 event
+            if (event.type === "session.idle") seen.add("idle")
+            // #endregion carried-v1
+          } catch (error) {
+            console.error("[basic-v1-plugin] event handler failed", error)
+          }
+        }
+      } catch (error) {
+        console.error("[basic-v1-plugin] event subscription failed", error)
+      }
+    })()
+    await __opencode.session.hook("prompt", async (event: any) => {
+      const input: any = { sessionID: event.sessionID, messageID: event.messageID, agent: undefined, model: undefined }
+      const output: any = {
+        message: { id: event.messageID, sessionID: event.sessionID },
+        parts: [{ type: "text", id: event.messageID, sessionID: event.sessionID, messageID: event.messageID, text: event.prompt?.text ?? "" }],
+      }
+      try {
+        // #region carried-v1 chat.message
+        output.parts.length = 0
+        // #endregion carried-v1
+      } finally {
+        const text = output.parts
+          .filter((part: any) => part?.type === "text")
+          .map((part: any) => part.text)
+          .join("")
+        event.prompt.text = text
+      }
+    })
+    await __opencode.session.hook("context", async (event: any) => {
+      const input: any = {
+        sessionID: event.sessionID,
+        agent: event.agent,
+        model: { ...event.model, id: event.model?.modelID },
+        provider: {},
+        message: undefined,
+      }
+      const output: any = {
+        temperature: event.options?.temperature,
+        topP: event.options?.topP,
+        topK: event.options?.topK,
+        maxOutputTokens: event.options?.maxTokens,
+        options: event.options ?? {},
+      }
+      try {
+        // #region carried-v1 chat.params
+        output.temperature = 0.2
+        // #endregion carried-v1
+      } finally {
+        event.options = output.options ?? event.options
+        event.options.temperature = output.temperature
+        event.options.topP = output.topP
+        event.options.topK = output.topK
+        event.options.maxTokens = output.maxOutputTokens
+      }
+    })
+    await __opencode.session.hook("model.request", async (event: any) => {
+      const input: any = { sessionID: event.sessionID, agent: event.agent, model: event.model, provider: {}, message: undefined }
+      const output: any = { headers: event.headers }
+      try {
+        // #region carried-v1 chat.headers
+        output.headers["x-test"] = "1"
+        // #endregion carried-v1
+      } finally {
+        event.headers = output.headers
+      }
+    })
+    await __opencode.session.hook("context", async (event: any) => {
+      const __originalSystem = event.system
+      const input: any = { sessionID: event.sessionID, model: event.model }
+      const output: any = { system: __originalSystem.map((part: any) => part.text) }
+      try {
+        // #region carried-v1 experimental.chat.system.transform
+        output.system.push("Focus on correctness.")
+        // #endregion carried-v1
+      } finally {
+        event.system = output.system.map((text: any, index: number) => ({
+          ...(__originalSystem[index] ?? {}),
+          type: "text",
+          text,
+        }))
+      }
+    })
+    await __opencode.permission.hook("evaluate", async (event) => {
+      const input: any = { ...event, type: event.action, pattern: event.resources, patterns: event.resources, title: event.action }
+      const output: any = { status: event.effect }
+      try {
+        // #region carried-v1 permission.ask
+        if (input.type === "bash") output.status = "deny"
+        // #endregion carried-v1
+      } finally {
+        event.effect = output.status
+      }
+    })
+    __cleanups.push(async () => {
+      // #region carried-v1 dispose
+      seen.clear()
+      // #endregion carried-v1
+    })
+  return async () => {
+    for (const cleanup of __cleanups) await cleanup()
+  }
+  },
+})
+
+export default BasicPlugin
+"
+`;
+
+exports[`golden output emits the tools module: tools 1`] = `
+"/**
+ * Migrated from OpenCode V1 by opencode-plugin-migrate.
+ * Source: test/fixtures/tools/index.ts
+ * Review every "not converted automatically" block before shipping.
+ */
+import { Plugin } from "@opencode/plugin"
+import { z as __z } from "zod"
+import { referencedTool } from "./tools"
+
+const ToolsPlugin = Plugin.define({
+  id: "ToolsPlugin",
+  async setup(__opencode) {
+  const tool = Object.assign(
+    (definition: {
+      description: string
+      args: any
+      execute: (args: any, context: any) => any
+    }) => definition,
+    { schema: __z },
+  )
+  const __tool0 = tool({
+      description: "Inline tool",
+      args: {
+        query: tool.schema.string().describe("Query text"),
+      },
+      async execute(args) {
+        return \`inline:\${args.query}\`
+      },
+    })
+    await __opencode.tool.transform((editor) => {
+      editor.add({
+        name: "inline",
+        description: __tool0.description,
+        input: __z.toJSONSchema(__z.object(__tool0.args)) as any,
+        async execute(input: any, context: any) {
+          const args: any = input
+          const ctx: any = {
+            ...context,
+            abort: context.signal,
+            directory: __opencode.location.directory,
+            worktree: __opencode.location.directory,
+            metadata: (_update: any) => {},
+            ask: async (_input: any) => {},
+          }
+          const result: any = await __tool0.execute(args, ctx)
+          if (typeof result === "string") return { content: result }
+          if (result && typeof result === "object") {
+            return { content: result.output, metadata: result.metadata }
+          }
+          return {}
+        },
+      })
+    })
+  const __tool1 = referencedTool
+    await __opencode.tool.transform((editor) => {
+      editor.add({
+        name: "referenced",
+        description: __tool1.description,
+        input: __z.toJSONSchema(__z.object(__tool1.args)) as any,
+        async execute(input: any, context: any) {
+          const args: any = input
+          const ctx: any = {
+            ...context,
+            abort: context.signal,
+            directory: __opencode.location.directory,
+            worktree: __opencode.location.directory,
+            metadata: (_update: any) => {},
+            ask: async (_input: any) => {},
+          }
+          const result: any = await __tool1.execute(args, ctx)
+          if (typeof result === "string") return { content: result }
+          if (result && typeof result === "object") {
+            return { content: result.output, metadata: result.metadata }
+          }
+          return {}
+        },
+      })
+    })
+  },
+})
+
+export default ToolsPlugin
+"
+`;
+
+exports[`golden output emits the conditional module: conditional 1`] = `
+"/**
+ * Migrated from OpenCode V1 by opencode-plugin-migrate.
+ * Source: test/fixtures/conditional/index.ts
+ * Review every "not converted automatically" block before shipping.
+ */
+import { Plugin } from "@opencode/plugin"
+
+const ConditionalPlugin = Plugin.define({
+  id: "ConditionalPlugin",
+  async setup(__opencode) {
+    const directory = __opencode.location.directory
+    // #region carried-v1 setup.init
+    const enabled = directory.length > 0
+    // #endregion carried-v1
+  const __cleanups: Array<() => void | Promise<void>> = []
+  if (!enabled) {
+      const abort1 = new AbortController()
+      __cleanups.push(() => abort1.abort())
+      void (async () => {
+        try {
+          for await (const __event of __opencode.event.subscribe({ signal: abort1.signal })) {
+            const event: any = __event
+            try {
+              // #region carried-v1 event
+              if (event.type === "session.idle") console.log("disabled")
+              // #endregion carried-v1
+            } catch (error) {
+              console.error("[ConditionalPlugin] event handler failed", error)
+            }
+          }
+        } catch (error) {
+          console.error("[ConditionalPlugin] event subscription failed", error)
+        }
+      })()
+  }
+  else {
+      await __opencode.tool.hook("execute.before", async (event) => {
+        const input: any = { tool: event.tool, sessionID: event.sessionID, callID: event.id }
+        const output: any = { args: event.input }
+        try {
+          // #region carried-v1 tool.execute.before
+          if (input.tool === "bash") output.args.command = String(output.args.command)
+          // #endregion carried-v1
+        } finally {
+          event.input = output.args
+        }
+      })
+  }
+  return async () => {
+    for (const cleanup of __cleanups) await cleanup()
+  }
+  },
+})
+
+export default ConditionalPlugin
+"
+`;

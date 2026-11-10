@@ -13,9 +13,11 @@ typechecked against `@opencode/plugin`.
 | [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 0 -> 0 |
 | [OpenCode-Image-Router-Plugin](https://github.com/adrivansoft/OpenCode-Image-Router-Plugin) | 1 | 0 | 1 | 0 | 0/0 | clean | ok | 0 -> 0 |
+| inline-tools | 0 | 0 | 0 | 0 | 2/2 | clean | ok | 2 -> 0 |
+| [opencode-auto-resume](https://github.com/Mte90/opencode-auto-resume) | 6 | 4 | 1 | 1 | 1/1 | clean | ok | 1 -> 0 |
 | [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 2 | 0 | 1 | 5/5 | clean | ok | 8 -> 0 |
 
-**Totals:** 16 hooks, 14 converted (88%), 1 need review, 1 unsupported.
+**Totals:** 22 hooks, 18 converted (82%), 2 need review, 2 unsupported.
 
 ## What "converted" means
 
@@ -102,13 +104,38 @@ is visible instead of silently dropped.
 
 - `chat.message` — review -> ctx.session.hook('context') or ctx.provider.transform()
 
+### inline-tools
+
+- V1 authoring imports: 2 file(s) -> 0
+- Custom tools: 2/2 registered
+- Emitted: 0 hooks, kept for manual porting: 0
+- Generated: `.out/inline-tools/`
+- Findings: 3
+
+
+
+### opencode-auto-resume
+
+- V1 authoring imports: 1 file(s) -> 0
+- Custom tools: 1/1 registered
+- Emitted: 4 hooks, kept for manual porting: 2
+- Generated: `.out/opencode-auto-resume/`
+- Findings: 43
+
+- `event` — converted -> ctx.event.subscribe()
+- `config` — review -> domain transforms (ctx.command / agent / provider / mcp / ...)
+- `chat.message` — converted -> ctx.session.hook('prompt')
+- `tool.execute.before` — converted -> ctx.tool.hook('execute.before')
+- `command.execute.before` — unsupported -> ctx.command.transform() when the plugin owns the command, otherwise the prompt hook
+- `tool.execute.after` — converted -> ctx.tool.hook('execute.after')
+
 ### opencode-pty
 
 - V1 authoring imports: 8 file(s) -> 0
 - Custom tools: 5/5 registered
 - Emitted: 2 hooks, kept for manual porting: 1
 - Generated: `.out/opencode-pty/`
-- Findings: 11
+- Findings: 12
 
 - `command.execute.before` — unsupported -> ctx.command.transform() when the plugin owns the command, otherwise the prompt hook
 - `config` — converted -> ctx.command.transform()

@@ -402,6 +402,50 @@ describe("target compatibility", () => {
   })
 })
 
+describe("golden output", () => {
+  const cases = [
+    ["basic", path.join(import.meta.dir, "..", "fixtures", "basic")],
+    ["tools", path.join(import.meta.dir, "..", "fixtures", "tools")],
+    ["conditional", path.join(import.meta.dir, "..", "fixtures", "conditional")],
+  ] as const
+  for (const [name, dir] of cases) {
+    test(`emits the ${name} module`, async () => {
+      const result = await convertPlugin(dir, { outDir: path.join(root, `golden-${name}`) })
+      expect(result.module.source).toMatchSnapshot(name)
+    })
+  }
+})
+
+describe("negative inputs", () => {
+  test("rejects syntax errors", async () => {
+    await expect(
+      analyzePlugin(path.join(import.meta.dir, "..", "fixtures", "broken")),
+    ).rejects.toThrow(/syntax errors/)
+  })
+
+  test("rejects a file with no plugin factory", async () => {
+    await expect(
+      analyzePlugin(path.join(import.meta.dir, "..", "fixtures", "no-factory")),
+    ).rejects.toThrow(/no V1 plugin factory/)
+  })
+
+  test("warns when a package imports both plugin APIs", async () => {
+    const { report } = await analyzePlugin(path.join(import.meta.dir, "..", "fixtures", "mixed-v2"))
+    expect(report.diagnostics.map((item) => item.code)).toContain("entry/mixed")
+  })
+
+  test("reports hooks with no V2 destination as unsupported", async () => {
+    const { report } = await analyzePlugin(
+      path.join(import.meta.dir, "..", "fixtures", "unsupported"),
+    )
+    expect(report.counts.unsupported).toBe(2)
+    expect(report.leftovers).toHaveLength(2)
+    expect(report.leftovers.every((item) => item.v2 === "none" || item.v2.includes("prompt"))).toBe(
+      true,
+    )
+  })
+})
+
 describe("CLI", () => {
   const repo = path.join(import.meta.dir, "..", "..")
   const run = (...args: string[]) =>

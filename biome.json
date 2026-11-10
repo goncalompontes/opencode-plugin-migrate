@@ -10,7 +10,8 @@
       "!benchmarks/.out",
       "!test/.tmp",
       "!.migrate",
-      "!dist"
+      "!dist",
+      "!test/fixtures/broken"
     ]
   },
   "formatter": {

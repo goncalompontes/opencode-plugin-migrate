@@ -58,6 +58,7 @@ export const MigrationReport = z.object({
   diagnostics: z.array(Diagnostic),
   typecheck: TypecheckReport.optional(),
   runtime: RuntimeReport.optional(),
+  target: z.object({ version: z.string(), missing: z.array(z.string()) }).optional(),
   scaffolding: z.array(z.object({ kind: z.string(), detail: z.string() })).optional(),
   repair: z
     .object({

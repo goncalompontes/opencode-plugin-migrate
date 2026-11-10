@@ -9,7 +9,7 @@ ts-morph extraction, exhaustive hook table, six V2 adapters, typecheck gate,
 Markdown/JSON reports, corpus benchmark, whole-package V1 import rewriting via a
 generated compatibility shim, Zod custom tools registered through
 `z.toJSONSchema()`, a V1 client compatibility facade, bundle/entry runtime validation, config/layout
-scaffolding, a `--dual` V1+V2 entrypoint, and a bounded auto-repair loop. Not yet implemented: provider/auth transforms, applying layout moves, repair
+scaffolding, a `--dual` V1+V2 entrypoint, a bounded auto-repair loop, and version-aware capability probing. Not yet implemented: provider/auth transforms, applying layout moves, repair
 fixers beyond parameter annotations, bounded auto-repair loop, LLM suggestions.
 
 ## Why this is tractable

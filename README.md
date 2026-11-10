@@ -83,6 +83,15 @@ Errors inside code carried over from V1 are downgraded to review findings with a
 
 The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
 
+## Target compatibility
+
+Rules are only valid for the target API they were checked against:
+
+- On every run the tool probes the installed `@opencode/plugin` and records its version and capabilities (`session.hook("prompt")`, `tool.transform`, `command.transform`, ...).
+- If the installed target lacks a capability an adapter needs, that hook is **downgraded to review** with the reason instead of emitting code that cannot load.
+- `--target <version>` records an expected version and warns when it differs from the installed package; the report always names the version actually probed.
+- CI has a `compat` matrix that probes `@opencode/plugin@2.2.7` and `2.1.4`.
+
 ## Auto-repair
 
 Generated modules are checked, and fixable findings are repaired in bounded passes:

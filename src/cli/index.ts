@@ -22,10 +22,11 @@ const analyze = defineCommand({
   args: {
     dir: { type: "positional", description: "Plugin directory", required: true },
     json: { type: "boolean", description: "Print the report as JSON", default: false },
+    target: { type: "string", description: "Expected @opencode/plugin version" },
   },
   async run({ args }) {
     try {
-      const { report } = await analyzePlugin(args.dir)
+      const { report } = await analyzePlugin(args.dir, { ...(args.target ? { target: args.target } : {}) })
       if (args.json) console.log(JSON.stringify(report, null, 2))
       else console.log(renderMarkdown(report))
     } catch (error) {
@@ -48,6 +49,7 @@ const convert = defineCommand({
       description: "Also emit a V1 server() entrypoint for OpenCode >= 1.18.29",
       default: false,
     },
+    target: { type: "string", description: "Expected @opencode/plugin version" },
     report: { type: "boolean", description: "Write MIGRATION.md into the output", default: true },
   },
   async run({ args }) {
@@ -56,6 +58,7 @@ const convert = defineCommand({
       result = await convertPlugin(args.dir, {
         ...(args.out ? { outDir: path.resolve(args.out) } : {}),
         ...(args.dual ? { dual: true } : {}),
+        ...(args.target ? { target: args.target } : {}),
       })
     } catch (error) {
       fail(error)

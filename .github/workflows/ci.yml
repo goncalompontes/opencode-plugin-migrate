@@ -15,6 +15,21 @@ jobs:
       - run: bun run typecheck
       - run: bun test
 
+  compat:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin: ["2.2.7", "2.1.4"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun add -d @opencode/plugin@${{ matrix.plugin }}
+      - run: bun scripts/probe.ts
+
   benchmark:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest

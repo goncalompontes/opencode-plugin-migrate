@@ -20,6 +20,7 @@ import {
 } from "./ir/schema"
 import { emitModule } from "./emit/emit"
 import { classify } from "./rules/hooks"
+import { applyTarget, probeTarget } from "./rules/compat"
 import { typecheck } from "./validate/typecheck"
 import { validateRuntime } from "./validate/bundle"
 import { implicitAnyParameter, runRepair } from "./validate/repair"
@@ -87,7 +88,32 @@ const classifyStage = stage({
   name: "classify-hooks",
   input: PluginIR,
   output: ClassifiedPluginIR,
-  run: async (ir) => classify(ir),
+  run: async (ir, ctx) => {
+    const override = typeof ctx.options?.target === "string" ? ctx.options.target : undefined
+    const target = probeTarget(ctx.root, override)
+    const classified = applyTarget(classify(ir), target)
+    const diagnostics = [...classified.diagnostics]
+    diagnostics.push({
+      code: "target/version",
+      severity: "info",
+      message: `targeting @opencode/plugin@${target.version} (${target.capabilities.length} capabilities probed).`,
+    })
+    if (target.overrideMismatch) {
+      diagnostics.push({
+        code: "target/override",
+        severity: "warning",
+        message: target.overrideMismatch,
+      })
+    }
+    if (target.missing.length) {
+      diagnostics.push({
+        code: "target/missing",
+        severity: "warning",
+        message: `installed target is missing capabilities: ${target.missing.join(", ")}; affected hooks were downgraded to review.`,
+      })
+    }
+    return { ...classified, diagnostics }
+  },
 })
 
 const emitStage = stage({
@@ -247,6 +273,7 @@ function baseReport(ir: ClassifiedPluginIR, mode: "analyze" | "convert"): Migrat
         body: hook.body,
         range: hook.range,
       })),
+    ...(ir.target ? { target: { version: ir.target.version, missing: ir.target.missing } } : {}),
     counts: counts(ir.hooks),
     toolCounts: {
       converted: ir.tools.length,
@@ -284,15 +311,25 @@ export interface ConvertResult extends AnalyzeResult {
   readonly module: EmittedModule
 }
 
-export async function analyzePlugin(dir: string, root = process.cwd()): Promise<AnalyzeResult> {
-  const ctx = { root, outDir: path.join(root, ".migrate"), log: () => {} }
+export async function analyzePlugin(
+  dir: string,
+  options: { root?: string; target?: string } | string = {},
+): Promise<AnalyzeResult> {
+  const settings = typeof options === "string" ? { root: options } : options
+  const root = settings.root ?? process.cwd()
+  const ctx = {
+    root,
+    outDir: path.join(root, ".migrate"),
+    log: () => {},
+    options: { ...(settings.target ? { target: settings.target } : {}) },
+  }
   const ir = await analyzePipeline.run({ dir }, ctx)
   return { report: baseReport(ir, "analyze"), ir }
 }
 
 export async function convertPlugin(
   dir: string,
-  options: { outDir?: string; root?: string; dual?: boolean } = {},
+  options: { outDir?: string; root?: string; dual?: boolean; target?: string } = {},
 ): Promise<ConvertResult> {
   const root = options.root ?? process.cwd()
   const outRoot = options.outDir ?? path.join(root, ".migrate")

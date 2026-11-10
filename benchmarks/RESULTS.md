@@ -32,7 +32,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 3 hooks, kept for manual porting: 0
 - Generated: `.out/openslimedit/`
-- Findings: 2
+- Findings: 3
 
 - `tool.definition` — converted -> ctx.tool.transform() and editor.update()
 - `tool.execute.after` — converted -> ctx.tool.hook('execute.after')
@@ -44,7 +44,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-smartsnip/`
-- Findings: 4
+- Findings: 5
 
 - `tool.execute.before` — converted -> ctx.tool.hook('execute.before')
 - `event` — converted -> ctx.event.subscribe()
@@ -55,7 +55,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-notify/`
-- Findings: 8
+- Findings: 9
 
 - `tool.execute.before` — converted -> ctx.tool.hook('execute.before')
 - `event` — converted -> ctx.event.subscribe()
@@ -66,7 +66,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 1 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-request-logger/`
-- Findings: 4
+- Findings: 5
 
 - `chat.params` — converted -> ctx.session.hook('context') and event.options
 
@@ -76,7 +76,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-message-notify/`
-- Findings: 1
+- Findings: 2
 
 - `event` — converted -> ctx.event.subscribe()
 - `permission.ask` — converted -> ctx.permission.hook('evaluate')
@@ -87,7 +87,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-smart-voice-notify/`
-- Findings: 8
+- Findings: 9
 
 - `dispose` — converted -> cleanup returned from setup()
 - `event` — converted -> ctx.event.subscribe()
@@ -98,7 +98,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 0 hooks, kept for manual porting: 1
 - Generated: `.out/OpenCode-Image-Router-Plugin/`
-- Findings: 5
+- Findings: 6
 
 - `chat.message` — review -> ctx.session.hook('context') or ctx.provider.transform()
 
@@ -108,7 +108,7 @@ is visible instead of silently dropped.
 - Custom tools: 5/5 registered
 - Emitted: 2 hooks, kept for manual porting: 1
 - Generated: `.out/opencode-pty/`
-- Findings: 10
+- Findings: 11
 
 - `command.execute.before` — unsupported -> ctx.command.transform() when the plugin owns the command, otherwise the prompt hook
 - `config` — converted -> ctx.command.transform()

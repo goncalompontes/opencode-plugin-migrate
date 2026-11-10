@@ -12,6 +12,7 @@ export function renderMarkdown(report: MigrationReport): string {
   lines.push("")
   lines.push(`- Source: \`${report.sourceDir}\``)
   lines.push(`- Entry: \`${report.entryFile}\``)
+  if (report.target) lines.push(`- Target: \`@opencode/plugin@${report.target.version}\``)
   if (report.generatedFile) lines.push(`- Generated: \`${report.generatedFile}\``)
   lines.push(
     `- Hooks: **${report.counts.converted} converted**, ${report.counts.review} need review, ${report.counts.unsupported} unsupported`,

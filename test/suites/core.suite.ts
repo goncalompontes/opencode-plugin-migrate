@@ -7,6 +7,7 @@ import { pipeline, stage } from "../../src/core/pipeline"
 import { countV1ImportFiles } from "../../src/env/imports"
 import { validateRuntime } from "../../src/validate/bundle"
 import { runRepair } from "../../src/validate/repair"
+import { applyTarget, probeTarget } from "../../src/rules/compat"
 import { z } from "zod"
 
 const fixture = path.join(import.meta.dir, "..", "fixtures", "basic")
@@ -308,6 +309,36 @@ describe("auto-repair", () => {
     })
     expect(outcome.result.stopped).toBe("no-fix")
     expect(outcome.result.passes).toBe(0)
+  })
+})
+
+describe("target compatibility", () => {
+  test("probes the installed @opencode/plugin capabilities", async () => {
+    const target = probeTarget(process.cwd())
+    expect(target.version).toMatch(/^\d+\.\d+\.\d+$/)
+    expect(target.capabilities).toContain("plugin.define")
+    expect(target.capabilities).toContain("session.hook.prompt")
+    expect(target.capabilities).toContain("tool.hook")
+  })
+
+  test("downgrades rules whose capability is missing", async () => {
+    const { ir } = await analyzePlugin(fixture)
+    expect(ir.target).toBeDefined()
+    const fake = {
+      ...ir.target!,
+      capabilities: ir.target!.capabilities.filter((name) => name !== "session.hook.prompt"),
+      missing: [...ir.target!.missing, "session.hook.prompt"],
+    } as Parameters<typeof applyTarget>[1]
+    const downgraded = applyTarget({ ...ir, target: fake }, fake)
+    const chat = downgraded.hooks.find((hook) => hook.name === "chat.message")
+    expect(chat?.classification).toBe("review")
+    expect(chat?.reason).toContain("does not expose")
+  })
+
+  test("warns when --target differs from the installed version", async () => {
+    const { report } = await analyzePlugin(fixture, { target: "9.9.9" })
+    expect(report.target?.version).not.toBe("9.9.9")
+    expect(report.diagnostics.some((item) => item.code === "target/override")).toBe(true)
   })
 })
 

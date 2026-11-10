@@ -18,6 +18,12 @@ export const BasicPlugin: Plugin = async ({ directory, client }) => {
     "chat.message": async (_input, output) => {
       output.parts.length = 0
     },
+    "chat.params": async (_input, output) => {
+      output.temperature = 0.2
+    },
+    "chat.headers": async (_input, output) => {
+      output.headers["x-test"] = "1"
+    },
     "permission.ask": async (input, output) => {
       if (input.type === "bash") output.status = "deny"
     },

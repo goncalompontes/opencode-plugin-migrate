@@ -9,12 +9,12 @@ typechecked against `@opencode/plugin`.
 | [openslimedit](https://github.com/ASidorenkoCode/openslimedit) | 3 | 3 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | known upstream failure | 1 -> 0 |
-| [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 0 | 1 | 0 | 0/0 | clean | ok | 1 -> 0 |
+| [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 1 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 0 -> 0 |
 | [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | 5/5 | clean | ok | 8 -> 0 |
 
-**Totals:** 15 hooks, 12 converted (80%), 2 need review, 1 unsupported.
+**Totals:** 15 hooks, 13 converted (87%), 1 need review, 1 unsupported.
 
 ## What "converted" means
 
@@ -63,11 +63,11 @@ is visible instead of silently dropped.
 
 - V1 authoring imports: 1 file(s) -> 0
 - Custom tools: 0/0 registered
-- Emitted: 0 hooks, kept for manual porting: 1
+- Emitted: 1 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-request-logger/`
 - Findings: 4
 
-- `chat.params` — review -> ctx.session.hook('context') and event.options
+- `chat.params` — converted -> ctx.session.hook('context') and event.options
 
 ### opencode-message-notify
 

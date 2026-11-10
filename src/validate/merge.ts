@@ -62,7 +62,9 @@ export function parseRegions(source: string): Region[] {
 export function buildState(source: string): MergeState {
   return {
     version: 1,
-    generated: Object.fromEntries(parseRegions(source).map((region) => [region.key, hash(region.body)])),
+    generated: Object.fromEntries(
+      parseRegions(source).map((region) => [region.key, hash(region.body)]),
+    ),
   }
 }
 

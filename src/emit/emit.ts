@@ -7,8 +7,8 @@
  *    a report block, so a partial migration still parses and typechecks.
  */
 import path from "node:path"
-import { clientDiagnostics, renderClientFacade, scanClientCalls } from "../env/client"
 import type { Diagnostic } from "../core/diagnostics"
+import { clientDiagnostics, renderClientFacade, scanClientCalls } from "../env/client"
 import type { ClassifiedHook, ClassifiedPluginIR, EmittedModule, ToolSite } from "../ir/schema"
 
 const INDENT = "  "
@@ -104,7 +104,9 @@ function factoryLocals(ir: ClassifiedPluginIR): { lines: string[]; diagnostics: 
         diagnostics.push(...clientDiagnostics(clientCalls))
         break
       case "$":
-        lines.push("// TODO(v2): V2 does not pass the Bun $ helper; fall back to the host global and review.")
+        lines.push(
+          "// TODO(v2): V2 does not pass the Bun $ helper; fall back to the host global and review.",
+        )
         lines.push("const $: any = (globalThis as any).Bun?.$")
         diagnostics.push({
           code: "context/bun-shell",
@@ -157,7 +159,8 @@ function renderLegacy(ir: ClassifiedPluginIR): string[] {
   }
   if (ir.tools.length) {
     lines.push("    tool: {")
-    for (const tool of ir.tools) lines.push(`      ${JSON.stringify(tool.name)}: ${tool.reference},`)
+    for (const tool of ir.tools)
+      lines.push(`      ${JSON.stringify(tool.name)}: ${tool.reference},`)
     lines.push("    },")
   }
   lines.push("  }", "}", "")
@@ -551,7 +554,10 @@ export function emitModule(
     })
     blocks.push(
       reindent(
-        ["// --- Not converted automatically; original bodies kept for manual porting ---", ...notes].join("\n"),
+        [
+          "// --- Not converted automatically; original bodies kept for manual porting ---",
+          ...notes,
+        ].join("\n"),
         2,
       ),
     )
@@ -587,7 +593,9 @@ export function emitModule(
   }
   const defineOpen = options.dual
     ? [`const __v2 = Plugin.define({`]
-    : [`const ${ir.exportName && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(ir.exportName) ? ir.exportName : "plugin"} = Plugin.define({`]
+    : [
+        `const ${ir.exportName && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(ir.exportName) ? ir.exportName : "plugin"} = Plugin.define({`,
+      ]
 
   const exportBase = ir.exportName ?? "plugin"
   const localName = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(exportBase) ? exportBase : "plugin"

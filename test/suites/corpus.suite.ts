@@ -6,8 +6,8 @@
 import { describe, expect, test } from "bun:test"
 import fs from "node:fs"
 import path from "node:path"
-import { analyzePlugin, convertPlugin } from "../../src/api"
 import { CORPUS } from "../../benchmarks/manifest"
+import { analyzePlugin, convertPlugin } from "../../src/api"
 
 const corpus = path.join(import.meta.dir, "..", "..", "benchmarks", "corpus")
 const available = CORPUS.filter((entry) => fs.existsSync(path.join(corpus, entry.name)))

@@ -25,6 +25,12 @@ export const Diagnostic = z.object({
 })
 export type Diagnostic = z.infer<typeof Diagnostic>
 
-export function locationOf(file: string, start: number, end: number, line: number, column: number): SourceRange {
+export function locationOf(
+  file: string,
+  start: number,
+  end: number,
+  line: number,
+  column: number,
+): SourceRange {
   return { file, start, end, line, column }
 }

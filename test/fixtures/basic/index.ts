@@ -1,6 +1,6 @@
 import type { Plugin } from "@opencode-ai/plugin"
 
-const GREETING = "hello"
+const _GREETING = "hello"
 
 export const BasicPlugin: Plugin = async ({ directory, client }) => {
   const seen = new Set<string>()

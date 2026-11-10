@@ -18,7 +18,10 @@ export interface ClientCall {
 
 const MAPPED: Record<string, { status: ClientStatus; note: string }> = {
   "session.get": { status: "mapped", note: "session.get({ sessionID }) with a { data } envelope" },
-  "session.list": { status: "mapped", note: "session.list(input.query ?? input) with a { data } envelope" },
+  "session.list": {
+    status: "mapped",
+    note: "session.list(input.query ?? input) with a { data } envelope",
+  },
   "session.messages": {
     status: "mapped",
     note: "session.context({ sessionID }) with a { data } envelope",
@@ -32,16 +35,31 @@ const MAPPED: Record<string, { status: ClientStatus; note: string }> = {
     note: "session.compact({ sessionID }) with a { data } envelope",
   },
   "app.log": { status: "mapped", note: "console.log(body.message)" },
-  "tool.ids": { status: "mapped", note: "tool.list().map(tool => tool.id) with a { data } envelope" },
+  "tool.ids": {
+    status: "mapped",
+    note: "tool.list().map(tool => tool.id) with a { data } envelope",
+  },
   "tui.showToast": {
     status: "adapted",
     note: "V2 server plugins have no TUI; the toast is logged instead of shown",
   },
-  "session.prompt": { status: "unmapped", note: "V2 session.prompt takes flat text/files, not message parts" },
+  "session.prompt": {
+    status: "unmapped",
+    note: "V2 session.prompt takes flat text/files, not message parts",
+  },
   "session.promptAsync": { status: "unmapped", note: "no async prompt variant in V2" },
-  "session.command": { status: "unmapped", note: "V2 session.command takes flat text, not message parts" },
-  "session.status": { status: "unmapped", note: "derive status from session.get() or the event stream" },
-  "config.get": { status: "unmapped", note: "V2 has no global config domain; read the owning domain" },
+  "session.command": {
+    status: "unmapped",
+    note: "V2 session.command takes flat text, not message parts",
+  },
+  "session.status": {
+    status: "unmapped",
+    note: "derive status from session.get() or the event stream",
+  },
+  "config.get": {
+    status: "unmapped",
+    note: "V2 has no global config domain; read the owning domain",
+  },
 }
 
 const CALL = /\bclient\.([A-Za-z]+)\.([A-Za-z]+)\s*\(/g
@@ -123,7 +141,7 @@ export function renderClientFacade(binding = "client"): string[] {
 
 export function clientDiagnostics(calls: readonly ClientCall[]): Diagnostic[] {
   if (calls.length === 0) return []
-  const mapped = calls.filter((call) => call.status === "mapped")
+  const _mapped = calls.filter((call) => call.status === "mapped")
   const adapted = calls.filter((call) => call.status === "adapted")
   const unmapped = calls.filter((call) => call.status === "unmapped")
   const diagnostics: Diagnostic[] = [

@@ -257,10 +257,19 @@ DESIGN.md       design notes and known limits
 
 ```sh
 bun install
+bun run lint              # Biome
 bun run typecheck
-bun test          # one entrypoint (test/migration.test.ts), 60s per-test budget
+bun test                  # one entrypoint (test/migration.test.ts), 60s per-test budget
+bun run coverage:check    # floors for src/rules and src/emit
+bun run build             # dist/library + dist/cli.js
+bun run smoke:pack        # packed-tarball install smoke test
 bun run bench
 ```
+
+CI runs Biome, typecheck, tests and the Node CLI on Bun `1.4.4` and `latest`; coverage
+floors; the pack smoke test on Node 20 and 22; a compatibility matrix for two
+`@opencode/plugin` versions; and a PR benchmark job that caches the corpus and posts the
+results table as a PR comment.
 
 Both `analyze` and `convert` run a TypeScript program per plugin. The typechecker
 shares parsed `lib.*.d.ts` / `@types` declarations across programs, and extraction

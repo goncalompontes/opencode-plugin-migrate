@@ -118,7 +118,7 @@ const convert = defineCommand({
   },
   async run({ args }) {
     const dryRun = args["dry-run"] === true
-    let result
+    let result: Awaited<ReturnType<typeof convertPlugin>>
     try {
       result = await convertPlugin(args.dir, {
         ...(args.out ? { outDir: path.resolve(args.out) } : {}),

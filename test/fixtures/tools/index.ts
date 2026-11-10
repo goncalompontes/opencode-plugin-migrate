@@ -1,4 +1,4 @@
-import { tool, type Plugin } from "@opencode-ai/plugin"
+import { type Plugin, tool } from "@opencode-ai/plugin"
 import { referencedTool } from "./tools"
 
 export const ToolsPlugin: Plugin = async () => ({

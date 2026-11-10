@@ -156,7 +156,10 @@ function parseClause(clause: string, typeOnly: boolean) {
       const part = raw.trim()
       if (!part) continue
       const isType = typeOnly || /^type\s+/.test(part)
-      const name = part.replace(/^type\s+/, "").split(/\s+as\s+/)[0]?.trim()
+      const name = part
+        .replace(/^type\s+/, "")
+        .split(/\s+as\s+/)[0]
+        ?.trim()
       if (!name) continue
       if (isType) types.add(name)
       else values.add(name)

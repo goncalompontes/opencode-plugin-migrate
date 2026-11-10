@@ -26,9 +26,7 @@ function normalizeEntry(entry: unknown): unknown {
   if (typeof entry === "string") return entry
   if (Array.isArray(entry) && typeof entry[0] === "string") {
     const [, options] = entry
-    return options === undefined
-      ? { package: entry[0] }
-      : { package: entry[0], options }
+    return options === undefined ? { package: entry[0] } : { package: entry[0], options }
   }
   return entry
 }
@@ -112,7 +110,8 @@ export function detectLayout(root: string): Diagnostic[] {
 
 function walk(dir: string, found: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === "node_modules" || entry.name === "dist" || entry.name.startsWith(".git")) continue
+    if (entry.name === "node_modules" || entry.name === "dist" || entry.name.startsWith(".git"))
+      continue
     const full = path.join(dir, entry.name)
     if (entry.isDirectory()) walk(full, found)
     else if (/\.[cm]?tsx?$/.test(entry.name) && !entry.name.endsWith(".d.ts")) found.push(full)

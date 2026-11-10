@@ -27,13 +27,15 @@ export const HOOK_RULES: Record<keyof Hooks, HookRule> = {
     classification: "review",
     v2: "domain transforms (ctx.agent/provider/model/command/mcp/... transform)",
     adapter: "none",
-    reason: "V2 has no single mutable global config object; each change moves to the domain that owns it.",
+    reason:
+      "V2 has no single mutable global config object; each change moves to the domain that owns it.",
   },
   tool: {
     classification: "review",
     v2: "ctx.tool.transform() with JSON Schema",
     adapter: "none",
-    reason: "V1 tools use the Zod tool() helper; V2 tools take JSON Schema and return structured content.",
+    reason:
+      "V1 tools use the Zod tool() helper; V2 tools take JSON Schema and return structured content.",
   },
   auth: {
     classification: "review",
@@ -76,7 +78,8 @@ export const HOOK_RULES: Record<keyof Hooks, HookRule> = {
     classification: "unsupported",
     v2: "ctx.command.transform() when the plugin owns the command, otherwise the prompt hook",
     adapter: "none",
-    reason: "There is no one-to-one global pre-command hook in V2; the correct destination depends on intent.",
+    reason:
+      "There is no one-to-one global pre-command hook in V2; the correct destination depends on intent.",
   },
   "tool.execute.before": {
     classification: "converted",
@@ -164,7 +167,11 @@ export function classify(ir: PluginIR): ClassifiedPluginIR {
       }
 
       if (hook.name === "config") {
-        const keys = [...new Set([...hook.body.matchAll(/\binput\.([A-Za-z_$][\w$]*)/g)].map((match) => match[1]))]
+        const keys = [
+          ...new Set(
+            [...hook.body.matchAll(/\binput\.([A-Za-z_$][\w$]*)/g)].map((match) => match[1]),
+          ),
+        ]
         const commandOnly = keys.length > 0 && keys.every((key) => key === "command")
         if (commandOnly && !hook.usesAwait) {
           return {
@@ -204,7 +211,13 @@ export function classify(ir: PluginIR): ClassifiedPluginIR {
           reason: "callback destructures its parameters; the shim needs a hand-written adapter.",
         }
       }
-      return { ...hook, classification: rule.classification, adapter: rule.adapter, v2: rule.v2, ...(rule.reason ? { reason: rule.reason } : {}) }
+      return {
+        ...hook,
+        classification: rule.classification,
+        adapter: rule.adapter,
+        v2: rule.v2,
+        ...(rule.reason ? { reason: rule.reason } : {}),
+      }
     }),
   }
 }

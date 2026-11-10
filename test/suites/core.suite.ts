@@ -1,14 +1,14 @@
 import { describe, expect, test } from "bun:test"
 import fs from "node:fs"
 import path from "node:path"
+import { z } from "zod"
 import { analyzePlugin, convertPlugin } from "../../src/api"
-import { HOOK_RULES } from "../../src/rules/hooks"
 import { pipeline, stage } from "../../src/core/pipeline"
 import { countV1ImportFiles } from "../../src/env/imports"
+import { applyTarget, probeTarget } from "../../src/rules/compat"
+import { HOOK_RULES } from "../../src/rules/hooks"
 import { validateRuntime } from "../../src/validate/bundle"
 import { runRepair } from "../../src/validate/repair"
-import { applyTarget, probeTarget } from "../../src/rules/compat"
-import { z } from "zod"
 
 const fixture = path.join(import.meta.dir, "..", "fixtures", "basic")
 const root = path.join(import.meta.dir, "..", ".tmp")
@@ -59,8 +59,8 @@ describe("analyze", () => {
     const { report } = await analyzePlugin(fixture)
     const byName = Object.fromEntries(report.hooks.map((hook) => [hook.name, hook.classification]))
     expect(byName["tool.execute.before"]).toBe("converted")
-    expect(byName["event"]).toBe("converted")
-    expect(byName["dispose"]).toBe("converted")
+    expect(byName.event).toBe("converted")
+    expect(byName.dispose).toBe("converted")
     expect(byName["chat.message"]).toBe("converted")
     expect(byName["chat.params"]).toBe("converted")
     expect(byName["chat.headers"]).toBe("converted")
@@ -77,9 +77,9 @@ describe("analyze", () => {
 
 describe("already migrated", () => {
   test("recognizes a V2 module instead of guessing", async () => {
-    await expect(analyzePlugin(path.join(import.meta.dir, "..", "fixtures", "already-v2"))).rejects.toThrow(
-      /already targets the OpenCode V2 plugin API/,
-    )
+    await expect(
+      analyzePlugin(path.join(import.meta.dir, "..", "fixtures", "already-v2")),
+    ).rejects.toThrow(/already targets the OpenCode V2 plugin API/)
   })
 })
 
@@ -129,7 +129,10 @@ describe("whole package", () => {
   test("rewrites every V1 import and generates a shim", async () => {
     const result = await convertPlugin(mixed, { outDir: path.join(root, "mixed") })
     expect(result.report.package?.remainingV1Imports).toEqual([])
-    expect([...(result.report.package?.rewrittenFiles ?? [])].sort()).toEqual(["tools.ts", "types.ts"])
+    expect([...(result.report.package?.rewrittenFiles ?? [])].sort()).toEqual([
+      "tools.ts",
+      "types.ts",
+    ])
     expect(result.report.package?.dependencySwapped).toBe(true)
     expect(result.report.package?.shim).toBe("__opencode_v1_shim.ts")
     const mixedManifest = await Bun.file(path.join(result.outDir, "package.json")).json()
@@ -220,7 +223,9 @@ describe("config command transform", () => {
     expect(result.module.source).toContain("command.transform")
     expect(result.module.source).toContain("new Proxy")
     expect(result.report.typecheck?.clean).toBe(true)
-    expect(result.report.diagnostics.some((item) => item.code === "config/command-template")).toBe(true)
+    expect(result.report.diagnostics.some((item) => item.code === "config/command-template")).toBe(
+      true,
+    )
   })
 })
 
@@ -229,10 +234,7 @@ describe("conditional hook maps", () => {
 
   test("emits branch-aware registrations", async () => {
     const { report } = await analyzePlugin(conditional)
-    expect(report.hooks.map((hook) => hook.name).sort()).toEqual([
-      "event",
-      "tool.execute.before",
-    ])
+    expect(report.hooks.map((hook) => hook.name).sort()).toEqual(["event", "tool.execute.before"])
     const result = await convertPlugin(conditional, { outDir: path.join(root, "conditional") })
     expect(result.module.source).toContain("if (!enabled) {")
     expect(result.module.source).toContain("else {")
@@ -273,7 +275,10 @@ describe("incremental conversion", () => {
     // Change the V1 source too: this becomes a conflict, and the manual body wins.
     const v1 = path.join(source, "index.ts")
     const text = await Bun.file(v1).text()
-    await Bun.write(v1, text.replace("blocked in ${directory}", "blocked by policy in ${directory}"))
+    await Bun.write(
+      v1,
+      text.replace("blocked in ${directory}", "blocked by policy in ${directory}"),
+    )
     const third = await convertPlugin(source, { outDir })
     expect(third.report.diagnostics.map((item) => item.code)).toContain("incremental/conflict")
     expect(third.module.source).toContain("// manual note")
@@ -287,10 +292,7 @@ describe("scaffolding", () => {
     const result = await convertPlugin(scaffold, { outDir: path.join(root, "scaffold") })
     const config = await Bun.file(path.join(result.outDir, "opencode.json")).json()
     expect(config.plugin).toBeUndefined()
-    expect(config.plugins).toEqual([
-      "pkg-a",
-      { package: "./local", options: { enabled: true } },
-    ])
+    expect(config.plugins).toEqual(["pkg-a", { package: "./local", options: { enabled: true } }])
     const codes = result.report.diagnostics.map((item) => item.code)
     expect(codes).toContain("config/plugins")
     expect(codes).toContain("layout/plugin-directory")
@@ -403,7 +405,11 @@ describe("target compatibility", () => {
 describe("CLI", () => {
   const repo = path.join(import.meta.dir, "..", "..")
   const run = (...args: string[]) =>
-    Bun.spawnSync(["bun", "src/cli/index.ts", ...args], { cwd: repo, stdout: "pipe", stderr: "pipe" })
+    Bun.spawnSync(["bun", "src/cli/index.ts", ...args], {
+      cwd: repo,
+      stdout: "pipe",
+      stderr: "pipe",
+    })
 
   test("help lists the conversion flags", () => {
     const result = run("convert", "--help")
@@ -415,16 +421,32 @@ describe("CLI", () => {
   })
 
   test("--check exits 1 for review findings and 0 for a clean conversion", () => {
-    const clean = run("convert", path.join(import.meta.dir, "..", "fixtures", "basic"), "--check", "--quiet")
+    const clean = run(
+      "convert",
+      path.join(import.meta.dir, "..", "fixtures", "basic"),
+      "--check",
+      "--quiet",
+    )
     expect(clean.exitCode).toBe(0)
-    const review = run("convert", path.join(import.meta.dir, "..", "fixtures", "review"), "--check", "--quiet")
+    const review = run(
+      "convert",
+      path.join(import.meta.dir, "..", "fixtures", "review"),
+      "--check",
+      "--quiet",
+    )
     expect(review.exitCode).toBe(1)
   })
 
   test("--dry-run writes nothing", () => {
     const dryRunDir = path.join(repo, ".migrate", ".dry-run")
     fs.rmSync(dryRunDir, { recursive: true, force: true })
-    const result = run("convert", path.join(import.meta.dir, "..", "fixtures", "basic"), "--dry-run", "--format", "json")
+    const result = run(
+      "convert",
+      path.join(import.meta.dir, "..", "fixtures", "basic"),
+      "--dry-run",
+      "--format",
+      "json",
+    )
     expect(result.exitCode).toBe(0)
     expect(fs.existsSync(dryRunDir)).toBe(false)
   })

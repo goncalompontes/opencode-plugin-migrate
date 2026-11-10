@@ -7,25 +7,20 @@ import path from "node:path"
 import { z } from "zod"
 import { Diagnostic } from "./core/diagnostics"
 import { pipeline, stage } from "./core/pipeline"
-import { copyProject, resolveProject } from "./env/project"
-import { readTargetVersion, upgradePackageJson } from "./env/package"
-import { findV1Imports, rewriteV1Imports } from "./env/imports"
-import { detectLayout, upgradeConfigFiles } from "./env/config"
-import { extractPlugin } from "./ir/extract"
-import {
-  ClassifiedPluginIR,
-  EmittedModule,
-  PluginIR,
-  type ClassifiedHook,
-} from "./ir/schema"
 import { emitModule } from "./emit/emit"
-import { classify } from "./rules/hooks"
+import { detectLayout, upgradeConfigFiles } from "./env/config"
+import { findV1Imports, rewriteV1Imports } from "./env/imports"
+import { readTargetVersion, upgradePackageJson } from "./env/package"
+import { copyProject, resolveProject } from "./env/project"
+import { extractPlugin } from "./ir/extract"
+import { type ClassifiedHook, ClassifiedPluginIR, EmittedModule, PluginIR } from "./ir/schema"
+import type { MigrationReport } from "./report/schema"
 import { applyTarget, probeTarget } from "./rules/compat"
-import { typecheck } from "./validate/typecheck"
+import { classify } from "./rules/hooks"
 import { validateRuntime } from "./validate/bundle"
+import { buildState, type MergeState, mergeManualEdits } from "./validate/merge"
 import { implicitAnyParameter, runRepair } from "./validate/repair"
-import { buildState, mergeManualEdits, type MergeState } from "./validate/merge"
-import { MigrationReport } from "./report/schema"
+import { typecheck } from "./validate/typecheck"
 
 export const PluginProjectSchema = z.object({
   dir: z.string(),
@@ -47,7 +42,11 @@ const EmitOutput = z.object({ ir: ClassifiedPluginIR, module: EmittedModule })
 const ValidateOutput = EmitOutput.extend({
   typecheck: z.object({ clean: z.boolean(), diagnostics: z.array(Diagnostic) }),
   runtime: z.object({
-    bundle: z.object({ ok: z.boolean(), errors: z.array(z.string()), skipped: z.boolean().optional() }),
+    bundle: z.object({
+      ok: z.boolean(),
+      errors: z.array(z.string()),
+      skipped: z.boolean().optional(),
+    }),
     entry: z.object({ ok: z.boolean(), message: z.string() }),
     diagnostics: z.array(Diagnostic),
   }),
@@ -417,7 +416,13 @@ export async function convertPlugin(
 
   const dual = options.dual === true
   const ctx = { root, outDir: outRoot, log: () => {}, options: { dual } }
-  const { ir, module, typecheck: check, runtime, repair } = await convertPipeline.run(
+  const {
+    ir,
+    module,
+    typecheck: check,
+    runtime,
+    repair,
+  } = await convertPipeline.run(
     { dir, outDir: outRoot, dual, force: options.force === true || dryRun },
     ctx,
   )

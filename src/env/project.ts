@@ -117,6 +117,11 @@ export function resolveProject(dir: string): PluginProject {
   candidates.push(...findV1Importers(files))
 
   const entryFile = candidates.find((file) => fs.existsSync(file) && isSource(file))
+  if (entryFile && /(^|\/)(dist|build|lib)\//.test(path.relative(absolute, entryFile))) {
+    throw new Error(
+      `${absolute} only ships compiled output (${path.relative(absolute, entryFile)}); a source tree is required for migration.`,
+    )
+  }
   if (!entryFile) {
     throw new Error(
       `could not find a plugin entrypoint in ${absolute}. Looked for package.json main/exports, ${ENTRY_CANDIDATES.join(", ")} and files importing @opencode-ai/plugin.`,

@@ -53,7 +53,9 @@
     "smoke:pack": "bun scripts/pack-smoke.ts",
     "lint": "biome check",
     "format": "biome check --write",
-    "coverage:check": "bun scripts/coverage-floor.ts"
+    "coverage:check": "bun scripts/coverage-floor.ts",
+    "bench:core": "bun benchmarks/run.ts --core-only",
+    "corpus:discover": "bun scripts/discover-corpus.ts"
   },
   "dependencies": {
     "citty": "^0.2.2",

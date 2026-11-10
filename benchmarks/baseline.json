@@ -1,0 +1,1275 @@
+{
+  "generatedAt": "2026-11-10T17:13:35.449Z",
+  "entries": {
+    "affaan-m/ECC": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "could not load <repo>/.opencode/plugins/index.ts"
+    },
+    "strukto-ai/mirage": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "syntax errors in <repo>/typescript/packages/opencode/src/server.ts: [object Object]"
+    },
+    "bergside/typeui": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "numman-ali/opencode-openai-codex-auth": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "kenryu42/cc-safety-net": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "<repo> only ships compiled output (dist/index.js); a source tree is required for migration."
+    },
+    "mem9-ai/mem9": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "slkiser/opencode-quota": {
+      "status": "skipped",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "<repo> already targets the OpenCode V2 plugin API (@opencode/plugin); there is nothing to migrate."
+    },
+    "agent-sh/agentsys": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "<repo> only ships compiled output (lib/platform/detect-platform.js); a source tree is required for migration."
+    },
+    "blueberrycongee/Lumina-Note": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "could not find a plugin entrypoint in <repo>. Looked for package.json main/exports, src/index.ts, index.ts, plugin.ts, src/plugin.ts, src/server.ts, src/index.mjs, index.mjs, src/index.js, index.js, src/index.tsx, index.tsx, .opencode/plugins/index.ts and files importing @opencode-ai/plugin."
+    },
+    "mohak34/opencode-notifier": {
+      "status": "clean",
+      "hooks": 4,
+      "converted": 4,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "Dong90/oh-my-taiyiforge": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 41
+    },
+    "Nomadcxx/opencode-cursor": {
+      "status": "issues",
+      "hooks": 2,
+      "converted": 2,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "Could not find a declaration file for module 'cross-spawn'. '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/node_modules/cross-spawn/index.js' implicitly has an 'any' type."
+    },
+    "different-ai/opencode-browser": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "<repo> only ships compiled output (dist/plugin.js); a source tree is required for migration."
+    },
+    "ex-machina-co/opencode-anthropic-auth": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "me2resh/apexyard": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "joelhooks/opencode-config": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 0,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "ZaxbyHub/opencode-swarm": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "syntax errors in <repo>/src/index.ts: 'readonly' type modifier is only permitted on array and tuple literal types."
+    },
+    "different-ai/opencode-scheduler": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "<repo> only ships compiled output (dist/index.js); a source tree is required for migration."
+    },
+    "vtemian/micode": {
+      "status": "issues",
+      "hooks": 8,
+      "converted": 5,
+      "review": 3,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "'override' is of type 'unknown'."
+    },
+    "franlol/opencode-md-table-formatter": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 1,
+      "tools": 0
+    },
+    "doza62/opencode-mobile": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "joshuadavidthomas/opencode-agent-skills": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "ephraimduncan/opencode-cursor": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 0,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "ranxianglei/opencode-acp": {
+      "status": "issues",
+      "hooks": 1,
+      "converted": 0,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "vbgate/opencode-mystatus": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "spoons-and-mirrors/subtask2": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 2,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "ghoulr/opencode-websearch-cited": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 0,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "Yeachan-Heo/My-Jogyo": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "Type '(__opencode: Context) => Promise<{}>' is not assignable to type '(context: Context) => void | Cleanup | Promise<void | Cleanup>'."
+    },
+    "Joaquinvesapa/sub-agent-statusline": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "ttalkkak-lab/opencode-contexty": {
+      "status": "issues",
+      "hooks": 2,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 1,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "rizal72/true-mem": {
+      "status": "issues",
+      "hooks": 7,
+      "converted": 5,
+      "review": 2,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "angristan/opencode-wakatime": {
+      "status": "clean",
+      "hooks": 3,
+      "converted": 3,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "sdwolf4103/opencode-working-memory": {
+      "status": "clean",
+      "hooks": 5,
+      "converted": 3,
+      "review": 1,
+      "unsupported": 1,
+      "tools": 0
+    },
+    "IgorWarzocha/Opencode-Context-Analysis-Plugin": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "could not find a plugin entrypoint in <repo>. Looked for package.json main/exports, src/index.ts, index.ts, plugin.ts, src/plugin.ts, src/server.ts, src/index.mjs, index.mjs, src/index.js, index.js, src/index.tsx, index.tsx, .opencode/plugins/index.ts and files importing @opencode-ai/plugin."
+    },
+    "floze-the-genius/opencode-multi-auth-codex": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "<repo> only ships compiled output (dist/index.js); a source tree is required for migration."
+    },
+    "psinetron/opencode-visualiser": {
+      "status": "clean",
+      "hooks": 3,
+      "converted": 3,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "kommander/oc-plugin-vault-tec": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "malhashemi/opencode-sessions": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 2,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "MrgSub/opencode-debug": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 5
+    },
+    "tickernelz/opencode-kiro-auth": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "iHildy/opencode-synced": {
+      "status": "issues",
+      "hooks": 2,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 1,
+      "error": "typecheck or runtime failed"
+    },
+    "Octane0411/opencode-plugin-openspec": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "File '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/opencode-plugin-openspec/src/config.ts' is not listed within the file list of project ''. Projects must list all files or use an 'include' pattern."
+    },
+    "psinetron/echoes-vault-opencode": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 1,
+      "tools": 9
+    },
+    "agustif/opencode-lmstudio": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "marco-jardim/opencode-model-router": {
+      "status": "issues",
+      "hooks": 10,
+      "converted": 7,
+      "review": 1,
+      "unsupported": 2,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "0xSero/open-queue": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "fastknifes/openflow": {
+      "status": "issues",
+      "hooks": 7,
+      "converted": 5,
+      "review": 1,
+      "unsupported": 1,
+      "tools": 7,
+      "error": "typecheck or runtime failed"
+    },
+    "ApplauseLab/opencode-plugin-simple-memory": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 2,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "YuanG1944/message-bridge-opencode-plugin": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "IgorWarzocha/opencode-planning-toolkit": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "nick-vi/type-inject": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "could not find a plugin entrypoint in <repo>. Looked for package.json main/exports, src/index.ts, index.ts, plugin.ts, src/plugin.ts, src/server.ts, src/index.mjs, index.mjs, src/index.js, index.js, src/index.tsx, index.tsx, .opencode/plugins/index.ts and files importing @opencode-ai/plugin."
+    },
+    "paulp-o/ask-user-questions-mcp": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "oribarilan/vimcode": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "zhexulong/opencode-gpt-unlocked": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "<repo> only ships compiled output (dist/refusal-patcher.js); a source tree is required for migration."
+    },
+    "frieser/opencode-antigravity-quota": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "syntax errors in <repo>/src/index.ts: 'Account' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled."
+    },
+    "Hotakus/opencode-subagent-magazine": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "joeyism/opencode-history-search": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "<repo> only ships compiled output (dist/history-search.ts); a source tree is required for migration."
+    },
+    "ASidorenkoCode/openslimedit": {
+      "status": "clean",
+      "hooks": 3,
+      "converted": 3,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "yuji-hatakeyama/opencode-gpt-imagegen": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "frap129/opencode-rules": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "syntax errors in <repo>/src/index.ts: 'MessageWithInfo' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled."
+    },
+    "lkonga/opencode-execsa": {
+      "status": "clean",
+      "hooks": 4,
+      "converted": 2,
+      "review": 2,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "michaljach/opencode-browser": {
+      "status": "skipped",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "no V1 plugin factory found in <repo>/src/index.ts. Expected an exported Plugin-typed function or a default-exported { server } object."
+    },
+    "shahidshabbir-se/opencode-anthropic-oauth": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "charfeng1/opencode-ralph-loop": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 2,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 3
+    },
+    "Yukaii/yet-another-opencode-cursor-auth": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "yuseferi/opencode-litellm": {
+      "status": "issues",
+      "hooks": 2,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "ishaksebsib/opencode-tree": {
+      "status": "skipped",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "no V1 plugin factory found in <repo>/scripts/build.ts. Expected an exported Plugin-typed function or a default-exported { server } object."
+    },
+    "firecrawl/opencode-firecrawl": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "ndom91/open-plan-annotator": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "dantesCode/caveman-opencode-plugin": {
+      "status": "clean",
+      "hooks": 3,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 1,
+      "tools": 0
+    },
+    "FrancoStino/opencode-skills-collection": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "File '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/opencode-skills-collection/bundled-skills/electron-drive-skill/scripts/lib.ts' is not under 'rootDir' '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/opencode-skills-collection/src'. 'rootDir' is expected to contain all source files."
+    },
+    "crisogray/claudius": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "morphllm/opencode-morph-plugin": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "anomalyco/oc-plugin-rainbow": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "could not find a plugin entrypoint in <repo>. Looked for package.json main/exports, src/index.ts, index.ts, plugin.ts, src/plugin.ts, src/server.ts, src/index.mjs, index.mjs, src/index.js, index.js, src/index.tsx, index.tsx, .opencode/plugins/index.ts and files importing @opencode-ai/plugin."
+    },
+    "boxpositron/envsitter-guard": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 2,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "oomol-lab/wanta": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "MasuRii/opencode-smart-voice-notify": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 2,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "kuitos/opencode-claude-memory": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "mturac/everything-openai-codex": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "could not load <repo>/.opencode/plugins/index.ts"
+    },
+    "0xSero/open-trees": {
+      "status": "issues",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "cortexkit/antigravity-auth": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "Module '\"../constants\"' has no exported member 'ANTIGRAVITY_PROVIDER_ID'."
+    },
+    "TejasS1233/opencode-parser": {
+      "status": "skipped",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "<repo> already targets the OpenCode V2 plugin API (@opencode/plugin); there is nothing to migrate."
+    },
+    "cxOrz/smart-codebase": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "Type '(__opencode: Context) => Promise<{ tool: { \"sc-update\": ToolDefinition; \"sc-init\": ToolDefinition; }; \"chat.message\": (hookInput: any, output: any) => Promise<...>; event: (hookInput: any) => Promise<...>; config: (cfg: any) => Promise<...>; } | undefined>' is not assignable to type '(context: Context) => void | Cleanup | Promise<void | Cleanup>'."
+    },
+    "isanchez31/opencode-sandbox-plugin": {
+      "status": "clean",
+      "hooks": 3,
+      "converted": 3,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "mark-hingston/opencode-elf": {
+      "status": "issues",
+      "hooks": 2,
+      "converted": 2,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 1,
+      "error": "Cannot find name 'r'."
+    },
+    "omercnet/opencode-plugin-langfuse": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "pantheon-org/opencode-warcraft-notifications": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "vichhka-git/opencode-shannon-plugin": {
+      "status": "issues",
+      "hooks": 4,
+      "converted": 4,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "ricardo-rod/sdd-engram-plugin": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "shanebishop1/opencode-command-hooks": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "Type '(__opencode: Context) => Promise<{ config: (_input: Config) => Promise<void>; \"chat.params\": (_input: unknown, output: ChatParamsOutput) => Promise<void>; event: ({ event }: { ...; }) => Promise<...>; \"tool.execute.before\": (input: { ...; }, output: { ...; }) => Promise<...>; \"tool.execute.after\": (input: { ...; }, ...' is not assignable to type '(context: Context) => void | Cleanup | Promise<void | Cleanup>'."
+    },
+    "simwai/perplexity-ai-export": {
+      "status": "skipped",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "no V1 plugin factory found in <repo>/src/index.ts. Expected an exported Plugin-typed function or a default-exported { server } object."
+    },
+    "simonwjackson/opencode-direnv": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "MrDoe/OpenCodeRAG": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "plastic-labs/opencode-honcho": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 1,
+      "tools": 0
+    },
+    "remorses/agentmap": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "dkraemerwork/opencode-openai-multi-auth": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "roberto-mello/lavra": {
+      "status": "skipped",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "no V1 plugin factory found in <repo>/plugins/lavra/opencode-src/plugin.ts. Expected an exported Plugin-typed function or a default-exported { server } object."
+    },
+    "thelioo/opencode-balancer": {
+      "status": "clean",
+      "hooks": 5,
+      "converted": 1,
+      "review": 3,
+      "unsupported": 1,
+      "tools": 1
+    },
+    "oakimov/cursor-opencode-provider": {
+      "status": "issues",
+      "hooks": 7,
+      "converted": 5,
+      "review": 2,
+      "unsupported": 0,
+      "tools": 2,
+      "error": "Cannot find name 'AuthOAuthResult'."
+    },
+    "stolinski/opencode-sentry-monitor": {
+      "status": "issues",
+      "hooks": 4,
+      "converted": 4,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "'loaded' is possibly 'null'."
+    },
+    "Suraj1235/open-dynamic-workflows": {
+      "status": "issues",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 5,
+      "error": "'error' is of type 'unknown'."
+    },
+    "NTCoding/autonomous-claude-agent-team": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "ffflyZzz/opencode-anyrouter-cc": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "melihmucuk/leash": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 2,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "anis-dr/opencode-mermaid-renderer": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 1,
+      "tools": 0
+    },
+    "NovasPlace/CSM": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "FredySandoval/showsignature": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 2
+    },
+    "JungHoonGhae/opencode-kilo-auth": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "grepleaks/grepleaks": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "syntax errors in <repo>/engine/packages/plugin/src/example-workspace.ts: 'await' expressions are only allowed at the top level of a file when that file is a module, but this file has no imports or exports. Consider adding an empty 'export {}' to make this file a module."
+    },
+    "jordienr/fixseo": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 1,
+      "error": "Module '\"/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/fixseo/src/index\"' has no default export. Did you mean to use 'import { execute } from \"/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/fixseo/src/index\"' instead?"
+    },
+    "DVNghiem/FlowDeck": {
+      "status": "issues",
+      "hooks": 4,
+      "converted": 3,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 25,
+      "error": "typecheck or runtime failed"
+    },
+    "altalt-org/opencode-anthropic-multi-auth": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "Hona/temple-oc": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "goniz/opencode-local-provider": {
+      "status": "issues",
+      "hooks": 1,
+      "converted": 0,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "Property 'target' does not exist on type '{}'."
+    },
+    "partment/opencode-openai-compact": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "Type '(__opencode: Context) => Promise<Hooks | undefined>' is not assignable to type '(context: Context) => void | Cleanup | Promise<void | Cleanup>'."
+    },
+    "captainluzik/oh-my-embedded": {
+      "status": "issues",
+      "hooks": 3,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 1,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "foxswat/opencode-qwen-auth": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "izzzzzi/opencode-hashline": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "syntax errors in <repo>/src/index.ts: ';' expected."
+    },
+    "wenyinos/opencode-deveco": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 0,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "IgorWarzocha/Pickle-Thinker": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "joostvanwollingen/opencode-personality": {
+      "status": "issues",
+      "hooks": 4,
+      "converted": 2,
+      "review": 0,
+      "unsupported": 2,
+      "tools": 2,
+      "error": "'config' is possibly 'null'."
+    },
+    "evilayman/opencode-raven": {
+      "status": "clean",
+      "hooks": 4,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 3,
+      "tools": 0
+    },
+    "felixAnhalt/opencode-worktree-session": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "could not find a plugin entrypoint in <repo>. Looked for package.json main/exports, src/index.ts, index.ts, plugin.ts, src/plugin.ts, src/server.ts, src/index.mjs, index.mjs, src/index.js, index.js, src/index.tsx, index.tsx, .opencode/plugins/index.ts and files importing @opencode-ai/plugin."
+    },
+    "learningpro/opencode-autosave-conversation": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "gotgenes/opencode-agent-identity": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "jkalasas/opencode-antigravity-image": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "ramarivera/opencode-model-announcer": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "llessi06/opencode-llama.cpp": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "WeZZard/opencode-vision": {
+      "status": "skipped",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "no V1 plugin factory found in <repo>/plugin.ts. Expected an exported Plugin-typed function or a default-exported { server } object."
+    },
+    "kuops/opencode-codebuddy-auth": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "neriousy/opencode-browser": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "vicoa-ai/opencode-vicoa": {
+      "status": "clean",
+      "hooks": 5,
+      "converted": 5,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "withakay/opencode-codex-provider": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "syntax errors in <repo>/index.ts: 'LanguageModelV2FinishReason' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled."
+    },
+    "DaneelOlivaw1/opencode-aicodewith-auth": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "IgorWarzocha/opencode-usage-plugin": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "gabslocked/opencode-windsurf-auth": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "CrewBeeLab/CrewBee": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "laiwenhui2006-hub/teams-switch": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "Puri12/opencode-discord-presence": {
+      "status": "issues",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "crocoder-dev/shared-context-engineering": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "<repo> only ships compiled output (config/lib/bash-policy-plugin/opencode-bash-policy-plugin.ts); a source tree is required for migration."
+    },
+    "leohenon/op-anthropic-auth": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "moinulmoin/opencode-arise": {
+      "status": "issues",
+      "hooks": 4,
+      "converted": 2,
+      "review": 2,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "Overman775/opencode-gigachat-plugin": {
+      "status": "issues",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "ducnguyen67201/FeatherlaneAI": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "partment/opencode-cloak-fetch": {
+      "status": "clean",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 1
+    },
+    "rmk40/opencode-session-recall": {
+      "status": "clean",
+      "hooks": 9,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 8,
+      "tools": 0
+    },
+    "0xkuze/add-dir-opencode": {
+      "status": "issues",
+      "hooks": 4,
+      "converted": 3,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "typecheck or runtime failed"
+    },
+    "DavidEasden/opencode-vision": {
+      "status": "clean",
+      "hooks": 2,
+      "converted": 1,
+      "review": 1,
+      "unsupported": 0,
+      "tools": 0
+    },
+    "HyunjunJeon/fastcampus-harness-engineering-course": {
+      "status": "crashed",
+      "hooks": 0,
+      "converted": 0,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0,
+      "error": "syntax errors in <repo>/part7_opensource/oh-my-openagent/packages/omo-opencode/src/index.ts: Type 'AgentMessage' does not satisfy the expected type 'never'."
+    },
+    "bdliyq/opencode-rate-limit-retry": {
+      "status": "clean",
+      "hooks": 1,
+      "converted": 1,
+      "review": 0,
+      "unsupported": 0,
+      "tools": 0
+    }
+  }
+}

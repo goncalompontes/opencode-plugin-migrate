@@ -83,6 +83,16 @@ Errors inside code carried over from V1 are downgraded to review findings with a
 
 The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
 
+## Incremental re-runs
+
+`convert` can run again on the same output:
+
+- The generated module and `migration-state.json` record the base hash of every carried region.
+- On a re-run, manual edits to a carried region are kept; if the V1 source changed too, the tool reports `incremental/conflict` and keeps the manual body for review.
+- Re-running with no changes is byte-identical.
+- `--force` regenerates from scratch and discards preserved edits.
+- Pointing `convert` at an already-converted V2 package is a no-op (`already/converted`) instead of an error.
+
 ## Target compatibility
 
 Rules are only valid for the target API they were checked against:

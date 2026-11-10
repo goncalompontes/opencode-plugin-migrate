@@ -12,6 +12,8 @@ import { z } from "zod"
 
 const fixture = path.join(import.meta.dir, "..", "fixtures", "basic")
 const root = path.join(import.meta.dir, "..", ".tmp")
+fs.rmSync(root, { recursive: true, force: true })
+fs.mkdirSync(root, { recursive: true })
 
 describe("hook rule table", () => {
   test("covers every V1 hook with a V2 destination", () => {
@@ -113,11 +115,11 @@ describe("convert", () => {
     expect(result.module.source).toContain('type: "text"')
   })
 
-  test("refuses to re-convert an already converted module", async () => {
+  test("treats an already converted module as a no-op", async () => {
     const first = await convertPlugin(fixture, { outDir: path.join(root, "one") })
-    await expect(convertPlugin(first.outDir, { outDir: path.join(root, "two") })).rejects.toThrow(
-      /already targets the OpenCode V2 plugin API/,
-    )
+    const second = await convertPlugin(first.outDir, { outDir: path.join(root, "two") })
+    expect(second.report.counts.converted).toBe(0)
+    expect(second.report.diagnostics.map((item) => item.code)).toContain("already/converted")
   })
 })
 
@@ -219,6 +221,43 @@ describe("config command transform", () => {
     expect(result.module.source).toContain("new Proxy")
     expect(result.report.typecheck?.clean).toBe(true)
     expect(result.report.diagnostics.some((item) => item.code === "config/command-template")).toBe(true)
+  })
+})
+
+describe("incremental conversion", () => {
+  test("is byte-identical when nothing changed", async () => {
+    const outDir = path.join(root, "incremental")
+    const first = await convertPlugin(fixture, { outDir })
+    const file = path.join(first.outDir, "index.ts")
+    const before = await Bun.file(file).text()
+    await convertPlugin(fixture, { outDir })
+    expect(await Bun.file(file).text()).toBe(before)
+  })
+
+  test("preserves manual edits and reports conflicts", async () => {
+    const source = path.join(root, "incremental-source")
+    fs.rmSync(source, { recursive: true, force: true })
+    fs.cpSync(fixture, source, { recursive: true })
+    const outDir = path.join(root, "incremental-edit")
+    const first = await convertPlugin(source, { outDir })
+    const file = path.join(first.outDir, "index.ts")
+    const edited = (await Bun.file(file).text()).replace(
+      "#region carried-v1 tool.execute.before",
+      "#region carried-v1 tool.execute.before\n        // manual note",
+    )
+    await Bun.write(file, edited)
+
+    const second = await convertPlugin(source, { outDir })
+    expect(second.module.source).toContain("// manual note")
+    expect(second.report.diagnostics.map((item) => item.code)).toContain("incremental/preserved")
+
+    // Change the V1 source too: this becomes a conflict, and the manual body wins.
+    const v1 = path.join(source, "index.ts")
+    const text = await Bun.file(v1).text()
+    await Bun.write(v1, text.replace("blocked in ${directory}", "blocked by policy in ${directory}"))
+    const third = await convertPlugin(source, { outDir })
+    expect(third.report.diagnostics.map((item) => item.code)).toContain("incremental/conflict")
+    expect(third.module.source).toContain("// manual note")
   })
 })
 

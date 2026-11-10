@@ -49,6 +49,8 @@ interface Row {
   report: MigrationReport
 }
 
+fs.rmSync(outRoot, { recursive: true, force: true })
+
 const rows: Row[] = []
 const failures: string[] = []
 

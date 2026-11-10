@@ -100,10 +100,11 @@ export const HOOK_RULES: Record<keyof Hooks, HookRule> = {
     reason: "Message parts are V2 schema values, so the body needs a typed port.",
   },
   "experimental.chat.system.transform": {
-    classification: "review",
+    classification: "converted",
     v2: "ctx.session.hook('context') and edit event.system",
-    adapter: "none",
-    reason: "V2 system prompts are typed SystemPart values instead of plain strings.",
+    adapter: "system-transform",
+    reason:
+      "V1 string entries map to V2 SystemPart values; cache and metadata on existing parts are preserved by position.",
   },
   "experimental.provider.small_model": {
     classification: "unsupported",

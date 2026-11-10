@@ -312,6 +312,24 @@ function adapterBody(hook: ClassifiedHook, id: string, index: number, level: num
         `${pad}})`,
       ].join("\n")
 
+    case "system-transform":
+      return [
+        `${pad}await __opencode.session.hook("context", async (event: any) => {`,
+        `${pad}${INDENT}const __originalSystem = event.system`,
+        `${pad}${INDENT}const input: any = { sessionID: event.sessionID, model: event.model }`,
+        `${pad}${INDENT}const output: any = { system: __originalSystem.map((part: any) => part.text) }`,
+        `${pad}${INDENT}try {`,
+        inner2,
+        `${pad}${INDENT}} finally {`,
+        `${pad}${INDENT}${INDENT}event.system = output.system.map((text: any, index: number) => ({`,
+        `${pad}${INDENT}${INDENT}  ...(__originalSystem[index] ?? {}),`,
+        `${pad}${INDENT}${INDENT}  type: "text",`,
+        `${pad}${INDENT}${INDENT}  text,`,
+        `${pad}${INDENT}${INDENT}}))`,
+        `${pad}${INDENT}}`,
+        `${pad}})`,
+      ].join("\n")
+
     case "shell-env":
       return [
         `${pad}await __opencode.shell.hook("create.before", async (event) => {`,

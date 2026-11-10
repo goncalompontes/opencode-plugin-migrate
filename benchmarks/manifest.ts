@@ -8,6 +8,8 @@ export interface CorpusEntry {
   readonly commit: string
   readonly license: string
   readonly note: string
+  /** Set when the upstream checkout cannot bundle for reasons unrelated to migration. */
+  readonly knownRuntimeFailure?: string
 }
 
 export const CORPUS: readonly CorpusEntry[] = [
@@ -31,6 +33,8 @@ export const CORPUS: readonly CorpusEntry[] = [
     commit: "6f430555495fa788347591c53c6770090a479211",
     license: "MIT",
     note: "single PluginInput parameter, long-lived intervals, event fan-out",
+    knownRuntimeFailure:
+      "upstream git checkout omits generated src/notify/status and src/notify/title modules, so it cannot bundle",
   },
   {
     name: "opencode-request-logger",

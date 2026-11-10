@@ -40,6 +40,12 @@ export const PackageReport = z.object({
 })
 export type PackageReport = z.infer<typeof PackageReport>
 
+export const RuntimeReport = z.object({
+  bundle: z.object({ ok: z.boolean(), errors: z.array(z.string()) }),
+  entry: z.object({ ok: z.boolean(), message: z.string() }),
+})
+export type RuntimeReport = z.infer<typeof RuntimeReport>
+
 export const MigrationReport = z.object({
   id: z.string(),
   packageName: z.string().optional(),
@@ -51,6 +57,7 @@ export const MigrationReport = z.object({
   tools: z.array(ToolReportRow),
   diagnostics: z.array(Diagnostic),
   typecheck: TypecheckReport.optional(),
+  runtime: RuntimeReport.optional(),
   package: PackageReport.optional(),
   /** Original source of every hook that was not emitted, for manual porting. */
   leftovers: z.array(

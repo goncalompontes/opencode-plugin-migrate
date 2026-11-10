@@ -574,6 +574,75 @@ export function emitModule(
     })
   }
 
+  if (ir.auths.length) {
+    ir.auths.forEach((auth, index) => {
+      const expression = dedentExpression(auth.reference)
+        .split("\n")
+        .map((line, lineIndex) => (lineIndex === 0 ? line : `${INDENT.repeat(2)}${line}`))
+        .join("\n")
+      blocks.push(`  const __auth${index} = ${expression}`)
+      blocks.push(`  await __opencode.integration.transform((editor) => {`)
+      blocks.push(`    for (const method of __auth${index}.methods ?? []) {`)
+      blocks.push(`      if (method?.type === "api") {`)
+      blocks.push(
+        `        editor.method.update({ integrationID: __auth${index}.provider, method: { type: "key", label: method.label } } as any)`,
+      )
+      blocks.push(`        continue`)
+      blocks.push(`      }`)
+      blocks.push(`      if (method?.type !== "oauth") continue`)
+      blocks.push(`      const methodID = method.id ?? method.label ?? "oauth"`)
+      blocks.push(`      const toCredential = (value: any) => {`)
+      blocks.push(
+        `        if (!value || value.type !== "success") throw new Error("opencode-plugin-migrate: OAuth authorize failed")`,
+      )
+      blocks.push(
+        `        if (!value.refresh || !value.access) throw new Error("opencode-plugin-migrate: OAuth result without refresh/access needs manual porting")`,
+      )
+      blocks.push(`        return {`)
+      blocks.push(`          type: "oauth" as const,`)
+      blocks.push(`          methodID,`)
+      blocks.push(`          refresh: value.refresh,`)
+      blocks.push(`          access: value.access,`)
+      blocks.push(`          expires: value.expires ?? Date.now() + 3_600_000,`)
+      blocks.push(`          metadata: value.metadata,`)
+      blocks.push(`        }`)
+      blocks.push(`      }`)
+      blocks.push(`      editor.method.update({`)
+      blocks.push(`        integrationID: __auth${index}.provider,`)
+      blocks.push(`        method: { id: methodID, type: "oauth", label: method.label },`)
+      blocks.push(`        authorize: async (answer: any) => {`)
+      blocks.push(`          const result = await method.authorize?.(answer)`)
+      blocks.push(
+        `          if (!result) throw new Error("opencode-plugin-migrate: OAuth authorize is missing")`,
+      )
+      blocks.push(`          if (result.method === "code") {`)
+      blocks.push(`            return {`)
+      blocks.push(`              url: result.url,`)
+      blocks.push(`              instructions: result.instructions,`)
+      blocks.push(`              mode: "code" as const,`)
+      blocks.push(
+        `              callback: async (code: string) => toCredential(await result.callback(code)),`,
+      )
+      blocks.push(`            }`)
+      blocks.push(`          }`)
+      blocks.push(`          return {`)
+      blocks.push(`            url: result.url,`)
+      blocks.push(`            instructions: result.instructions,`)
+      blocks.push(`            mode: "auto" as const,`)
+      blocks.push(`            callback: Promise.resolve(result.callback()).then(toCredential),`)
+      blocks.push(`          }`)
+      blocks.push(`        },`)
+      blocks.push(`      } as any)`)
+      blocks.push(`    }`)
+      blocks.push(`  })`)
+    })
+    diagnostics.push({
+      code: "auth/registration",
+      severity: "info",
+      message: `${ir.auths.length} auth hook(s) registered through ctx.integration.transform; API and OAuth methods are mapped, loader/prompts need review.`,
+    })
+  }
+
   if (skippedHooks.length) {
     const notes = skippedHooks.map((hook) => {
       const why = hook.reason ? `\n//   ${hook.reason}` : ""
@@ -663,6 +732,7 @@ export function emitModule(
     diagnostics,
     tools: ir.tools.map((tool) => tool.name),
     providers: ir.providers.map((provider) => provider.id.replace(/^["'`]|["'`]$/g, "")),
+    auths: ir.auths.map((auth) => auth.provider.replace(/^["'`]|["'`]$/g, "")),
     rewrittenFiles: [],
     remainingV1Imports: [],
   }

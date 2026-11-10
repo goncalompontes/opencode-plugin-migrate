@@ -14,6 +14,23 @@ export const ProviderPlugin: Plugin = async () => ({
   },
   auth: {
     provider: "custom",
-    methods: [],
+    methods: [
+      { type: "api", label: "API key" },
+      {
+        type: "oauth",
+        label: "OAuth",
+        authorize: async () => ({
+          url: "https://example.com/oauth",
+          instructions: "Sign in",
+          method: "auto",
+          callback: async () => ({
+            type: "success",
+            refresh: "refresh",
+            access: "access",
+            expires: Date.now() + 3_600_000,
+          }),
+        }),
+      },
+    ] as any,
   },
 })

@@ -64,6 +64,15 @@ export const ProviderSite = z.object({
 })
 export type ProviderSite = z.infer<typeof ProviderSite>
 
+export const AuthSite = z.object({
+  /** Expression for the V1 auth provider id (the V2 integration id). */
+  provider: z.string(),
+  /** Object literal carrying provider/loader/methods, kept verbatim. */
+  reference: z.string(),
+  range: SourceRange,
+})
+export type AuthSite = z.infer<typeof AuthSite>
+
 export const PluginIR = z.object({
   /** Stable V2 plugin id. */
   id: z.string(),
@@ -83,6 +92,7 @@ export const PluginIR = z.object({
   conditions: z.array(z.string()),
   tools: z.array(ToolSite),
   providers: z.array(ProviderSite),
+  auths: z.array(AuthSite),
   /** Findings produced during extraction (unsupported syntax, ambiguous entrypoints, ...). */
   diagnostics: z.array(Diagnostic),
 })
@@ -146,6 +156,8 @@ export const EmittedModule = z.object({
   tools: z.array(z.string()),
   /** Provider ids registered through ctx.provider.transform. */
   providers: z.array(z.string()),
+  /** Auth provider ids registered through ctx.integration.transform. */
+  auths: z.array(z.string()),
   /** Other package files whose V1 authoring imports were redirected to the shim. */
   rewrittenFiles: z.array(z.string()),
   /** Files that still import the V1 package (namespace/dynamic forms). */

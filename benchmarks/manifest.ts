@@ -40,6 +40,20 @@ export const CORPUS: readonly CorpusEntry[] = [
     note: "chat.params only; nothing mechanically convertible",
   },
   {
+    name: "opencode-message-notify",
+    repo: "Decade-qiu/opencode-message-notify",
+    commit: "413b149a1db13630985ca2fbd6ccb3437b0826c6",
+    license: "MIT",
+    note: "event consumer plus permission.ask",
+  },
+  {
+    name: "opencode-smart-voice-notify",
+    repo: "MasuRii/opencode-smart-voice-notify",
+    commit: "eb22712f18ecccb0bdf25ddb90c3d98615f88f30",
+    license: "MIT",
+    note: "one PluginInput parameter, conditional early return, dispose, intervals",
+  },
+  {
     name: "opencode-pty",
     repo: "shekohex/opencode-pty",
     commit: "b6c2067",

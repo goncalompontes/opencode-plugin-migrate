@@ -63,10 +63,11 @@ export const HOOK_RULES: Record<keyof Hooks, HookRule> = {
     adapter: "none",
   },
   "permission.ask": {
-    classification: "review",
+    classification: "converted",
     v2: "ctx.permission.hook('evaluate')",
-    adapter: "none",
-    reason: "V2 evaluates a permission request and writes an effect, instead of setting ask/deny/allow status.",
+    adapter: "permission-evaluate",
+    reason:
+      "the status maps to event.effect; V1 Permission fields are mapped as type->action and pattern(s)->resources.",
   },
   "command.execute.before": {
     classification: "unsupported",

@@ -55,7 +55,7 @@ describe("analyze", () => {
     expect(byName["event"]).toBe("converted")
     expect(byName["dispose"]).toBe("converted")
     expect(byName["chat.message"]).toBe("review")
-    expect(report.counts).toEqual({ converted: 3, review: 1, unsupported: 0 })
+    expect(report.counts).toEqual({ converted: 4, review: 1, unsupported: 0 })
   })
 
   test("writes nothing", async () => {
@@ -78,7 +78,12 @@ describe("convert", () => {
   test("emits a compiling V2 module and keeps unconverted bodies", async () => {
     const result = await convertPlugin(fixture, { outDir: path.join(root, "out") })
     expect(result.report.typecheck?.clean).toBe(true)
-    expect(result.module.emitted.sort()).toEqual(["dispose", "event", "tool.execute.before"])
+    expect(result.module.emitted.sort()).toEqual([
+      "dispose",
+      "event",
+      "permission.ask",
+      "tool.execute.before",
+    ])
     expect(result.module.skipped).toEqual(["chat.message"])
     expect(result.module.source).toContain("Plugin.define")
     expect(result.module.source).toContain("export default BasicPlugin")

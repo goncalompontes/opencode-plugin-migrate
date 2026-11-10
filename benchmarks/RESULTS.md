@@ -10,9 +10,11 @@ typechecked against `@opencode/plugin`.
 | [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | clean |
 | [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | clean |
 | [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 0 | 1 | 0 | clean |
+| [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | clean |
+| [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | clean |
 | [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | clean |
 
-**Totals:** 11 hooks, 8 converted (73%), 2 need review, 1 unsupported.
+**Totals:** 15 hooks, 12 converted (80%), 2 need review, 1 unsupported.
 
 ## What "converted" means
 
@@ -58,6 +60,24 @@ is visible instead of silently dropped.
 - Findings: 3
 
 - `chat.params` — review -> ctx.session.hook('context') and event.options
+
+### opencode-message-notify
+
+- Emitted: 2 hooks, kept for manual porting: 0
+- Generated: `.out/opencode-message-notify/`
+- Findings: 0
+
+- `event` — converted -> ctx.event.subscribe()
+- `permission.ask` — converted -> ctx.permission.hook('evaluate')
+
+### opencode-smart-voice-notify
+
+- Emitted: 2 hooks, kept for manual porting: 0
+- Generated: `.out/opencode-smart-voice-notify/`
+- Findings: 4
+
+- `dispose` — converted -> cleanup returned from setup()
+- `event` — converted -> ctx.event.subscribe()
 
 ### opencode-pty
 

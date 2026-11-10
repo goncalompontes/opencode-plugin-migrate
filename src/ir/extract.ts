@@ -268,6 +268,11 @@ function extractTools(object: ObjectLiteralExpression, file: SourceFile, diagnos
 }
 
 export function extractPlugin(project: PluginProject): PluginIR {
+  if (!/\.[cm]?tsx?$/.test(project.entryFile)) {
+    throw new Error(
+      `${project.entryFile} is JavaScript. V1 -> V2 conversion currently needs TypeScript sources so hook signatures and tool schemas can be typed.`,
+    )
+  }
   const diagnostics: Diagnostic[] = []
   const options: ConstructorParameters<typeof Project>[0] = {
     compilerOptions: {
@@ -290,7 +295,14 @@ export function extractPlugin(project: PluginProject): PluginIR {
   const importsV1 = tsProject
     .getSourceFiles()
     .some((file) => file.getImportDeclaration("@opencode-ai/plugin") !== undefined)
-  const found = importsV1 ? findFactory(tsProject, project.entryFile) : undefined
+  const looksV2 = tsProject
+    .getSourceFiles()
+    .some(
+      (file) =>
+        file.getImportDeclaration("@opencode/plugin") !== undefined ||
+        /Plugin\.define\s*\(/.test(file.getText()),
+    )
+  const found = importsV1 || !looksV2 ? findFactory(tsProject, project.entryFile) : undefined
   if (!found) {
     const alreadyV2 = tsProject
       .getSourceFiles()

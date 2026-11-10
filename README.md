@@ -9,7 +9,7 @@ bun run src/cli/index.ts analyze ./my-plugin     # report only, writes nothing
 bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck against @opencode/plugin
 ```
 
-**Status: MVP.** 8 of 11 hooks across 5 real public plugins convert automatically, and every generated module typechecks. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+**Status: MVP.** 12 of 15 hooks across 7 real public plugins convert automatically, and every generated module typechecks. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 ## What it produces
 
@@ -76,15 +76,15 @@ Errors inside code carried over from V1 are downgraded to review findings with a
 
 | Status | V1 hooks |
 | --- | --- |
-| **Converted** | `dispose`, `event`, `tool.execute.before`, `tool.execute.after`, `tool.definition`, `shell.env` |
-| **Review** (reported, body preserved) | `chat.message`, `chat.params`, `chat.headers`, `config`, `provider`, `auth`, `permission.ask`, `experimental.chat.system.transform`, `experimental.chat.messages.transform`, `experimental.session.compacting`, custom `tool` map |
+| **Converted** | `dispose`, `event`, `tool.execute.before`, `tool.execute.after`, `tool.definition`, `shell.env`, `permission.ask` |
+| **Review** (reported, body preserved) | `chat.message`, `chat.params`, `chat.headers`, `config`, `provider`, `auth`, `experimental.chat.system.transform`, `experimental.chat.messages.transform`, `experimental.session.compacting`, custom `tool` map |
 | **Unsupported** (no V2 equivalent) | `command.execute.before` (no global hook), `experimental.provider.small_model`, `experimental.compaction.autocontinue`, `experimental.text.complete` |
 
 The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
 
 ## Benchmarks
 
-Five public V1 plugins at pinned commits, converted and typechecked:
+Seven public V1 plugins at pinned commits, converted and typechecked:
 
 | Plugin | Hooks | Converted | Review | Unsupported | Typecheck |
 | --- | ---: | ---: | ---: | ---: | --- |
@@ -92,6 +92,8 @@ Five public V1 plugins at pinned commits, converted and typechecked:
 | [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | clean |
 | [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | clean |
 | [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 0 | 1 | 0 | clean |
+| [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | clean |
+| [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | clean |
 | [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | clean |
 
 Reproduce:

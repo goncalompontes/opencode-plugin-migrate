@@ -43,7 +43,7 @@ export function readPackage(dir: string): { name?: string; main?: string } {
 }
 
 function isSource(file: string): boolean {
-  return /\.[cm]?tsx?$/.test(file) && !file.endsWith(".d.ts")
+  return /\.[cm]?[jt]sx?$/.test(file) && !file.endsWith(".d.ts") && !file.endsWith(".d.mts")
 }
 
 function walk(dir: string, found: string[] = []): string[] {

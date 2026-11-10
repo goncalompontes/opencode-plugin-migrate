@@ -18,6 +18,9 @@ export const BasicPlugin: Plugin = async ({ directory, client }) => {
     "chat.message": async (_input, output) => {
       output.parts.length = 0
     },
+    "permission.ask": async (input, output) => {
+      if (input.type === "bash") output.status = "deny"
+    },
     dispose: async () => {
       seen.clear()
     },

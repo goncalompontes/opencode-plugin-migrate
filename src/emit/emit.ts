@@ -40,8 +40,13 @@ function comment(text: string): string {
     .join("\n")
 }
 
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
 function uses(ir: ClassifiedPluginIR, name: string): boolean {
-  const pattern = new RegExp(`\\b${name.replace(/\$/g, "\\$")}\\b`)
+  // `$` is not a word character, so \b does not work for the Bun shell helper.
+  const pattern = new RegExp(`(^|[^A-Za-z0-9_$])${escapeRegExp(name)}([^A-Za-z0-9_$]|$)`)
   const bodies = [ir.factory.init, ...ir.hooks.map((hook) => hook.body)]
   return bodies.some((body) => pattern.test(body))
 }
@@ -93,12 +98,13 @@ function factoryLocals(ir: ClassifiedPluginIR): { lines: string[]; diagnostics: 
         })
         break
       case "$":
-        lines.push("// TODO(v2): the Bun $ helper is not provided by the plugin host.")
-        lines.push("const $: any = undefined")
+        lines.push("// TODO(v2): V2 does not pass the Bun $ helper; fall back to the host global and review.")
+        lines.push("const $: any = (globalThis as any).Bun?.$")
         diagnostics.push({
           code: "context/bun-shell",
-          severity: "error",
-          message: "plugin uses the Bun `$` shell helper; V2 plugins must import and manage their own process API.",
+          severity: "warning",
+          message:
+            "plugin uses the V1 `$` shell helper; V2 does not provide it, so it is bound to globalThis.Bun.$ when the host exposes Bun.",
         })
         break
       default:
@@ -186,6 +192,19 @@ function adapterBody(hook: ClassifiedHook, id: string, index: number, level: num
         `${pad}${INDENT}${INDENT}${INDENT}${INDENT}tool.input = output.parameters`,
         `${pad}${INDENT}${INDENT}${INDENT}})`,
         `${pad}${INDENT}${INDENT}}`,
+        `${pad}${INDENT}}`,
+        `${pad}})`,
+      ].join("\n")
+
+    case "permission-evaluate":
+      return [
+        `${pad}await __opencode.permission.hook("evaluate", async (event) => {`,
+        `${pad}${INDENT}const input: any = { ...event, type: event.action, pattern: event.resources, patterns: event.resources, title: event.action }`,
+        `${pad}${INDENT}const output: any = { status: event.effect }`,
+        `${pad}${INDENT}try {`,
+        inner2,
+        `${pad}${INDENT}} finally {`,
+        `${pad}${INDENT}${INDENT}event.effect = output.status`,
         `${pad}${INDENT}}`,
         `${pad}})`,
       ].join("\n")

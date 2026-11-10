@@ -16,6 +16,11 @@ export function renderMarkdown(report: MigrationReport): string {
   lines.push(
     `- Hooks: **${report.counts.converted} converted**, ${report.counts.review} need review, ${report.counts.unsupported} unsupported`,
   )
+  if (report.tools.length) {
+    lines.push(
+      `- Tools: **${report.toolCounts.converted} converted**, ${report.toolCounts.review} need review`,
+    )
+  }
   if (report.typecheck) {
     lines.push(
       `- Typecheck: ${report.typecheck.clean ? "**clean**" : "**failed**"} (${report.typecheck.errors} errors, ${report.typecheck.warnings} warnings)`,
@@ -57,7 +62,9 @@ export function renderMarkdown(report: MigrationReport): string {
     lines.push("## Custom tools")
     lines.push("")
     for (const tool of report.tools) {
-      lines.push(`- \`${tool.name}\` (line ${tool.line}): ${tool.description || "(no description)"}`)
+      lines.push(
+        `- \`${tool.name}\` (line ${tool.line}): ${tool.description || "(no description)"} — ${tool.classification}${report.mode === "convert" && !tool.emitted ? " _(left for manual porting)_" : ""}`,
+      )
     }
   }
   if (report.diagnostics.length) {

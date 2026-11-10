@@ -42,9 +42,9 @@ export type HookSite = z.infer<typeof HookSite>
 export const ToolSite = z.object({
   name: z.string(),
   description: z.string(),
-  /** `args` object literal source (Zod shapes are reported, not converted yet). */
-  argsText: z.string(),
-  executeText: z.string(),
+  /** Expression that yields the V1 tool definition at runtime. */
+  reference: z.string(),
+  kind: z.enum(["inline", "reference"]),
   range: SourceRange,
 })
 export type ToolSite = z.infer<typeof ToolSite>
@@ -109,6 +109,8 @@ export const EmittedModule = z.object({
   /** Hook names intentionally left out of the module. */
   skipped: z.array(z.string()),
   diagnostics: z.array(Diagnostic),
+  /** Custom tool names registered through ctx.tool.transform. */
+  tools: z.array(z.string()),
   /** Other package files whose V1 authoring imports were redirected to the shim. */
   rewrittenFiles: z.array(z.string()),
   /** Files that still import the V1 package (namespace/dynamic forms). */

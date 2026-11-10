@@ -137,6 +137,27 @@ describe("whole package", () => {
   })
 })
 
+describe("custom tools", () => {
+  const toolsFixture = path.join(import.meta.dir, "..", "fixtures", "tools")
+
+  test("classifies inline and referenced tools as convertible", async () => {
+    const { report } = await analyzePlugin(toolsFixture)
+    expect(report.tools.map((tool) => tool.name).sort()).toEqual(["inline", "referenced"])
+    expect(report.toolCounts).toEqual({ converted: 2, review: 0 })
+  })
+
+  test("registers both through ctx.tool.transform with JSON Schema", async () => {
+    const result = await convertPlugin(toolsFixture, { outDir: path.join(root, "tools") })
+    expect(result.report.toolCounts).toEqual({ converted: 2, review: 0 })
+    expect([...result.module.tools].sort()).toEqual(["inline", "referenced"])
+    expect(result.module.source).toContain("__z.toJSONSchema")
+    expect(result.module.source).toContain("editor.add({")
+    expect(result.module.source).toContain("const tool = Object.assign")
+    expect(result.report.typecheck?.clean).toBe(true)
+    expect(result.report.package?.remainingV1Imports).toEqual([])
+  })
+})
+
 describe("pipeline platform", () => {
   test("rejects a stage whose output violates its schema", async () => {
     const bad = pipeline<{ n: number }>()

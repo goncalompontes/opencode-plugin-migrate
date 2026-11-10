@@ -164,6 +164,12 @@ Generated modules are checked, and fixable findings are repaired in bounded pass
 
 Current fixers: missing parameter annotations (`TS7006`) inside carried V1 bodies. Unresolved errors remain visible with their hook origin.
 
+## Providers and auth
+
+- `provider` hooks convert to `ctx.provider.transform`: the V1 `models` function is resolved once at setup and its entries are installed with `editor.models.set(...)`.
+- `auth` hooks are reported with the closest V2 surface (`ctx.integration.transform()` with typed forms/OAuth methods); they are not guessed because V2 integrations are structurally different.
+- `config` supports `command` today; other domains are reported with the exact keys that were written.
+
 ## Scaffolding
 
 Beyond the module, `convert` normalizes the package around it:
@@ -288,6 +294,8 @@ files each building TypeScript programs contend for CPU and trip timeouts.
 - Namespace/default imports and runtime subpath imports (e.g. `@opencode-ai/plugin/tui` values) cannot be represented by the shim; those files stay on V1, the report lists them, and `package.json` deliberately keeps the V1 dependency.
 - Custom tools keep their Zod shape at runtime and are registered through `z.toJSONSchema()`; plugins still on Zod 3 need a Zod 4 upgrade.
 - JavaScript/JSX sources are converted structurally: hooks and tool definitions are read from the AST, but there is no type information, and the emitted module is TypeScript.
+- Provider models are resolved once at setup, so dynamically changing model inventories need a manual provider transform.
+- V1 `auth` hooks are reported, not converted; V2 integrations use typed forms and OAuth method registrations.
 - Conditional custom tools and complex branch bodies are reported, not converted.
 - Layout changes are reported as a plan, not applied: automatic moves need import rewriting to stay safe.
 - V1 `client` calls are adapted, not rewritten: mapped methods preserve the `{ data }` envelope, adapted methods are reported, and unmapped methods throw at the call site so the gap is visible.

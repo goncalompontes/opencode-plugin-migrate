@@ -402,6 +402,21 @@ describe("target compatibility", () => {
   })
 })
 
+describe("provider and auth hooks", () => {
+  const provider = path.join(import.meta.dir, "..", "fixtures", "provider")
+
+  test("registers provider models and reports auth for manual porting", async () => {
+    const result = await convertPlugin(provider, { outDir: path.join(root, "provider") })
+    expect(result.module.providers).toEqual(["custom"])
+    expect(result.module.source).toContain("provider.transform")
+    expect(result.module.source).toContain("editor.models.set")
+    expect(result.report.diagnostics.map((item) => item.code)).toContain("provider/registration")
+    expect(result.report.diagnostics.map((item) => item.code)).toContain("auth/review")
+    expect(result.report.typecheck?.clean).toBe(true)
+    expect(result.report.runtime?.bundle.ok).toBe(true)
+  })
+})
+
 describe("golden output", () => {
   const cases = [
     ["basic", path.join(import.meta.dir, "..", "fixtures", "basic")],

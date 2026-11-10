@@ -389,6 +389,7 @@ export async function convertPlugin(
       skipped: [],
       diagnostics: [],
       tools: [],
+      providers: [],
       rewrittenFiles: [],
       remainingV1Imports: [],
     }

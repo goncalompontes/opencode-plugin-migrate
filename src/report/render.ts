@@ -32,7 +32,13 @@ export function renderMarkdown(report: MigrationReport): string {
   }
   if (report.runtime) {
     lines.push(
-      `- Runtime: ${report.runtime.bundle.ok && report.runtime.entry.ok ? "**bundle + entry ok**" : "**failed**"}`,
+      `- Runtime: ${
+        report.runtime.bundle.skipped
+          ? "**bundle skipped (Node)**"
+          : report.runtime.bundle.ok && report.runtime.entry.ok
+            ? "**bundle + entry ok**"
+            : "**failed**"
+      }`,
     )
   }
   lines.push("")

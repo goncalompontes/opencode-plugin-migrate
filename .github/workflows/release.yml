@@ -1,0 +1,46 @@
+name: release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (x.y.z)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: bun install --frozen-lockfile
+      - run: npm version "${{ inputs.version }}" --no-git-tag-version
+      - run: bun run typecheck
+      - run: bun test
+      - run: bun run build
+      - run: bun scripts/pack-smoke.ts
+      - name: Pack
+        run: bun pm pack --destination artifacts
+      - name: Commit and tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "release v${{ inputs.version }}"
+          git tag "v${{ inputs.version }}"
+          git push --follow-tags
+      - name: GitHub release
+        run: gh release create "v${{ inputs.version }}" artifacts/*.tgz --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: npm publish
+        if: ${{ secrets.NPM_TOKEN != '' }}
+        run: npm publish artifacts/*.tgz --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

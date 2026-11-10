@@ -47,7 +47,7 @@ const EmitOutput = z.object({ ir: ClassifiedPluginIR, module: EmittedModule })
 const ValidateOutput = EmitOutput.extend({
   typecheck: z.object({ clean: z.boolean(), diagnostics: z.array(Diagnostic) }),
   runtime: z.object({
-    bundle: z.object({ ok: z.boolean(), errors: z.array(z.string()) }),
+    bundle: z.object({ ok: z.boolean(), errors: z.array(z.string()), skipped: z.boolean().optional() }),
     entry: z.object({ ok: z.boolean(), message: z.string() }),
     diagnostics: z.array(Diagnostic),
   }),

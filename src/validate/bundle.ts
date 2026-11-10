@@ -11,6 +11,7 @@ import type { Diagnostic } from "../core/diagnostics"
 export interface BundleCheck {
   ok: boolean
   errors: string[]
+  skipped?: boolean
 }
 
 export interface EntryCheck {
@@ -40,6 +41,18 @@ export async function validateRuntime(file: string): Promise<RuntimeCheck> {
   const diagnostics: Diagnostic[] = []
   let bundle: BundleCheck = { ok: true, errors: [] }
 
+  if (typeof Bun === "undefined") {
+    bundle = {
+      ok: true,
+      errors: [],
+      skipped: true,
+    }
+    diagnostics.push({
+      code: "runtime/bundle-skipped",
+      severity: "info",
+      message: "bundle validation needs the Bun runtime; it was skipped under Node.",
+    })
+  } else
   try {
     const result = await Bun.build({
       entrypoints: [file],

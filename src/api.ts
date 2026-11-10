@@ -134,6 +134,16 @@ function hookRows(ir: ClassifiedPluginIR, module?: EmittedModule) {
   }))
 }
 
+function toolRows(ir: ClassifiedPluginIR, module?: EmittedModule) {
+  return ir.tools.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    line: tool.range.line,
+    classification: "converted" as const,
+    emitted: module?.tools.includes(tool.name) ?? false,
+  }))
+}
+
 function counts(hooks: ClassifiedHook[]) {
   return {
     converted: hooks.filter((hook) => hook.classification === "converted").length,
@@ -150,11 +160,7 @@ function baseReport(ir: ClassifiedPluginIR, mode: "analyze" | "convert"): Migrat
     entryFile: ir.entryFile,
     mode,
     hooks: hookRows(ir),
-    tools: ir.tools.map((tool) => ({
-      name: tool.name,
-      description: tool.description,
-      line: tool.range.line,
-    })),
+    tools: toolRows(ir),
     diagnostics: ir.diagnostics,
     leftovers: ir.hooks
       .filter((hook) => hook.classification !== "converted")
@@ -166,6 +172,10 @@ function baseReport(ir: ClassifiedPluginIR, mode: "analyze" | "convert"): Migrat
         range: hook.range,
       })),
     counts: counts(ir.hooks),
+    toolCounts: {
+      converted: ir.tools.length,
+      review: 0,
+    },
   }
 }
 
@@ -223,6 +233,11 @@ export async function convertPlugin(
     ...baseReport(ir, "convert"),
     generatedFile: module.file,
     hooks: hookRows(ir, module),
+    tools: toolRows(ir, module),
+    toolCounts: {
+      converted: module.tools.length,
+      review: ir.tools.length - module.tools.length,
+    },
     diagnostics: [...ir.diagnostics, ...module.diagnostics, ...relevant],
     package: {
       rewrittenFiles: module.rewrittenFiles.map((file) =>

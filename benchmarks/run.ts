@@ -41,6 +41,8 @@ interface Row {
   typecheck: string
   v1Before: number
   v1After: number
+  toolsTotal: number
+  toolsConverted: number
   emitted: number
   skipped: number
   report: MigrationReport
@@ -76,6 +78,8 @@ for (const entry of CORPUS) {
       typecheck: report.typecheck?.clean ? "clean" : `failed (${report.typecheck?.errors ?? "?"})`,
       v1Before,
       v1After,
+      toolsTotal: report.tools.length,
+      toolsConverted: report.toolCounts.converted,
       emitted: report.hooks.filter((hook) => hook.emitted).length,
       skipped: report.hooks.filter((hook) => !hook.emitted).length,
       report,
@@ -86,6 +90,11 @@ for (const entry of CORPUS) {
     if (v1After !== 0) {
       failures.push(`${entry.name}: ${v1After} file(s) still import @opencode-ai/plugin`)
     }
+    if (report.toolCounts.converted !== report.tools.length) {
+      failures.push(
+        `${entry.name}: ${report.tools.length - report.toolCounts.converted} tool(s) were not converted`,
+      )
+    }
   } catch (error) {
     failures.push(`${entry.name}: ${String(error)}`)
   }
@@ -93,11 +102,11 @@ for (const entry of CORPUS) {
 
 function table(): string {
   const lines = [
-    "| Plugin | Hooks | Converted | Review | Unsupported | Typecheck | V1 imports |",
-    "| --- | ---: | ---: | ---: | ---: | --- | ---: |",
+    "| Plugin | Hooks | Converted | Review | Unsupported | Tools | Typecheck | V1 imports |",
+    "| --- | ---: | ---: | ---: | ---: | ---: | --- | ---: |",
     ...rows.map(
       (row) =>
-        `| [${row.name}](https://github.com/${row.repo}) | ${row.hooks} | ${row.converted} | ${row.review} | ${row.unsupported} | ${row.typecheck} | ${row.v1Before} -> ${row.v1After} |`,
+        `| [${row.name}](https://github.com/${row.repo}) | ${row.hooks} | ${row.converted} | ${row.review} | ${row.unsupported} | ${row.toolsConverted}/${row.toolsTotal} | ${row.typecheck} | ${row.v1Before} -> ${row.v1After} |`,
     ),
   ]
   return lines.join("\n")
@@ -137,6 +146,7 @@ ${rows
     (row) => `### ${row.name}
 
 - V1 authoring imports: ${row.v1Before} file(s) -> ${row.v1After}
+- Custom tools: ${row.toolsConverted}/${row.toolsTotal} registered
 - Emitted: ${row.emitted} hooks, kept for manual porting: ${row.skipped}
 - Generated: \`.out/${row.name}/\`
 - Findings: ${row.report.diagnostics.length}

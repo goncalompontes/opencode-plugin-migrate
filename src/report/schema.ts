@@ -17,6 +17,8 @@ export const ToolReportRow = z.object({
   name: z.string(),
   description: z.string(),
   line: z.number().int().positive(),
+  classification: Classification,
+  emitted: z.boolean(),
 })
 export type ToolReportRow = z.infer<typeof ToolReportRow>
 
@@ -64,6 +66,10 @@ export const MigrationReport = z.object({
     converted: z.number().int().nonnegative(),
     review: z.number().int().nonnegative(),
     unsupported: z.number().int().nonnegative(),
+  }),
+  toolCounts: z.object({
+    converted: z.number().int().nonnegative(),
+    review: z.number().int().nonnegative(),
   }),
 })
 export type MigrationReport = z.infer<typeof MigrationReport>

@@ -9,7 +9,7 @@ bun run src/cli/index.ts analyze ./my-plugin     # report only, writes nothing
 bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck against @opencode/plugin
 ```
 
-**Status: MVP.** 12 of 15 hooks across 7 real public plugins convert automatically, every generated module typechecks, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+**Status: MVP.** Across 7 real public plugins: 12/15 hooks converted, **5/5 custom tools registered**, every generated module typechecks, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 ## What it produces
 
@@ -76,8 +76,8 @@ Errors inside code carried over from V1 are downgraded to review findings with a
 
 | Status | V1 hooks |
 | --- | --- |
-| **Converted** | `dispose`, `event`, `tool.execute.before`, `tool.execute.after`, `tool.definition`, `shell.env`, `permission.ask` |
-| **Review** (reported, body preserved) | `chat.message`, `chat.params`, `chat.headers`, `config`, `provider`, `auth`, `experimental.chat.system.transform`, `experimental.chat.messages.transform`, `experimental.session.compacting`, custom `tool` map |
+| **Converted** | `dispose`, `event`, `tool.execute.before`, `tool.execute.after`, `tool.definition`, `shell.env`, `permission.ask`, custom `tool` maps |
+| **Review** (reported, body preserved) | `chat.message`, `chat.params`, `chat.headers`, `config`, `provider`, `auth`, `experimental.chat.system.transform`, `experimental.chat.messages.transform`, `experimental.session.compacting` |
 | **Unsupported** (no V2 equivalent) | `command.execute.before` (no global hook), `experimental.provider.small_model`, `experimental.compaction.autocontinue`, `experimental.text.complete` |
 
 The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
@@ -86,15 +86,15 @@ The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding 
 
 Seven public V1 plugins at pinned commits, converted and typechecked:
 
-| Plugin | Hooks | Converted | Review | Unsupported | Typecheck | V1 imports |
-| --- | ---: | ---: | ---: | ---: | --- | ---: |
-| [openslimedit](https://github.com/ASidorenkoCode/openslimedit) | 3 | 3 | 0 | 0 | clean | 1 -> 0 |
-| [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | clean | 1 -> 0 |
-| [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | clean | 1 -> 0 |
-| [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 0 | 1 | 0 | clean | 1 -> 0 |
-| [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | clean | 1 -> 0 |
-| [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | clean | 0 -> 0 |
-| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | clean | 8 -> 0 |
+| Plugin | Hooks | Converted | Review | Unsupported | Tools | Typecheck | V1 imports |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| [openslimedit](https://github.com/ASidorenkoCode/openslimedit) | 3 | 3 | 0 | 0 | 0/0 | clean | 1 -> 0 |
+| [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | 0/0 | clean | 1 -> 0 |
+| [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | 1 -> 0 |
+| [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 0 | 1 | 0 | 0/0 | clean | 1 -> 0 |
+| [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | 1 -> 0 |
+| [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | 0 -> 0 |
+| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | 5/5 | clean | 8 -> 0 |
 
 Reproduce:
 
@@ -153,7 +153,7 @@ files each building TypeScript programs contend for CPU and trip timeouts.
 ## Known limits (deliberately reported, not hidden)
 
 - Namespace/default imports and runtime subpath imports (e.g. `@opencode-ai/plugin/tui` values) cannot be represented by the shim; those files stay on V1, the report lists them, and `package.json` deliberately keeps the V1 dependency.
-- Custom tools use Zod in V1 and JSON Schema in V2; the tool reports each tool and its Zod shape for manual porting.
+- Custom tools keep their Zod shape at runtime and are registered through `z.toJSONSchema()`; plugins still on Zod 3 need a Zod 4 upgrade.
 - `ctx.client.*` calls are the second migration axis. They are bound to the V2 context as `any` so the module compiles, and flagged for porting to `ctx.session`, `ctx.permission`, and friends.
 - `chat.params` / `chat.message` split into different V2 hooks with different event shapes; static analysis can only propose a destination.
 - `command.execute.before` has no one-to-one V2 hook; the correct destination depends on whether the plugin owns the command.

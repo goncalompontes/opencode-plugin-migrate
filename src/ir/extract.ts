@@ -221,46 +221,72 @@ function callbackOf(property: Node): Node | undefined {
   return undefined
 }
 
+function stringField(config: ObjectLiteralExpression, key: string): string {
+  const prop = config.getProperty(key)
+  const initializer = prop && Node.isPropertyAssignment(prop) ? prop.getInitializer() : undefined
+  if (!initializer) return ""
+  const text = initializer.getText()
+  return /^["'`]/.test(text) ? text.replace(/^["'`]|["'`]$/g, "") : text
+}
+
 function extractTools(object: ObjectLiteralExpression, file: SourceFile, diagnostics: Diagnostic[]): ToolSite[] {
   const tools: ToolSite[] = []
   for (const property of object.getProperties()) {
     const name = hookNameOf(property)
     if (!name) continue
-    const value = callbackOf(property)
-    if (!value || !Node.isCallExpression(value)) {
+    if (!Node.isPropertyAssignment(property)) {
       diagnostics.push({
         code: "tool/shape",
         severity: "warning",
-        message: `custom tool "${name}" is not a tool({...}) call and cannot be converted yet`,
+        message: `custom tool "${name}" is not a property assignment and was skipped`,
         range: rangeOf(file, property),
       })
       continue
     }
-    const config = value.getArguments()[0]
-    if (!config || !Node.isObjectLiteralExpression(config)) {
-      diagnostics.push({
-        code: "tool/shape",
-        severity: "warning",
-        message: `custom tool "${name}" has no object literal configuration`,
+
+    const initializer = property.getInitializer()
+    if (!initializer) continue
+    const reference = initializer.getText()
+
+    if (Node.isCallExpression(initializer)) {
+      const config = initializer.getArguments()[0]
+      if (!config || !Node.isObjectLiteralExpression(config)) {
+        diagnostics.push({
+          code: "tool/shape",
+          severity: "warning",
+          message: `custom tool "${name}" has no object literal configuration and was skipped`,
+          range: rangeOf(file, property),
+        })
+        continue
+      }
+      tools.push({
+        name,
+        description: stringField(config, "description"),
+        reference,
+        kind: "inline",
         range: rangeOf(file, property),
       })
       continue
     }
-    const field = (key: string): string | undefined => {
-      const prop = config.getProperty(key)
-      return prop && Node.isPropertyAssignment(prop) ? prop.getInitializer()?.getText() : undefined
+
+    if (Node.isIdentifier(initializer) || Node.isPropertyAccessExpression(initializer)) {
+      // The definition lives elsewhere; the emitted registration reads it at runtime.
+      let description = ""
+      if (Node.isIdentifier(initializer)) {
+        const declaration = resolveValue(initializer)
+        if (declaration && Node.isCallExpression(declaration)) {
+          const config = declaration.getArguments()[0]
+          if (config && Node.isObjectLiteralExpression(config)) description = stringField(config, "description")
+        }
+      }
+      tools.push({ name, description, reference, kind: "reference", range: rangeOf(file, property) })
+      continue
     }
-    tools.push({
-      name,
-      description: field("description")?.replace(/^["'`]|["'`]$/g, "") ?? "",
-      argsText: field("args") ?? "{}",
-      executeText: field("execute") ?? "",
-      range: rangeOf(file, property),
-    })
+
     diagnostics.push({
-      code: "tool/schema",
+      code: "tool/shape",
       severity: "warning",
-      message: `custom tool "${name}" uses Zod (tool.schema); V2 tools take JSON Schema, so this tool is reported for manual porting`,
+      message: `custom tool "${name}" is neither a tool(...) call nor an identifier and was skipped`,
       range: rangeOf(file, property),
     })
   }
@@ -375,6 +401,18 @@ export function extractPlugin(project: PluginProject): PluginIR {
         code: "factory/return",
         severity: "warning",
         message: "last return statement in the plugin factory does not return an object literal; hooks cannot be read statically",
+        range: rangeOf(sourceFile, factory),
+      })
+    }
+  } else if (factoryBody) {
+    // Concise arrow: `async () => ({ ...hooks })`.
+    const returned = resolveValue(factoryBody)
+    if (returned && Node.isObjectLiteralExpression(returned)) hookObject = returned
+    else {
+      diagnostics.push({
+        code: "factory/return",
+        severity: "warning",
+        message: "concise factory body does not return an object literal; hooks cannot be read statically",
         range: rangeOf(sourceFile, factory),
       })
     }

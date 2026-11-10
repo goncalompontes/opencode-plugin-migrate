@@ -8,7 +8,7 @@
  */
 import path from "node:path"
 import type { Diagnostic } from "../core/diagnostics"
-import type { ClassifiedHook, ClassifiedPluginIR, EmittedModule } from "../ir/schema"
+import type { ClassifiedHook, ClassifiedPluginIR, EmittedModule, ToolSite } from "../ir/schema"
 
 const INDENT = "  "
 
@@ -118,6 +118,46 @@ function factoryLocals(ir: ClassifiedPluginIR): { lines: string[]; diagnostics: 
     }
   }
   return { lines, diagnostics }
+}
+
+function dedentExpression(text: string): string {
+  const lines = text.split("\n")
+  const tail = lines.slice(1).filter((line) => line.trim().length > 0)
+  const common = tail.length
+    ? Math.min(...tail.map((line) => line.length - line.trimStart().length))
+    : 0
+  return lines.map((line, index) => (index === 0 ? line : line.slice(common))).join("\n")
+}
+
+function renderToolRegistration(tool: ToolSite, index: number, level: number): string {
+  const pad = INDENT.repeat(level)
+  const inner = (depth: number) => pad + INDENT.repeat(depth)
+  return [
+    `${pad}await __opencode.tool.transform((editor) => {`,
+    `${inner(1)}editor.add({`,
+    `${inner(2)}name: ${JSON.stringify(tool.name)},`,
+    `${inner(2)}description: __tool${index}.description,`,
+    `${inner(2)}input: __z.toJSONSchema(__z.object(__tool${index}.args)) as any,`,
+    `${inner(2)}async execute(input: any, context: any) {`,
+    `${inner(3)}const args: any = input`,
+    `${inner(3)}const ctx: any = {`,
+    `${inner(4)}...context,`,
+    `${inner(4)}abort: context.signal,`,
+    `${inner(4)}directory: __opencode.location.directory,`,
+    `${inner(4)}worktree: __opencode.location.directory,`,
+    `${inner(4)}metadata: (_update: any) => {},`,
+    `${inner(4)}ask: async (_input: any) => {},`,
+    `${inner(3)}}`,
+    `${inner(3)}const result: any = await __tool${index}.execute(args, ctx)`,
+    `${inner(3)}if (typeof result === "string") return { content: result }`,
+    `${inner(3)}if (result && typeof result === "object") {`,
+    `${inner(4)}return { content: result.output, metadata: result.metadata }`,
+    `${inner(3)}}`,
+    `${inner(3)}return {}`,
+    `${inner(2)}},`,
+    `${inner(1)}})`,
+    `${pad}})`,
+  ].join("\n")
 }
 
 function adapterBody(hook: ClassifiedHook, id: string, index: number, level: number): string {
@@ -287,6 +327,34 @@ export function emitModule(ir: ClassifiedPluginIR, outFile: string): EmittedModu
     if (rendered) blocks.push(rendered)
   })
 
+  if (ir.tools.length) {
+    const inline = ir.tools.some((tool) => tool.kind === "inline")
+    if (inline) {
+      // The declared parameter types give the carried inline config contextual typing,
+      // so `execute(args)` does not become an implicit-any error.
+      blocks.push(
+        [
+          `  const tool = Object.assign(`,
+          `    (definition: {`,
+          `      description: string`,
+          `      args: any`,
+          `      execute: (args: any, context: any) => any`,
+          `    }) => definition,`,
+          `    { schema: __z },`,
+          `  )`,
+        ].join("\n"),
+      )
+    }
+    ir.tools.forEach((tool, index) => {
+      const expression = dedentExpression(tool.reference)
+        .split("\n")
+        .map((line, lineIndex) => (lineIndex === 0 ? line : `${INDENT.repeat(2)}${line}`))
+        .join("\n")
+      blocks.push(`  const __tool${index} = ${expression}`)
+      blocks.push(renderToolRegistration(tool, index, 2))
+    })
+  }
+
   if (skippedHooks.length) {
     const notes = skippedHooks.map((hook) => {
       const why = hook.reason ? `\n//   ${hook.reason}` : ""
@@ -308,6 +376,7 @@ export function emitModule(ir: ClassifiedPluginIR, outFile: string): EmittedModu
 
   const importLines = [
     `import { Plugin } from "@opencode/plugin"`,
+    ...(ir.tools.length ? [`import { z as __z } from "zod"`] : []),
     ...ir.imports.map((item) => item.text),
   ]
 
@@ -345,6 +414,7 @@ export function emitModule(ir: ClassifiedPluginIR, outFile: string): EmittedModu
     emitted: emittedHooks.map((hook) => hook.name),
     skipped: skippedHooks.map((hook) => hook.name),
     diagnostics,
+    tools: ir.tools.map((tool) => tool.name),
     rewrittenFiles: [],
     remainingV1Imports: [],
   }

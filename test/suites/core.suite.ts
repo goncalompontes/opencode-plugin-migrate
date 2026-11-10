@@ -501,6 +501,23 @@ describe("CLI", () => {
     ).toBe(true)
   })
 
+  test("skill catalog lists every shipped file", () => {
+    const catalog = JSON.parse(fs.readFileSync(path.join(repo, "skills", "index.json"), "utf8"))
+    const entry = catalog.skills.find(
+      (skill: { name: string }) => skill.name === "opencode-plugin-migrate",
+    )
+    expect(entry).toBeDefined()
+    for (const file of entry.files as string[]) {
+      expect(fs.existsSync(path.join(repo, "skills", "opencode-plugin-migrate", file))).toBe(true)
+    }
+  })
+
+  test("package exports a loadable server part", () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(repo, "package.json"), "utf8"))
+    expect(pkg.exports["./server"]).toBe("./src/plugin/index.ts")
+    expect(fs.existsSync(path.join(repo, pkg.exports["./server"]))).toBe(true)
+  })
+
   test("--check exits 1 for review findings and 0 for a clean conversion", () => {
     const clean = run(
       "convert",

@@ -463,6 +463,16 @@ describe("negative inputs", () => {
   })
 })
 
+describe("OpenCode plugin entrypoint", () => {
+  test("exports a V2 plugin definition and resolves the bundled skill", async () => {
+    const plugin = (await import("../../src/plugin/index")).default
+    expect(plugin.id).toBe("opencode-plugin-migrate")
+    expect(typeof plugin.setup).toBe("function")
+    const { findSkillSource } = await import("../../src/cli/skill")
+    expect(findSkillSource()?.endsWith(path.join("skills", "opencode-plugin-migrate"))).toBe(true)
+  })
+})
+
 describe("CLI", () => {
   const repo = path.join(import.meta.dir, "..", "..")
   const run = (...args: string[]) =>
@@ -479,6 +489,16 @@ describe("CLI", () => {
     expect(output).toContain("--check")
     expect(output).toContain("--format")
     expect(output).toContain("--quiet")
+  })
+
+  test("install-skill copies the bundled skill", () => {
+    const skills = path.join(root, "skills-install")
+    const result = run("install-skill", "--dir", skills, "--force")
+    expect(result.exitCode).toBe(0)
+    expect(fs.existsSync(path.join(skills, "opencode-plugin-migrate", "SKILL.md"))).toBe(true)
+    expect(
+      fs.existsSync(path.join(skills, "opencode-plugin-migrate", "references", "report-fields.md")),
+    ).toBe(true)
   })
 
   test("--check exits 1 for review findings and 0 for a clean conversion", () => {

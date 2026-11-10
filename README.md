@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/goncalompontes/opencode-plugin-migrate/actions/workflows/ci.yml/badge.svg)](https://github.com/goncalompontes/opencode-plugin-migrate/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-48%20passing-brightgreen)](test/migration.test.ts)
+[![Tests](https://img.shields.io/badge/tests-unit%20%2B%20corpus-brightgreen)](test/migration.test.ts)
 [![Corpus](https://img.shields.io/badge/corpus-10%20curated%20%C2%B7%20150%20community-informational)](benchmarks/RESULTS.md)
 
 V1 plugins do not load in V2: the entrypoint, context, hook signatures, client API,
@@ -21,6 +21,7 @@ bun run src/cli/index.ts convert ./my-plugin   # emit + typecheck + bundle
 - [What it converts](#what-it-converts)
 - [Install](#install)
 - [Quick start](#quick-start)
+- [Inside OpenCode](#inside-opencode)
 - [Benchmark](#benchmark)
 - [How it works](#how-it-works)
 - [Safety model](#safety-model)
@@ -58,38 +59,81 @@ Coverage from the curated corpus: **18/22 hooks converted**, **8/8 tools registe
 
 ## Install
 
-The package is not published to npm yet; install from source:
+Every release ships a packed tarball. Install the CLI globally:
+
+```sh
+npm install --global https://github.com/goncalompontes/opencode-plugin-migrate/releases/download/v0.2.0/opencode-plugin-migrate-0.2.0.tgz
+opencode-plugin-migrate --help
+```
+
+From source:
 
 ```sh
 git clone https://github.com/goncalompontes/opencode-plugin-migrate.git
 cd opencode-plugin-migrate
-bun install
-bun run build
+bun install && bun run build
 ./dist/cli.js --help
 ```
 
 The CLI runs on Node 20+ and Bun. Bundle validation uses `Bun.build`; under Node it is
 skipped and reported as `bundle skipped (Node)`. Type checking, conversion, reports and
-repair work on both runtimes. Publishing is wired in the release workflow and activates
-when an `NPM_TOKEN` secret is configured.
+repair work on both runtimes. npm publishing activates when an `NPM_TOKEN` secret is
+configured.
+
+Full options, including npm, OpenCode plugin, and skill installs: **[docs/INSTALL.md](docs/INSTALL.md)**.
 
 ## Quick start
 
 ```sh
 # 1. See what will happen. No writes.
-bun src/cli/index.ts analyze ./plugin
+opencode-plugin-migrate analyze ./plugin
 
 # 2. Convert into .migrate/<plugin>/. Writes MIGRATION.md + JSON.
-bun src/cli/index.ts convert ./plugin
+opencode-plugin-migrate convert ./plugin
 
 # 3. Review the report, then fail on anything left to port.
-bun src/cli/index.ts convert ./plugin --check --quiet
+opencode-plugin-migrate convert ./plugin --check --quiet
 ```
 
 `convert` copies the package, rewrites every V1 authoring import, emits the V2 module,
 upgrades `package.json`, typechecks against `@opencode/plugin`, bundles it, and repairs
 fixable parameter annotations. Every skipped hook keeps its original body in
 `MIGRATION.md` and `migration-report.json`.
+
+## Inside OpenCode
+
+Install the server part and the agent skill together:
+
+```sh
+opencode plugin add github:goncalompontes/opencode-plugin-migrate
+```
+
+That adds two tools to the session:
+
+| Tool | What it does |
+| --- | --- |
+| `migrate_analyze` | Reports how a V1 plugin maps to V2. Writes nothing. |
+| `migrate_convert` | Converts, typechecks, bundles, and writes `MIGRATION.md` + JSON. |
+
+The plugin also registers the bundled **`opencode-plugin-migrate` skill**, which tells the
+agent how to triage the report and finish the review items. If you only want the skill in
+another host, install the Markdown directly:
+
+```sh
+opencode-plugin-migrate install-skill          # .opencode/skills/opencode-plugin-migrate
+opencode-plugin-migrate install-skill --global # ~/.config/opencode/skills/...
+```
+
+Or point OpenCode at the catalog in this repository:
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "skills": [
+    "https://raw.githubusercontent.com/goncalompontes/opencode-plugin-migrate/main/skills/",
+  ],
+}
+```
 
 ## Benchmark
 
@@ -204,11 +248,13 @@ src/rules/      hook table and target capability probe
 src/emit/       emitter and per-hook adapters
 src/validate/   typecheck, bundle, repair, incremental merge
 src/report/     report schema and Markdown/JSON renderer
-src/cli/        CLI entrypoint
+src/cli/        CLI entrypoint and skill installer
+src/plugin/     OpenCode V2 server plugin (tools + skill registration)
+skills/         installable agent skill and HTTP catalog
 scripts/        build, pack smoke, coverage floor, capability probe
 benchmarks/     pinned corpus, runner, RESULTS.md
 test/           fixtures, suites, snapshots
-docs/           architecture
+docs/           architecture, install, releasing
 ```
 
 ## Development
@@ -246,6 +292,7 @@ community corpus.
 
 ## Project docs
 
+- [Installation](docs/INSTALL.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)

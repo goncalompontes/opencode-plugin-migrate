@@ -1,0 +1,9 @@
+{
+  "skills": [
+    {
+      "name": "opencode-plugin-migrate",
+      "version": "1",
+      "files": ["SKILL.md", "references/report-fields.md"]
+    }
+  ]
+}

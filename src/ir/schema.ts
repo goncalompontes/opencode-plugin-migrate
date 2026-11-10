@@ -104,8 +104,18 @@ export const ClassifiedHook = HookSite.extend({
 })
 export type ClassifiedHook = z.infer<typeof ClassifiedHook>
 
+export const TargetInfoSchema = z.object({
+  version: z.string(),
+  packageRoot: z.string(),
+  capabilities: z.array(z.string()),
+  missing: z.array(z.string()),
+  overrideMismatch: z.string().optional(),
+})
+export type TargetInfoSchema = z.infer<typeof TargetInfoSchema>
+
 export const ClassifiedPluginIR = PluginIR.extend({
   hooks: z.array(ClassifiedHook),
+  target: TargetInfoSchema.optional(),
 })
 export type ClassifiedPluginIR = z.infer<typeof ClassifiedPluginIR>
 

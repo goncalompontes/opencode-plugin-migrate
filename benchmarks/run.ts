@@ -67,16 +67,18 @@ interface Baseline {
 }
 
 function cleanMessage(message: string, checkout: string): string {
-  return message
-    .split("\n")[0]!
-    .replaceAll(checkout, "<repo>")
-    .replaceAll(outRoot, "<out>")
-    .replaceAll(repoRoot, "<repo>")
-    // Diagnostics can reference paths outside the checkout (old clones, node_modules
-    // resolved from another root). Keep generated docs machine-independent.
-    .replace(/(?:\/home|\/Users)\/[^\s'")]+/g, "<path>")
-    .replace(/\s+/g, " ")
-    .trim()
+  return (
+    message
+      .split("\n")[0]!
+      .replaceAll(checkout, "<repo>")
+      .replaceAll(outRoot, "<out>")
+      .replaceAll(repoRoot, "<repo>")
+      // Diagnostics can reference paths outside the checkout (old clones, node_modules
+      // resolved from another root). Keep generated docs machine-independent.
+      .replace(/(?:\/home|\/Users)\/[^\s'")]+/g, "<path>")
+      .replace(/\s+/g, " ")
+      .trim()
+  )
 }
 
 function category(message: string): string {

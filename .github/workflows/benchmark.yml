@@ -19,10 +19,15 @@ jobs:
           key: corpus-${{ hashFiles('benchmarks/manifest.ts') }}
       - uses: actions/cache@v4
         with:
+          path: benchmarks/.cache
+          key: bench-cache-${{ hashFiles('src/**/*.ts', 'package.json', 'bun.lock') }}
+          restore-keys: bench-cache-
+      - uses: actions/cache@v4
+        with:
           path: ~/.bun/install/cache
           key: ${{ runner.os }}-bun-bench-${{ hashFiles('bun.lock') }}
       - run: bun install --frozen-lockfile
-      - run: bun benchmarks/run.ts --fetch
+      - run: bun benchmarks/run.ts --fetch --core-only
       - uses: actions/github-script@v7
         with:
           script: |

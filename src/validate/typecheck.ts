@@ -107,7 +107,13 @@ export function typecheck(
     noUnusedLocals: false,
     noUnusedParameters: false,
     types: ["node", "bun"],
-    lib: fromConfig.lib && fromConfig.lib.length > 0 ? fromConfig.lib : ["lib.esnext.d.ts"],
+    lib: [
+      ...new Set([
+        ...(fromConfig.lib && fromConfig.lib.length > 0 ? fromConfig.lib : ["lib.esnext.d.ts"]),
+        "lib.dom.d.ts",
+        "lib.dom.iterable.d.ts",
+      ]),
+    ],
   }
 
   const program = ts.createProgram({ rootNames, options, host: createCachedHost(options) })

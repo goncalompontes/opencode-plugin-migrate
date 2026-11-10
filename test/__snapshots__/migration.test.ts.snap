@@ -6,13 +6,13 @@ exports[`golden output emits the basic module: basic 1`] = `
  * Source: test/fixtures/basic/index.ts
  * Review every "not converted automatically" block before shipping.
  */
-import { Plugin } from "@opencode/plugin"
+import { Plugin as __Plugin } from "@opencode/plugin"
 
 // #region carried-v1 module
 const _GREETING = "hello"
 // #endregion carried-v1
 
-const BasicPlugin = Plugin.define({
+const BasicPlugin = __Plugin.define({
   id: "basic-v1-plugin",
   async setup(__opencode) {
     const directory = __opencode.location.directory
@@ -21,7 +21,7 @@ const BasicPlugin = Plugin.define({
     const __clientSessionID = (input: any): any =>
       input?.path?.id ?? input?.sessionID ?? input?.id
     const __clientEnvelope = async (value: any): Promise<{ data: any }> => ({ data: value })
-    const client = {
+    const client: any = {
       ...__opencode,
       session: {
         ...__opencode.session,
@@ -208,11 +208,11 @@ exports[`golden output emits the tools module: tools 1`] = `
  * Source: test/fixtures/tools/index.ts
  * Review every "not converted automatically" block before shipping.
  */
-import { Plugin } from "@opencode/plugin"
+import { Plugin as __Plugin } from "@opencode/plugin"
 import { z as __z } from "zod"
 import { referencedTool } from "./tools"
 
-const ToolsPlugin = Plugin.define({
+const ToolsPlugin = __Plugin.define({
   id: "ToolsPlugin",
   async setup(__opencode) {
   const tool = Object.assign(
@@ -294,9 +294,9 @@ exports[`golden output emits the conditional module: conditional 1`] = `
  * Source: test/fixtures/conditional/index.ts
  * Review every "not converted automatically" block before shipping.
  */
-import { Plugin } from "@opencode/plugin"
+import { Plugin as __Plugin } from "@opencode/plugin"
 
-const ConditionalPlugin = Plugin.define({
+const ConditionalPlugin = __Plugin.define({
   id: "ConditionalPlugin",
   async setup(__opencode) {
     const directory = __opencode.location.directory

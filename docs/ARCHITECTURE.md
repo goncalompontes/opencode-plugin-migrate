@@ -52,6 +52,20 @@ Rules are checked against the installed `@opencode/plugin` declaration files. Wh
 capability is missing, affected hooks downgrade to `review` instead of emitting code
 that cannot load. `--target` records the expected version and warns on mismatch.
 
+## Benchmark
+
+`benchmarks/run.ts` has two corpora:
+
+- **curated** (`benchmarks/manifest.ts`): strict expected counts, used by tests and
+  PR CI;
+- **community** (`benchmarks/community.json`): discovered from GitHub code search,
+  pinned, and recorded against `benchmarks/baseline.json`.
+
+Each conversion runs in `benchmarks/worker.ts`; the parent pools workers and caches
+results in `benchmarks/.cache` keyed by `repo@commit` and a fingerprint of `src/` plus
+the installed `@opencode/plugin` version. A clean baseline regression fails the run;
+new failures are reported in `COMMUNITY.md`.
+
 ## Known boundaries
 
 - V1 types are authoring-time only; the compatibility shim keeps them compiling.

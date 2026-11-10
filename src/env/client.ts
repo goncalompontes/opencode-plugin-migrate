@@ -89,7 +89,7 @@ export function renderClientFacade(binding = "client"): string[] {
     "const __clientSessionID = (input: any): any =>",
     "  input?.path?.id ?? input?.sessionID ?? input?.id",
     "const __clientEnvelope = async (value: any): Promise<{ data: any }> => ({ data: value })",
-    `const ${binding} = {`,
+    `const ${binding}: any = {`,
     "  ...__opencode,",
     "  session: {",
     "    ...__opencode.session,",

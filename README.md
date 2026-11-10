@@ -109,8 +109,30 @@ carries expected counts, so a regression fails with `expected X, got Y`.
 
 ```sh
 bun benchmarks/run.ts --fetch   # clone pinned commits into benchmarks/corpus
-bun benchmarks/run.ts           # writes benchmarks/RESULTS.md, exits 1 on regressions
+bun benchmarks/run.ts           # full corpus, writes RESULTS.md/COMMUNITY.md
+bun run bench:core              # curated 10, used on pull requests
+bun run corpus:discover         # refresh the community list from GitHub
 ```
+
+### Community corpus
+
+Beyond the curated ten, the benchmark discovers real packages from GitHub code
+search for `@opencode-ai/plugin`, pins each commit, and records the result:
+
+- **150 packages** discovered; **143 applicable** (7 are compiled-only, already V2,
+  or have no plugin entrypoint).
+- **80 fully clean** (typecheck + bundle), **120/182 hooks converted**.
+- The rest are recorded with the first blocking error in
+  [benchmarks/COMMUNITY.md](benchmarks/COMMUNITY.md); a clean baseline that regresses
+  fails the run.
+
+### Performance
+
+- Conversion results are cached by `repo@commit` plus a fingerprint of the converter
+  source, so unchanged entries are not re-converted. A cached full run is seconds; a
+  cold run uses a worker pool (`BENCH_CONCURRENCY`, default 8) and takes a few minutes.
+- `--core-only` skips the community corpus for fast PR feedback.
+- CI caches both the cloned corpus and `benchmarks/.cache`.
 
 The full result and per-plugin notes live in [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 

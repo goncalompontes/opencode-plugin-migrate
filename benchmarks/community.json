@@ -1,0 +1,1202 @@
+[
+  {
+    "name": "affaan-m__ECC",
+    "repo": "affaan-m/ECC",
+    "commit": "d2ef2680594f9a17526a6e1a2e18b3d242c5d17b",
+    "stars": 300611,
+    "license": "MIT",
+    "note": "V1 plugin; The agent harness performance optimization system. Skills, instincts, memory, se"
+  },
+  {
+    "name": "strukto-ai__mirage",
+    "repo": "strukto-ai/mirage",
+    "commit": "e8a94be798d3dcf38233e259d32e4c0afc832bc8",
+    "stars": 3782,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; The World's First Virtual Terminal for AI Agents"
+  },
+  {
+    "name": "bergside__typeui",
+    "repo": "bergside/typeui",
+    "commit": "efc5f21dff38692e4eaffc304fed465d7cb531e8",
+    "stars": 2231,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Build better UI with AI"
+  },
+  {
+    "name": "numman-ali__opencode-openai-codex-auth",
+    "repo": "numman-ali/opencode-openai-codex-auth",
+    "commit": "bec2ad69b252ef4ad7dd33b9532ff8b4fdb6d016",
+    "stars": 2205,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; OAuth authentication plugin for personal coding assistance with ChatGPT Plus/Pro"
+  },
+  {
+    "name": "kenryu42__cc-safety-net",
+    "repo": "kenryu42/cc-safety-net",
+    "commit": "4afb921b2be8ea07499e02794814cbfba96ad4a4",
+    "stars": 1990,
+    "license": "MIT",
+    "note": "dual V1/V2 package; A pre-execution guard for AI coding agents. It blocks destructive Git and file s"
+  },
+  {
+    "name": "mem9-ai__mem9",
+    "repo": "mem9-ai/mem9",
+    "commit": "395bf487f385bb463c8c99c7f65d966da70caa0f",
+    "stars": 1236,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; Unlimited memory for OpenClaw"
+  },
+  {
+    "name": "slkiser__opencode-quota",
+    "repo": "slkiser/opencode-quota",
+    "commit": "afc5f5b2ef20f60851797c977e1577cd65773489",
+    "stars": 1138,
+    "license": "MIT",
+    "note": "dual V1/V2 package; OpenCode quota & tokens usage with zero context window pollution. Supports OpenC"
+  },
+  {
+    "name": "agent-sh__agentsys",
+    "repo": "agent-sh/agentsys",
+    "commit": "ce58913304d88a1d1a0513e1837ae43c33f5f6f5",
+    "stars": 1012,
+    "license": "MIT",
+    "note": "V1 plugin; AI writes code. This automates everything else · 24 plugins · 49 agents · 44 ski"
+  },
+  {
+    "name": "blueberrycongee__Lumina-Note",
+    "repo": "blueberrycongee/Lumina-Note",
+    "commit": "df9fbf321263e23123ac1ae88fd3f843b9dddddb",
+    "stars": 912,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; Lumina Note - A modern Markdown note-taking app with live preview, bidirectional"
+  },
+  {
+    "name": "mohak34__opencode-notifier",
+    "repo": "mohak34/opencode-notifier",
+    "commit": "460bae5dbe1cd5e59f7123a16ec423c9bf67bbba",
+    "stars": 864,
+    "license": "MIT",
+    "note": "dual V1/V2 package; OpenCode plugin for desktop notifications and sounds on permission, completion, "
+  },
+  {
+    "name": "Dong90__oh-my-taiyiforge",
+    "repo": "Dong90/oh-my-taiyiforge",
+    "commit": "7cfbef041e8f9c3e5b5dbe555fb9f3915b078d59",
+    "stars": 855,
+    "license": "MIT",
+    "note": "V1 plugin; AI workflow automation plugin for intelligent code generation with Claude/Codex"
+  },
+  {
+    "name": "Nomadcxx__opencode-cursor",
+    "repo": "Nomadcxx/opencode-cursor",
+    "commit": "675435282cd89965989da9f04eea767a73872d42",
+    "stars": 723,
+    "license": "BSD-3-Clause",
+    "note": "dual V1/V2 package; Use Cursor Pro models in OpenCode via HTTP proxy with OAuth"
+  },
+  {
+    "name": "different-ai__opencode-browser",
+    "repo": "different-ai/opencode-browser",
+    "commit": "2a2b10494f5fed33bc51732c6af53729d17f5b00",
+    "stars": 612,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; OpenCode plugin to automate Chrome. Inspired by Claude in Chrome."
+  },
+  {
+    "name": "ex-machina-co__opencode-anthropic-auth",
+    "repo": "ex-machina-co/opencode-anthropic-auth",
+    "commit": "93cdd23b95f84a1d495744c2e6cc4058b5a86381",
+    "stars": 562,
+    "license": "MIT",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "me2resh__apexyard",
+    "repo": "me2resh/apexyard",
+    "commit": "fa6911078bb3c91af457290cd2c7e8bd91843746",
+    "stars": 544,
+    "license": "MIT",
+    "note": "V1 plugin; Your AI engineering org, governed. Ship agent-built code safely to production."
+  },
+  {
+    "name": "joelhooks__opencode-config",
+    "repo": "joelhooks/opencode-config",
+    "commit": "e7ba457a6f9c8722a3aa4d04bbef7e5dcd8846ae",
+    "stars": 532,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Personal OpenCode configuration - commands, tools, agents, knowledge"
+  },
+  {
+    "name": "ZaxbyHub__opencode-swarm",
+    "repo": "ZaxbyHub/opencode-swarm",
+    "commit": "25a201430af7980173f58aa7422191ff39c72725",
+    "stars": 522,
+    "license": "MIT",
+    "note": "dual V1/V2 package;   Architect-centric agentic swarm plugin for OpenCode. Hub-and-spoke orchestrati"
+  },
+  {
+    "name": "different-ai__opencode-scheduler",
+    "repo": "different-ai/opencode-scheduler",
+    "commit": "cd0b62364792f53e8687db53bc2c2c0261c9cf17",
+    "stars": 518,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin for scheduling recurring jobs using launchd (Mac) or systemd (Li"
+  },
+  {
+    "name": "vtemian__micode",
+    "repo": "vtemian/micode",
+    "commit": "de4e4ec863a7ac636cb30a7af81430c53d791d4d",
+    "stars": 511,
+    "license": "MIT",
+    "note": "V1 plugin; RPI OpenCode Plugin"
+  },
+  {
+    "name": "franlol__opencode-md-table-formatter",
+    "repo": "franlol/opencode-md-table-formatter",
+    "commit": "1c6d9ec3ecaf45f5ecc3afa71fc16c2625a60d4c",
+    "stars": 384,
+    "license": "MIT",
+    "note": "V1 plugin; Markdown table formatter plugin for OpenCode with concealment mode support."
+  },
+  {
+    "name": "doza62__opencode-mobile",
+    "repo": "doza62/opencode-mobile",
+    "commit": "d47a4b082950d1575609dab967f360539855836d",
+    "stars": 340,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode react native client for IOS, Android and Web."
+  },
+  {
+    "name": "joshuadavidthomas__opencode-agent-skills",
+    "repo": "joshuadavidthomas/opencode-agent-skills",
+    "commit": "8afdbe1b42cdb336482b4b06fd351c0c8f6fe942",
+    "stars": 287,
+    "license": "MIT",
+    "note": "V1 plugin; An OpenCode plugin that provides tools for using agent skills"
+  },
+  {
+    "name": "ephraimduncan__opencode-cursor",
+    "repo": "ephraimduncan/opencode-cursor",
+    "commit": "621116dcbdc797611cfb53982c7cbc805eb8ef21",
+    "stars": 285,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Use your cursor subscription in opencode"
+  },
+  {
+    "name": "ranxianglei__opencode-acp",
+    "repo": "ranxianglei/opencode-acp",
+    "commit": "98a16d5b43f640abc2e2eac7903553786baaf37b",
+    "stars": 281,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; 稳定可用Active Context Pruning — model-driven context management for OpenCode ，200K "
+  },
+  {
+    "name": "vbgate__opencode-mystatus",
+    "repo": "vbgate/opencode-mystatus",
+    "commit": "196eed3834802a3d9cb0cea74aed8cbc743bcff4",
+    "stars": 260,
+    "license": "MIT",
+    "note": "V1 plugin;  Check all your AI subscription quotas in one command. Supports OpenAI, Zhipu AI"
+  },
+  {
+    "name": "spoons-and-mirrors__subtask2",
+    "repo": "spoons-and-mirrors/subtask2",
+    "commit": "92ad854c0d3190f407bfdcb9a012a5446dbb10a0",
+    "stars": 258,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; A stronger opencode /command handler"
+  },
+  {
+    "name": "ghoulr__opencode-websearch-cited",
+    "repo": "ghoulr/opencode-websearch-cited",
+    "commit": "bb067c84b5de67f14f0ca4ba0d5eaac6470ff758",
+    "stars": 248,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; An OpenCode plugin that provides LLM cited web search."
+  },
+  {
+    "name": "Yeachan-Heo__My-Jogyo",
+    "repo": "Yeachan-Heo/My-Jogyo",
+    "commit": "b3a3a37a8213578cec0b698473b72dbda3ee9032",
+    "stars": 243,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Your one-click scientific research lab for Opencode - with seamless .ipynb and R"
+  },
+  {
+    "name": "Joaquinvesapa__sub-agent-statusline",
+    "repo": "Joaquinvesapa/sub-agent-statusline",
+    "commit": "8045672837badd4d292a2399c4fbf246c707e983",
+    "stars": 235,
+    "license": "MIT",
+    "note": "dual V1/V2 package; "
+  },
+  {
+    "name": "ttalkkak-lab__opencode-contexty",
+    "repo": "ttalkkak-lab/opencode-contexty",
+    "commit": "98d6bb287d6724ac306ac26d3e54d49343885ddd",
+    "stars": 220,
+    "license": "AGPL-3.0",
+    "note": "V1 plugin; OpenCode에 컨텍스트 엔지니어링을 더하는 플러그인 — 컨텍스트 시각화, 아키텍처 감독, 접근 권한 관리를 하나로."
+  },
+  {
+    "name": "rizal72__true-mem",
+    "repo": "rizal72/true-mem",
+    "commit": "8b8f221482bc06da9647b73703fff8b432e0c146",
+    "stars": 214,
+    "license": "MIT",
+    "note": "V1 plugin; A persistent memory plugin for OpenCode with cognitive psychology-based memory m"
+  },
+  {
+    "name": "angristan__opencode-wakatime",
+    "repo": "angristan/opencode-wakatime",
+    "commit": "f6d20a18e46d710989316d06b5889ffd12a6bc1c",
+    "stars": 205,
+    "license": "MIT",
+    "note": "dual V1/V2 package; Track Opencode usage with Wakatime"
+  },
+  {
+    "name": "sdwolf4103__opencode-working-memory",
+    "repo": "sdwolf4103/opencode-working-memory",
+    "commit": "701cf8e74672ca62f14c77a89686ae0a25a4c808",
+    "stars": 199,
+    "license": "MIT",
+    "note": "dual V1/V2 package; Automatic memory for OpenCode agents: persistent workspace memory, hot session c"
+  },
+  {
+    "name": "IgorWarzocha__Opencode-Context-Analysis-Plugin",
+    "repo": "IgorWarzocha/Opencode-Context-Analysis-Plugin",
+    "commit": "3676b9f213298780cfbc0b8c5dbbb33980308885",
+    "stars": 195,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; A powerful OpenCode plugin that provides detailed token usage analysis for your "
+  },
+  {
+    "name": "floze-the-genius__opencode-multi-auth-codex",
+    "repo": "floze-the-genius/opencode-multi-auth-codex",
+    "commit": "8cad5ccd707e3e28fa944fdd0bed4cc00078495d",
+    "stars": 187,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode account routing, session controls, dashboard, and reliability tooling f"
+  },
+  {
+    "name": "psinetron__opencode-visualiser",
+    "repo": "psinetron/opencode-visualiser",
+    "commit": "027c6d25a8f4781f4dd531ed3798ba67d3d17be7",
+    "stars": 183,
+    "license": "MIT",
+    "note": "V1 plugin; Turning raw AI terminal logs into cozy 2D pixel office chaos. The definitive vis"
+  },
+  {
+    "name": "kommander__oc-plugin-vault-tec",
+    "repo": "kommander/oc-plugin-vault-tec",
+    "commit": "a0184713d03795e641d1aae9b6d66f1a76cd9afc",
+    "stars": 182,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; A RobCo terminal personality that rewires your coding agent into a cheerful Vaul"
+  },
+  {
+    "name": "malhashemi__opencode-sessions",
+    "repo": "malhashemi/opencode-sessions",
+    "commit": "99b40dfb1698c75360ae8b20dfd2c0dc70c414e6",
+    "stars": 180,
+    "license": "MIT",
+    "note": "V1 plugin; Session management plugin for OpenCode with  multi-agent collaboration support"
+  },
+  {
+    "name": "MrgSub__opencode-debug",
+    "repo": "MrgSub/opencode-debug",
+    "commit": "87f244002d68b6ee383cbc01bf0e8b2836507a2a",
+    "stars": 179,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "tickernelz__opencode-kiro-auth",
+    "repo": "tickernelz/opencode-kiro-auth",
+    "commit": "08f06b4d74204df32133801c537428d78cea298f",
+    "stars": 178,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Stop hitting Claude limits. Leverage AWS Kiro 550+ free requests with this multi"
+  },
+  {
+    "name": "iHildy__opencode-synced",
+    "repo": "iHildy/opencode-synced",
+    "commit": "0e13dc92405fa7fe4efb9ca79f34c2d46a235d7d",
+    "stars": 168,
+    "license": "MIT",
+    "note": "dual V1/V2 package; Sync opencode global configurations between machines with a plugin"
+  },
+  {
+    "name": "Octane0411__opencode-plugin-openspec",
+    "repo": "Octane0411/opencode-plugin-openspec",
+    "commit": "54864428bd0cb2afeb36f6558ca714b7bbc1203f",
+    "stars": 167,
+    "license": "MIT",
+    "note": "V1 plugin; An OpenCode plugin that integrates OpenSpec, adding a dedicated 'openspec-plan' "
+  },
+  {
+    "name": "psinetron__echoes-vault-opencode",
+    "repo": "psinetron/echoes-vault-opencode",
+    "commit": "875c45aa45559529b87a7481b0c21e6dfd8c5eb0",
+    "stars": 159,
+    "license": "MIT",
+    "note": "V1 plugin; Persistent memory plugin for OpenCode. Obsidian-style knowledge base that surviv"
+  },
+  {
+    "name": "agustif__opencode-lmstudio",
+    "repo": "agustif/opencode-lmstudio",
+    "commit": "662327720cacde85c69ca7e54c40afc1eea3376e",
+    "stars": 158,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin for enhanced LM Studio support with auto-detection and dynamic m"
+  },
+  {
+    "name": "marco-jardim__opencode-model-router",
+    "repo": "marco-jardim/opencode-model-router",
+    "commit": "6b1af2b5ab981b666fb5df2f7262f6437ca5b5e8",
+    "stars": 155,
+    "license": "GPL-3.0",
+    "note": "dual V1/V2 package; OpenCode plugin for automatic model-tier delegation (fast/medium/heavy)"
+  },
+  {
+    "name": "0xSero__open-queue",
+    "repo": "0xSero/open-queue",
+    "commit": "a0cad8b7b9a9b5064ff37ab1c5fec4b2bdd094bd",
+    "stars": 149,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "fastknifes__openflow",
+    "repo": "fastknifes/openflow",
+    "commit": "40c1016dc7bb268448a5d1baf11d3e6461d13c4c",
+    "stars": 149,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; This is a companion workflow plugin for opencode that combines openspec and supe"
+  },
+  {
+    "name": "ApplauseLab__opencode-plugin-simple-memory",
+    "repo": "ApplauseLab/opencode-plugin-simple-memory",
+    "commit": "6b5119f373f0264a20219b4158acf11be0168852",
+    "stars": 148,
+    "license": "MIT",
+    "note": "dual V1/V2 package; A persistent memory plugin for OpenCode that enables the AI assistant to remembe"
+  },
+  {
+    "name": "YuanG1944__message-bridge-opencode-plugin",
+    "repo": "YuanG1944/message-bridge-opencode-plugin",
+    "commit": "c97266367a54a370a3a8491c2714e4ecfcaa59d6",
+    "stars": 148,
+    "license": "MIT",
+    "note": "V1 plugin; lark bot connect bridge plugin for opencode"
+  },
+  {
+    "name": "IgorWarzocha__opencode-planning-toolkit",
+    "repo": "IgorWarzocha/opencode-planning-toolkit",
+    "commit": "b7b50259a61f708a4e25224b914552bf7657cded",
+    "stars": 145,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; A set of tools that allow sharing a repo-wide todoliist between sessions."
+  },
+  {
+    "name": "nick-vi__type-inject",
+    "repo": "nick-vi/type-inject",
+    "commit": "cf1f71739be6ea479e114f9450b124be5247ee9d",
+    "stars": 145,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; TypeScript type context for AI coding assistants. Auto-injects type signatures o"
+  },
+  {
+    "name": "paulp-o__ask-user-questions-mcp",
+    "repo": "paulp-o/ask-user-questions-mcp",
+    "commit": "7d41b1befd3e8c5cc349604b364fcb5362860f9e",
+    "stars": 145,
+    "license": "MIT",
+    "note": "V1 plugin; Better 'AskUserQuestion' - A lightweight MCP server/OpenCode plugin/Agent Skills"
+  },
+  {
+    "name": "oribarilan__vimcode",
+    "repo": "oribarilan/vimcode",
+    "commit": "b5989160c95e2a8625073fa00eac949ca730b82d",
+    "stars": 144,
+    "license": "MIT",
+    "note": "V1 plugin; Vim for OpenCode."
+  },
+  {
+    "name": "zhexulong__opencode-gpt-unlocked",
+    "repo": "zhexulong/opencode-gpt-unlocked",
+    "commit": "69a9eb1ba75c9103c0b33c2a2d94a3e7d3c318c5",
+    "stars": 143,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "frieser__opencode-antigravity-quota",
+    "repo": "frieser/opencode-antigravity-quota",
+    "commit": "3e1b4c89b13ab427803f39308abead7d1bdd0026",
+    "stars": 142,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin to monitor Antigravity API/Gemini Cli quotas across multiple acc"
+  },
+  {
+    "name": "Hotakus__opencode-subagent-magazine",
+    "repo": "Hotakus/opencode-subagent-magazine",
+    "commit": "07bfa121980524967c0243b7b0f55be7dd5f8d93",
+    "stars": 136,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode TUI 插件 · 实时子代理监控 · 侧边栏可视化 / Real-time Sub-Agent Monitor Sidebar Plugin "
+  },
+  {
+    "name": "joeyism__opencode-history-search",
+    "repo": "joeyism/opencode-history-search",
+    "commit": "bf191ae22f2b35ecb5110b5fe18b72fd5423b6a0",
+    "stars": 132,
+    "license": "MIT",
+    "note": "V1 plugin; Search through your OpenCode conversation history with keyword, regex, and fuzzy"
+  },
+  {
+    "name": "ASidorenkoCode__openslimedit",
+    "repo": "ASidorenkoCode/openslimedit",
+    "commit": "d5014929d6f66729b887df74a65ed6d22c3b522b",
+    "stars": 123,
+    "license": "MIT",
+    "note": "V1 plugin; An OpenCode plugin that reduces token usage by up to 45% with zero configuration"
+  },
+  {
+    "name": "yuji-hatakeyama__opencode-gpt-imagegen",
+    "repo": "yuji-hatakeyama/opencode-gpt-imagegen",
+    "commit": "36da9302bac2e420e27e7e769f52bf349e2042d2",
+    "stars": 122,
+    "license": "MIT",
+    "note": "dual V1/V2 package; OpenCode plugin: image generation via your ChatGPT subscription"
+  },
+  {
+    "name": "frap129__opencode-rules",
+    "repo": "frap129/opencode-rules",
+    "commit": "947e981f7b205ae53bfffe5f2aff3967ae85b0f7",
+    "stars": 120,
+    "license": "MIT",
+    "note": "V1 plugin; An opencode plugin to dynamically inject rules into context, like cursor"
+  },
+  {
+    "name": "lkonga__opencode-execsa",
+    "repo": "lkonga/opencode-execsa",
+    "commit": "e2eec694299941dbf3b226cebdd4c390fead8470",
+    "stars": 118,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Execution subagent plugin for OpenCode — delegates terminal tasks to a specializ"
+  },
+  {
+    "name": "michaljach__opencode-browser",
+    "repo": "michaljach/opencode-browser",
+    "commit": "96722007f0040b038a969ccbb0041e221be1d73e",
+    "stars": 115,
+    "license": "MIT",
+    "note": "dual V1/V2 package; Browser automation plugin for OpenCode AI editor - Control Chrome/Edge with AI, "
+  },
+  {
+    "name": "shahidshabbir-se__opencode-anthropic-oauth",
+    "repo": "shahidshabbir-se/opencode-anthropic-oauth",
+    "commit": "ac60ea85b868c57eb7dc7ce4015a2b7960f067b5",
+    "stars": 112,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin for Anthropic Claude Pro/Max OAuth login — no Claude Code needed"
+  },
+  {
+    "name": "charfeng1__opencode-ralph-loop",
+    "repo": "charfeng1/opencode-ralph-loop",
+    "commit": "2ef2386cd9de34efded2694df6e7b53f4c530fbc",
+    "stars": 111,
+    "license": "MIT",
+    "note": "V1 plugin; Minimal Ralph Loop plugin for opencode - auto-continues until task completion"
+  },
+  {
+    "name": "Yukaii__yet-another-opencode-cursor-auth",
+    "repo": "Yukaii/yet-another-opencode-cursor-auth",
+    "commit": "025955752cf821e4bb827ef9b8d74c763a71d57f",
+    "stars": 109,
+    "license": "MIT",
+    "note": "V1 plugin; experimental support for opencode cursor model calling"
+  },
+  {
+    "name": "yuseferi__opencode-litellm",
+    "repo": "yuseferi/opencode-litellm",
+    "commit": "bd4d7da57c25970e925178aa75ed9c9191e74b58",
+    "stars": 109,
+    "license": "MIT",
+    "note": "dual V1/V2 package; OpenCode CLI ( v1 and v2) and Desktop plugin for LiteLLM proxy support with auto"
+  },
+  {
+    "name": "ishaksebsib__opencode-tree",
+    "repo": "ishaksebsib/opencode-tree",
+    "commit": "a6c27560d5e4f43c92e797a93a04f096a60c7c22",
+    "stars": 106,
+    "license": "MIT",
+    "note": "V1 plugin; Tree plugin for the OpenCode TUI."
+  },
+  {
+    "name": "firecrawl__opencode-firecrawl",
+    "repo": "firecrawl/opencode-firecrawl",
+    "commit": "c0fd83fef4b0127bc3db2592407c788f410071bc",
+    "stars": 103,
+    "license": "ISC",
+    "note": "dual V1/V2 package; "
+  },
+  {
+    "name": "ndom91__open-plan-annotator",
+    "repo": "ndom91/open-plan-annotator",
+    "commit": "4873dccf70e952b3a3106d4f6e82993e17897f92",
+    "stars": 100,
+    "license": "MIT",
+    "note": "dual V1/V2 package; Local-first agent plan annotator"
+  },
+  {
+    "name": "dantesCode__caveman-opencode-plugin",
+    "repo": "dantesCode/caveman-opencode-plugin",
+    "commit": "dcdd348266a6189bfc171da3178b7284e232a79c",
+    "stars": 95,
+    "license": "MIT",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "FrancoStino__opencode-skills-collection",
+    "repo": "FrancoStino/opencode-skills-collection",
+    "commit": "3fe221cc504f961d217285f4a145fed72a36d7c9",
+    "stars": 92,
+    "license": "MIT",
+    "note": "dual V1/V2 package; OpenCode Skills Collection is a OpenCode plugin that automatically downloads and"
+  },
+  {
+    "name": "crisogray__claudius",
+    "repo": "crisogray/claudius",
+    "commit": "cd1738c5767e414ff6553484a92478ba16d5f052",
+    "stars": 91,
+    "license": "Apache-2.0",
+    "note": "dual V1/V2 package; Agentic Development Environment"
+  },
+  {
+    "name": "morphllm__opencode-morph-plugin",
+    "repo": "morphllm/opencode-morph-plugin",
+    "commit": "cc06c49572c75a8bd0823450495fd7266ffaea81",
+    "stars": 91,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin for Morph - FastApply, WarpGrep codebase search, FlashCompact"
+  },
+  {
+    "name": "anomalyco__oc-plugin-rainbow",
+    "repo": "anomalyco/oc-plugin-rainbow",
+    "commit": "fd0de201d14538e8b62dbf85904d1e58fa90abb5",
+    "stars": 90,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Theme-aware rainbow post-processing for the OpenCode TUI."
+  },
+  {
+    "name": "boxpositron__envsitter-guard",
+    "repo": "boxpositron/envsitter-guard",
+    "commit": "f68281ac2188ec73d620d89ccfc24d391da00cfe",
+    "stars": 87,
+    "license": "MIT",
+    "note": "dual V1/V2 package; OpenCode plugin that prevents agents/tools from reading or editing sensitive .en"
+  },
+  {
+    "name": "oomol-lab__wanta",
+    "repo": "oomol-lab/wanta",
+    "commit": "4b514806308474c979144348b751227b062b339e",
+    "stars": 83,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; An open-source desktop AI agent foundation powered by OpenCode and connected thr"
+  },
+  {
+    "name": "MasuRii__opencode-smart-voice-notify",
+    "repo": "MasuRii/opencode-smart-voice-notify",
+    "commit": "eb22712f18ecccb0bdf25ddb90c3d98615f88f30",
+    "stars": 78,
+    "license": "MIT",
+    "note": "V1 plugin; 🔊 Smart voice notification plugin for OpenCode with multiple TTS engines (Eleve"
+  },
+  {
+    "name": "kuitos__opencode-claude-memory",
+    "repo": "kuitos/opencode-claude-memory",
+    "commit": "24ac05e2bc6c1c3fea49a60476cb200ad6f5fc0d",
+    "stars": 78,
+    "license": "MIT",
+    "note": "dual V1/V2 package; OpenCode plugin for Claude Code memory: persistent local Markdown memory shared "
+  },
+  {
+    "name": "mturac__everything-openai-codex",
+    "repo": "mturac/everything-openai-codex",
+    "commit": "b5057da5f42ed6b12cd3a59e89af0ccd12cff7c2",
+    "stars": 78,
+    "license": "MIT",
+    "note": "V1 plugin; EOC: open-source operating system for OpenAI Codex workflows with agents, skills"
+  },
+  {
+    "name": "0xSero__open-trees",
+    "repo": "0xSero/open-trees",
+    "commit": "924b279b4aa153f806d6e18b0bde217499d1a24b",
+    "stars": 76,
+    "license": "MIT",
+    "note": "V1 plugin; An Opencode plugin for managing git worktrees. "
+  },
+  {
+    "name": "cortexkit__antigravity-auth",
+    "repo": "cortexkit/antigravity-auth",
+    "commit": "19fec50fc9124b4644b83abee741a22ef5396b01",
+    "stars": 75,
+    "license": "MIT",
+    "note": "dual V1/V2 package; Google Antigravity OAuth for OpenCode and Pi"
+  },
+  {
+    "name": "TejasS1233__opencode-parser",
+    "repo": "TejasS1233/opencode-parser",
+    "commit": "b8e62a7a301c8e6282f5293a92e676666d20a832",
+    "stars": 71,
+    "license": "MIT",
+    "note": "dual V1/V2 package; Parse any file in opencode. Supports PDF, DOCX, XLSX, PPTX, images, EPUB, HTML, "
+  },
+  {
+    "name": "cxOrz__smart-codebase",
+    "repo": "cxOrz/smart-codebase",
+    "commit": "9df98b330434b72662c986eb75b7b263e2dd02f4",
+    "stars": 71,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; A plugin for OpenCode. Make your coding agent learn and grow with every task."
+  },
+  {
+    "name": "isanchez31__opencode-sandbox-plugin",
+    "repo": "isanchez31/opencode-sandbox-plugin",
+    "commit": "d59f2cfdeedf995700e0e8610ecc7a735f5ccacd",
+    "stars": 70,
+    "license": "MIT",
+    "note": "V1 plugin; An OpenCode plugin that sandboxes agent-executed commands using @anthropic-ai/sa"
+  },
+  {
+    "name": "mark-hingston__opencode-elf",
+    "repo": "mark-hingston/opencode-elf",
+    "commit": "9959573363631867929986e0f06b0638cb88bc04",
+    "stars": 70,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Emergent Learning Framework (ELF) for OpenCode - Learn from past successes and f"
+  },
+  {
+    "name": "omercnet__opencode-plugin-langfuse",
+    "repo": "omercnet/opencode-plugin-langfuse",
+    "commit": "c038f6e60c62a1a4bea73a8ca3cf3e5102972441",
+    "stars": 70,
+    "license": "MIT",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "pantheon-org__opencode-warcraft-notifications",
+    "repo": "pantheon-org/opencode-warcraft-notifications",
+    "commit": "2f0b9e2e48daa97553b39a8089f0b50d75ac9235",
+    "stars": 67,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin for Warcraft II theme notifications"
+  },
+  {
+    "name": "vichhka-git__opencode-shannon-plugin",
+    "repo": "vichhka-git/opencode-shannon-plugin",
+    "commit": "03e7c801c7d7cd7975d85745ab4af6e70aa82c7d",
+    "stars": 66,
+    "license": "NOASSERTION",
+    "note": "V1 plugin;  AI Penetration Testing Plugin for OpenCode — Autonomous pentesting with 600+ Ka"
+  },
+  {
+    "name": "ricardo-rod__sdd-engram-plugin",
+    "repo": "ricardo-rod/sdd-engram-plugin",
+    "commit": "fd57c2f3f5766ec892d9c39c9defd8baa59ad7f7",
+    "stars": 65,
+    "license": "MIT",
+    "note": "V1 plugin; Interactive SDD model selection and profile management for opencode"
+  },
+  {
+    "name": "shanebishop1__opencode-command-hooks",
+    "repo": "shanebishop1/opencode-command-hooks",
+    "commit": "51f591b8568ac97bf6456100184d1c6078110586",
+    "stars": 65,
+    "license": "MIT",
+    "note": "V1 plugin; 🪝 A clean way to use OpenCode's event hooks declaratively 🪝"
+  },
+  {
+    "name": "simwai__perplexity-ai-export",
+    "repo": "simwai/perplexity-ai-export",
+    "commit": "ec0dc8ab9456deb0cc0f0330af467449ae8c28b5",
+    "stars": 64,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Grabs all your Perplexity conversations data, spits it out into a nice file fold"
+  },
+  {
+    "name": "simonwjackson__opencode-direnv",
+    "repo": "simonwjackson/opencode-direnv",
+    "commit": "f257fa7f7e19ea8722fdfe546c2cb8b736d9387d",
+    "stars": 63,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; OpenCode plugin that automatically loads direnv environment variables at session"
+  },
+  {
+    "name": "MrDoe__OpenCodeRAG",
+    "repo": "MrDoe/OpenCodeRAG",
+    "commit": "90d5c0e7d9b7b5ed11f5ff6f31c30790106a8e5c",
+    "stars": 62,
+    "license": "MIT",
+    "note": "dual V1/V2 package; OpenCodeRAG is a RAG (Retrieval-Augmented Generation) plugin for semantic code s"
+  },
+  {
+    "name": "plastic-labs__opencode-honcho",
+    "repo": "plastic-labs/opencode-honcho",
+    "commit": "a181756d05b4687830d8c786ebddad6d9e95b8f7",
+    "stars": 61,
+    "license": "MIT",
+    "note": "dual V1/V2 package; "
+  },
+  {
+    "name": "remorses__agentmap",
+    "repo": "remorses/agentmap",
+    "commit": "bc5ac42934cfbb85a11dff14aade057cdf23a212",
+    "stars": 59,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; A tree of your codebase at the start of every agent session. Like SKILL spec but"
+  },
+  {
+    "name": "dkraemerwork__opencode-openai-multi-auth",
+    "repo": "dkraemerwork/opencode-openai-multi-auth",
+    "commit": "9cbdbaab5fcbb90c387850117035844484cc70ee",
+    "stars": 53,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "roberto-mello__lavra",
+    "repo": "roberto-mello/lavra",
+    "commit": "2e7e512eb90baee2c45fa4e08e685d0328fe58db",
+    "stars": 53,
+    "license": "MIT",
+    "note": "V1 plugin; A plugin with compound engineering workflows and memory for AI coding agents"
+  },
+  {
+    "name": "thelioo__opencode-balancer",
+    "repo": "thelioo/opencode-balancer",
+    "commit": "3ecaf72ed765824e7751250aa993b650da0d33d8",
+    "stars": 52,
+    "license": "MIT",
+    "note": "V1 plugin; Account balancer plugin for opencode."
+  },
+  {
+    "name": "oakimov__cursor-opencode-provider",
+    "repo": "oakimov/cursor-opencode-provider",
+    "commit": "5e907ead0a850783216068bde98344ed7adc7167",
+    "stars": 51,
+    "license": "MIT",
+    "note": "dual V1/V2 package; Use Cursor subscription models from OpenCode via Cursor's Connect-RPC agent prot"
+  },
+  {
+    "name": "stolinski__opencode-sentry-monitor",
+    "repo": "stolinski/opencode-sentry-monitor",
+    "commit": "08af416e802767c4bf3294ac1f0e2b272a113e10",
+    "stars": 51,
+    "license": "MIT",
+    "note": "V1 plugin; Use Sentry Agent Monitoring to add observability to your Opencode"
+  },
+  {
+    "name": "Suraj1235__open-dynamic-workflows",
+    "repo": "Suraj1235/open-dynamic-workflows",
+    "commit": "972bb98494ea23f907df88850024bd7022b099d4",
+    "stars": 50,
+    "license": "MIT",
+    "note": "V1 plugin; Open-source dynamic multi-agent workflows for AI coding agents - the script-as-o"
+  },
+  {
+    "name": "NTCoding__autonomous-claude-agent-team",
+    "repo": "NTCoding/autonomous-claude-agent-team",
+    "commit": "24ab0ce3f667ab3c1d75635ee966da06a3e89ec0",
+    "stars": 49,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; An autonomous claude code development team orchestrated by a hook-driven determi"
+  },
+  {
+    "name": "ffflyZzz__opencode-anyrouter-cc",
+    "repo": "ffflyZzz/opencode-anyrouter-cc",
+    "commit": "6288533acc89d5ba6f4f1a1a552ece38e4e269ec",
+    "stars": 49,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; An OpenCode plugin for using AnyRouter as a Claude API provider with OpenCode."
+  },
+  {
+    "name": "melihmucuk__leash",
+    "repo": "melihmucuk/leash",
+    "commit": "f3447952a4960c32b11c2df6a53513f9c2e97388",
+    "stars": 48,
+    "license": "MIT",
+    "note": "V1 plugin; Security guardrails for AI coding agents. Prevents accidental file operations ou"
+  },
+  {
+    "name": "anis-dr__opencode-mermaid-renderer",
+    "repo": "anis-dr/opencode-mermaid-renderer",
+    "commit": "67aba506fd36c2834ef1a073d26c6dcc11198b94",
+    "stars": 47,
+    "license": "MIT",
+    "note": "V1 plugin; Render mermaid diagrams as beautiful ASCII art in OpenCode"
+  },
+  {
+    "name": "NovasPlace__CSM",
+    "repo": "NovasPlace/CSM",
+    "commit": "9c7cfb22e525eb9210c3048cb0d44544b09b95d0",
+    "stars": 46,
+    "license": "MIT",
+    "note": "V1 plugin; Persistent memory and operational continuity for AI coding agents — append-only "
+  },
+  {
+    "name": "FredySandoval__showsignature",
+    "repo": "FredySandoval/showsignature",
+    "commit": "17487b5e95b842cbfd464fd3ef8ce10c2f2bead3",
+    "stars": 44,
+    "license": "ISC",
+    "note": "V1 plugin; A CLI that extracts the useful structure from source files: signatures, imports,"
+  },
+  {
+    "name": "JungHoonGhae__opencode-kilo-auth",
+    "repo": "JungHoonGhae/opencode-kilo-auth",
+    "commit": "d4c53a24d3836a5f14631640b1d71f0701bda5bb",
+    "stars": 43,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin for Kilo Gateway — access 342+ AI models including 29 free tier "
+  },
+  {
+    "name": "grepleaks__grepleaks",
+    "repo": "grepleaks/grepleaks",
+    "commit": "2477098e0b03bc4fffaf725bc28599c340cd7a20",
+    "stars": 43,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Grepleaks — your AI pentest environment. An AI pentest agent that lives in your "
+  },
+  {
+    "name": "jordienr__fixseo",
+    "repo": "jordienr/fixseo",
+    "commit": "f984e0a03ece1c6c60d9315826d6af13cd50f0f9",
+    "stars": 43,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; CLI tool to help agents fix seo issues"
+  },
+  {
+    "name": "DVNghiem__FlowDeck",
+    "repo": "DVNghiem/FlowDeck",
+    "commit": "61f3ebe85bdfe53e24a0547ae655d9137512cf8c",
+    "stars": 42,
+    "license": "MIT",
+    "note": "V1 plugin; AI-powered multi-agent workflow orchestration with built-in safety intelligence "
+  },
+  {
+    "name": "altalt-org__opencode-anthropic-multi-auth",
+    "repo": "altalt-org/opencode-anthropic-multi-auth",
+    "commit": "e765be890c5c86224b51cdb2856a1497a07ce910",
+    "stars": 42,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "Hona__temple-oc",
+    "repo": "Hona/temple-oc",
+    "commit": "3a22fb7c70773d5b0b72354c33f78cf4f38ab885",
+    "stars": 40,
+    "license": "Unlicense",
+    "note": "V1 plugin; Public domain coding station for OpenCode. HolyC first. White field. Red frame. "
+  },
+  {
+    "name": "goniz__opencode-local-provider",
+    "repo": "goniz/opencode-local-provider",
+    "commit": "feb690b208c6a567fcb2adcc9e04dc81c9430aab",
+    "stars": 40,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; OpenCode Plugin for Local LLM Servers"
+  },
+  {
+    "name": "partment__opencode-openai-compact",
+    "repo": "partment/opencode-openai-compact",
+    "commit": "1076564fcbbed0fd0fafc1a29b01cd8bd865d137",
+    "stars": 40,
+    "license": "MIT",
+    "note": "V1 plugin; Use OpenAI Responses API native compaction in OpenCode"
+  },
+  {
+    "name": "captainluzik__oh-my-embedded",
+    "repo": "captainluzik/oh-my-embedded",
+    "commit": "57ab091cbebf655a788fba579d027b690065ab4e",
+    "stars": 39,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin for embedded systems engineering — ESP32, STM32, FreeRTOS, PCB d"
+  },
+  {
+    "name": "foxswat__opencode-qwen-auth",
+    "repo": "foxswat/opencode-qwen-auth",
+    "commit": "fbaf20603e525be488d83b4732d7aeee196ac8b9",
+    "stars": 39,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; Qwen OAuth authentication plugin for OpenCode with multi-account rotation and pr"
+  },
+  {
+    "name": "izzzzzi__opencode-hashline",
+    "repo": "izzzzzi/opencode-hashline",
+    "commit": "088c22e06da12418fb053031e5c3765e91c8da3e",
+    "stars": 39,
+    "license": "MIT",
+    "note": "V1 plugin; Hashline plugin for OpenCode — content-addressable line hashing for precise AI c"
+  },
+  {
+    "name": "wenyinos__opencode-deveco",
+    "repo": "wenyinos/opencode-deveco",
+    "commit": "ee170203d03a5de76ae67eb263e69e7416804c9d",
+    "stars": 39,
+    "license": "MIT",
+    "note": "V1 plugin; Use DevEco Code (Huawei HarmonyOS GLM models) from standard opencode, logging in"
+  },
+  {
+    "name": "IgorWarzocha__Pickle-Thinker",
+    "repo": "IgorWarzocha/Pickle-Thinker",
+    "commit": "8c93727eb056e89ff6c87d735c9b3129d390f8c7",
+    "stars": 37,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; An Opencode plugin that makes GLM & Big Pickle ultrathink at all times"
+  },
+  {
+    "name": "joostvanwollingen__opencode-personality",
+    "repo": "joostvanwollingen/opencode-personality",
+    "commit": "9caf80ffc750e64017fc533d72345b8da75f8982",
+    "stars": 37,
+    "license": "MIT",
+    "note": "V1 plugin; A configurable personality and mood system plugin for OpenCode"
+  },
+  {
+    "name": "evilayman__opencode-raven",
+    "repo": "evilayman/opencode-raven",
+    "commit": "b228112ce85893ab78044d5cf3b1fee909416a5a",
+    "stars": 36,
+    "license": "MIT",
+    "note": "dual V1/V2 package; Opencode-Raven keeps noisy tool work behind a focused Raven agent, so your main "
+  },
+  {
+    "name": "felixAnhalt__opencode-worktree-session",
+    "repo": "felixAnhalt/opencode-worktree-session",
+    "commit": "4642661815d3507ffa9357e97980beda7b067912",
+    "stars": 36,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; Automatic Git worktree management for OpenCode sessions. Creates isolated enviro"
+  },
+  {
+    "name": "learningpro__opencode-autosave-conversation",
+    "repo": "learningpro/opencode-autosave-conversation",
+    "commit": "836ada2af1bc281c86d394153270b1d21b031681",
+    "stars": 36,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin to automatically save conversation records to markdown files"
+  },
+  {
+    "name": "gotgenes__opencode-agent-identity",
+    "repo": "gotgenes/opencode-agent-identity",
+    "commit": "6ed87ad92ae58bcd6c3e9a8d08f1843c6b3af5ea",
+    "stars": 35,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugins that help AI agents understand their identity across multi-agen"
+  },
+  {
+    "name": "jkalasas__opencode-antigravity-image",
+    "repo": "jkalasas/opencode-antigravity-image",
+    "commit": "8b7fcbf83cccae5e29c8300ebe97146a6963ab1f",
+    "stars": 35,
+    "license": "MIT",
+    "note": "V1 plugin; Enable OpenCode to generate images using Antigravity models."
+  },
+  {
+    "name": "ramarivera__opencode-model-announcer",
+    "repo": "ramarivera/opencode-model-announcer",
+    "commit": "7b7129c07afd563bd5c9be0755df9a141a0ab05f",
+    "stars": 34,
+    "license": "MIT",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "llessi06__opencode-llama.cpp",
+    "repo": "llessi06/opencode-llama.cpp",
+    "commit": "c17eb7c0c74f006b431721c3e3c21f388b2b5913",
+    "stars": 33,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin for enhanced llama.cpp support with auto-detection and dynamic m"
+  },
+  {
+    "name": "WeZZard__opencode-vision",
+    "repo": "WeZZard/opencode-vision",
+    "commit": "d9d180e955b8851a86928bc6565136e24e96ae91",
+    "stars": 31,
+    "license": "MIT",
+    "note": "V1 plugin; Dynamic visual-response skill for OpenCode"
+  },
+  {
+    "name": "kuops__opencode-codebuddy-auth",
+    "repo": "kuops/opencode-codebuddy-auth",
+    "commit": "b663b33c9130c0b798bc36d24a02eaacaeab1e7e",
+    "stars": 30,
+    "license": "MIT",
+    "note": "dual V1/V2 package; OpenCode 插件，用于 CodeBuddy (IOA) 认证。通过浏览器 OAuth 登录后，可在 OpenCode CLI 中使用 CodeBuddy "
+  },
+  {
+    "name": "neriousy__opencode-browser",
+    "repo": "neriousy/opencode-browser",
+    "commit": "5fac43b5b65c96f2ecbd42bf14fac31818083ca7",
+    "stars": 30,
+    "license": "MIT",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "vicoa-ai__opencode-vicoa",
+    "repo": "vicoa-ai/opencode-vicoa",
+    "commit": "79b2f46b9e0c19f71f39e090d68af4fdc6e93360",
+    "stars": 28,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "withakay__opencode-codex-provider",
+    "repo": "withakay/opencode-codex-provider",
+    "commit": "e4454c4a6365ba2ff9522bcc46782bd1add0cdc5",
+    "stars": 27,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; custom Codex provider plugin for opencode"
+  },
+  {
+    "name": "DaneelOlivaw1__opencode-aicodewith-auth",
+    "repo": "DaneelOlivaw1/opencode-aicodewith-auth",
+    "commit": "7df318fb548d98b63e37e0c3d025c04cdd6cbd6d",
+    "stars": 26,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; OpenCode plugin for AICodewith authentication - Access GPT-5.2, Claude, and Gemi"
+  },
+  {
+    "name": "IgorWarzocha__opencode-usage-plugin",
+    "repo": "IgorWarzocha/opencode-usage-plugin",
+    "commit": "180282c3624541fd26fcb4d1f264c17e46ac8e59",
+    "stars": 25,
+    "license": "MIT",
+    "note": "V1 plugin; Plugin that displays your OAuth subscription quotas."
+  },
+  {
+    "name": "gabslocked__opencode-windsurf-auth",
+    "repo": "gabslocked/opencode-windsurf-auth",
+    "commit": "98a6cde1a4931c6b7e8706e37376bb5cf20fd787",
+    "stars": 25,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin for Windsurf/Codeium models - OpenAI-compatible local API"
+  },
+  {
+    "name": "CrewBeeLab__CrewBee",
+    "repo": "CrewBeeLab/CrewBee",
+    "commit": "3efe39b9e28ebb4da22f368366c0bc55d328dc82",
+    "stars": 24,
+    "license": "MIT",
+    "note": "V1 plugin; Build reusable AI Agent Teams for OpenCode with explicit roles, multi-agent codi"
+  },
+  {
+    "name": "laiwenhui2006-hub__teams-switch",
+    "repo": "laiwenhui2006-hub/teams-switch",
+    "commit": "161507ff55c3bfcf40c1e5eabbefffbdfc8cef93",
+    "stars": 24,
+    "license": "MIT",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "Puri12__opencode-discord-presence",
+    "repo": "Puri12/opencode-discord-presence",
+    "commit": "618a49fd10ebeefafb10b4c3947ae145c28b72a3",
+    "stars": 23,
+    "license": "MIT",
+    "note": "V1 plugin; Discord Rich Presence plugin for OpenCode - Display your AI agent, model, and se"
+  },
+  {
+    "name": "crocoder-dev__shared-context-engineering",
+    "repo": "crocoder-dev/shared-context-engineering",
+    "commit": "b0ac46f87d543309769f059c1a76a21f81719d74",
+    "stars": 23,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; "
+  },
+  {
+    "name": "leohenon__op-anthropic-auth",
+    "repo": "leohenon/op-anthropic-auth",
+    "commit": "bf1eecda98f742209251a8446e3238d2c893c79a",
+    "stars": 23,
+    "license": "MIT",
+    "note": "V1 plugin; OpenCode plugin for Anthropic OAuth with Claude Pro/Max"
+  },
+  {
+    "name": "moinulmoin__opencode-arise",
+    "repo": "moinulmoin/opencode-arise",
+    "commit": "1c1b405146c4cfbed0dd9ac1c49aed5a6f84bf22",
+    "stars": 23,
+    "license": "MIT",
+    "note": "V1 plugin; opencode-arise — A lightweight, token-efficient orchestrator layer that extends "
+  },
+  {
+    "name": "Overman775__opencode-gigachat-plugin",
+    "repo": "Overman775/opencode-gigachat-plugin",
+    "commit": "f94b2787ab545585c2aca5bbc37e33e144503129",
+    "stars": 22,
+    "license": "MIT",
+    "note": "V1 plugin; Плагин интеграции API GigaChat для OpenCode"
+  },
+  {
+    "name": "ducnguyen67201__FeatherlaneAI",
+    "repo": "ducnguyen67201/FeatherlaneAI",
+    "commit": "4903c1fd87e085f971e9bf82af2f8fc19e8047f8",
+    "stars": 22,
+    "license": "Apache-2.0",
+    "note": "V1 plugin; Real-time guardrail runtime for AI agents."
+  },
+  {
+    "name": "partment__opencode-cloak-fetch",
+    "repo": "partment/opencode-cloak-fetch",
+    "commit": "453718d5111032f154eb0ef80b508b57409872b7",
+    "stars": 22,
+    "license": "MIT",
+    "note": "V1 plugin; Brings a better webfetch experience to OpenCode by replacing the built-in webfet"
+  },
+  {
+    "name": "rmk40__opencode-session-recall",
+    "repo": "rmk40/opencode-session-recall",
+    "commit": "8a5ccd63a62e7af1de65fb70f43b6a66b2d485d2",
+    "stars": 22,
+    "license": "MIT",
+    "note": "V1 plugin; Agent memory without a memory system — search and retrieve opencode conversation"
+  },
+  {
+    "name": "0xkuze__add-dir-opencode",
+    "repo": "0xkuze/add-dir-opencode",
+    "commit": "dbeca57e6caf31baad27d47b2e406c025e501af6",
+    "stars": 21,
+    "license": "MIT",
+    "note": "dual V1/V2 package; the add-dir command from claude code  but for opencode"
+  },
+  {
+    "name": "DavidEasden__opencode-vision",
+    "repo": "DavidEasden/opencode-vision",
+    "commit": "bc24cc84658a79c1204717646cf32701b1bba2c0",
+    "stars": 21,
+    "license": "AGPL-3.0",
+    "note": "V1 plugin; In OpenCode, models without visual capabilities are given the ability to read im"
+  },
+  {
+    "name": "HyunjunJeon__fastcampus-harness-engineering-course",
+    "repo": "HyunjunJeon/fastcampus-harness-engineering-course",
+    "commit": "c7090e63259ecb5d2bd84f2751cb44e0876becc2",
+    "stars": 21,
+    "license": "NOASSERTION",
+    "note": "V1 plugin; Fastcampus 온라인 강의 - Harness Engineering"
+  },
+  {
+    "name": "bdliyq__opencode-rate-limit-retry",
+    "repo": "bdliyq/opencode-rate-limit-retry",
+    "commit": "0733e7fb6ccd4cb6f8377ebfd55a2e5c37b08c6b",
+    "stars": 21,
+    "license": "MIT",
+    "note": "V1 plugin; opencode-rate-limit-retry"
+  }
+]

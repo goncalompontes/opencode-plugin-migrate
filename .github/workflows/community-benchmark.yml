@@ -1,0 +1,37 @@
+name: community benchmark
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  community:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/cache@v4
+        with:
+          path: benchmarks/corpus
+          key: corpus-${{ hashFiles('benchmarks/manifest.ts', 'benchmarks/community.json') }}
+      - uses: actions/cache@v4
+        with:
+          path: benchmarks/.cache
+          key: bench-cache-${{ hashFiles('src/**/*.ts', 'package.json', 'bun.lock') }}
+          restore-keys: bench-cache-
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-community-${{ hashFiles('bun.lock') }}
+      - run: bun install --frozen-lockfile
+      - run: bun benchmarks/run.ts --fetch
+      - uses: actions/upload-artifact@v4
+        with:
+          name: community-benchmark
+          path: |
+            benchmarks/RESULTS.md
+            benchmarks/COMMUNITY.md
+            benchmarks/baseline.json

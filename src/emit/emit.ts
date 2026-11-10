@@ -53,14 +53,26 @@ function escapeRegExp(text: string): string {
 function uses(ir: ClassifiedPluginIR, name: string): boolean {
   // `$` is not a word character, so \b does not work for the Bun shell helper.
   const pattern = new RegExp(`(^|[^A-Za-z0-9_$])${escapeRegExp(name)}([^A-Za-z0-9_$]|$)`)
-  const bodies = [ir.factory.init, ...ir.hooks.map((hook) => hook.body)]
+  const bodies = [
+    ir.factory.init,
+    ...ir.hooks.map((hook) => hook.body),
+    ...ir.tools.map((tool) => tool.reference),
+    ...ir.providers.map((provider) => provider.reference),
+    ...ir.auths.map((auth) => auth.reference),
+  ]
   return bodies.some((body) => pattern.test(body))
 }
 
 function factoryLocals(ir: ClassifiedPluginIR): { lines: string[]; diagnostics: Diagnostic[] } {
   const lines: string[] = []
   const diagnostics: Diagnostic[] = []
-  const bodies = [ir.factory.init, ...ir.hooks.map((hook) => hook.body)]
+  const bodies = [
+    ir.factory.init,
+    ...ir.hooks.map((hook) => hook.body),
+    ...ir.tools.map((tool) => tool.reference),
+    ...ir.providers.map((provider) => provider.reference),
+    ...ir.auths.map((auth) => auth.reference),
+  ]
   const clientCalls = scanClientCalls(bodies)
   const usesClient = uses(ir, "client")
   if (ir.factory.inputParam) {
@@ -582,15 +594,15 @@ export function emitModule(
         .join("\n")
       blocks.push(`  const __auth${index} = ${expression}`)
       blocks.push(`  await __opencode.integration.transform((editor) => {`)
-      blocks.push(`    for (const method of __auth${index}.methods ?? []) {`)
-      blocks.push(`      if (method?.type === "api") {`)
+      blocks.push(`    for (const __method of (__auth${index}.methods ?? []) as any[]) {`)
+      blocks.push(`      if (__method?.type === "api") {`)
       blocks.push(
-        `        editor.method.update({ integrationID: __auth${index}.provider, method: { type: "key", label: method.label } } as any)`,
+        `        editor.method.update({ integrationID: __auth${index}.provider, method: { type: "key", label: __method.label } } as any)`,
       )
       blocks.push(`        continue`)
       blocks.push(`      }`)
-      blocks.push(`      if (method?.type !== "oauth") continue`)
-      blocks.push(`      const methodID = method.id ?? method.label ?? "oauth"`)
+      blocks.push(`      if (__method?.type !== "oauth") continue`)
+      blocks.push(`      const methodID = __method.id ?? __method.label ?? "oauth"`)
       blocks.push(`      const toCredential = (value: any) => {`)
       blocks.push(
         `        if (!value || value.type !== "success") throw new Error("opencode-plugin-migrate: OAuth authorize failed")`,
@@ -609,9 +621,9 @@ export function emitModule(
       blocks.push(`      }`)
       blocks.push(`      editor.method.update({`)
       blocks.push(`        integrationID: __auth${index}.provider,`)
-      blocks.push(`        method: { id: methodID, type: "oauth", label: method.label },`)
+      blocks.push(`        method: { id: methodID, type: "oauth", label: __method.label },`)
       blocks.push(`        authorize: async (answer: any) => {`)
-      blocks.push(`          const result = await method.authorize?.(answer)`)
+      blocks.push(`          const result: any = await __method.authorize?.(answer)`)
       blocks.push(
         `          if (!result) throw new Error("opencode-plugin-migrate: OAuth authorize is missing")`,
       )
@@ -667,7 +679,7 @@ export function emitModule(
   }
 
   const importLines = [
-    `import { Plugin } from "@opencode/plugin"`,
+    `import { Plugin as __Plugin } from "@opencode/plugin"`,
     ...(ir.tools.length ? [`import { z as __z } from "zod"`] : []),
     ...ir.imports.map((item) => item.text),
   ]
@@ -689,9 +701,9 @@ export function emitModule(
     })
   }
   const defineOpen = options.dual
-    ? [`const __v2 = Plugin.define({`]
+    ? [`const __v2 = __Plugin.define({`]
     : [
-        `const ${ir.exportName && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(ir.exportName) ? ir.exportName : "plugin"} = Plugin.define({`,
+        `const ${ir.exportName && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(ir.exportName) ? ir.exportName : "plugin"} = __Plugin.define({`,
       ]
 
   const exportBase = ir.exportName ?? "plugin"

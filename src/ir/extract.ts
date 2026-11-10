@@ -76,6 +76,27 @@ function resolveValue(node: Node | undefined): Node | undefined {
   return node
 }
 
+function flattenMessage(message: unknown): string {
+  if (typeof message === "string") return message
+  const value = message as { messageText?: unknown; next?: unknown[] } | undefined
+  if (!value || value.messageText === undefined) return String(message)
+  const head = flattenMessage(value.messageText)
+  const next = Array.isArray(value.next) ? value.next.map(flattenMessage).join(" ") : ""
+  return next ? `${head} ${next}` : head
+}
+
+function unwrapPromise(node: Node | undefined): Node | undefined {
+  const value = resolveValue(node)
+  if (
+    value &&
+    Node.isCallExpression(value) &&
+    value.getExpression().getText() === "Promise.resolve"
+  ) {
+    return resolveValue(value.getArguments()[0])
+  }
+  return value
+}
+
 function rangeOf(_file: SourceFile, node: Node) {
   const owner = node.getSourceFile()
   const start = node.getStart()
@@ -170,14 +191,17 @@ function findInSourceFile(file: SourceFile): FoundFactory | undefined {
 
   for (const { name, node } of ordered) {
     let candidate: Node | undefined
-    if (Node.isVariableDeclaration(node)) candidate = node.getInitializer()
-    else if (isFactoryNode(node)) candidate = node
+    let pluginTyped = false
+    if (Node.isVariableDeclaration(node)) {
+      candidate = node.getInitializer()
+      pluginTyped = /\bPlugin\b|\bHooks\b/.test(node.getType().getText(node))
+    } else if (isFactoryNode(node)) candidate = node
     else if (Node.isExportAssignment(node)) candidate = node.getExpression()
     if (!candidate) continue
 
     const resolved = resolveValue(candidate)
-    if (isFactoryNode(resolved)) {
-      return { factory: resolved, dualShape: false, exportName: name }
+    if (isFactoryNode(resolved) || (pluginTyped && isFunctionNode(resolved))) {
+      return { factory: resolved as Factory, dualShape: false, exportName: name }
     }
     if (resolved && Node.isObjectLiteralExpression(resolved)) {
       const server = resolved.getProperty("server")
@@ -351,7 +375,9 @@ export function extractPlugin(project: PluginProject): PluginIR {
     // 1117 (duplicate object keys) is legal JavaScript, not a syntax error.
     .filter((diagnostic) => diagnostic.getCode() !== 1117)
   if (syntax.length > 0) {
-    throw new Error(`syntax errors in ${project.entryFile}: ${syntax[0]!.getMessageText()}`)
+    throw new Error(
+      `syntax errors in ${project.entryFile}: ${flattenMessage(syntax[0]!.getMessageText())}`,
+    )
   }
 
   const importsV1 = tsProject
@@ -484,7 +510,7 @@ export function extractPlugin(project: PluginProject): PluginIR {
     }
 
     if (returnStatement) {
-      const returned = resolveValue(returnStatement.getExpression())
+      const returned = unwrapPromise(returnStatement.getExpression())
       if (returned && Node.isObjectLiteralExpression(returned)) hookObject = returned
     }
     init = statements
@@ -669,7 +695,7 @@ export function extractPlugin(project: PluginProject): PluginIR {
 
   const imports: ImportIR[] = sourceFile
     .getImportDeclarations()
-    .filter((declaration) => declaration.getModuleSpecifierValue() !== V1_PACKAGE)
+    .filter((declaration) => !declaration.getModuleSpecifierValue().startsWith(V1_PACKAGE))
     .map((declaration) => ({
       text: declaration.getText(),
       module: declaration.getModuleSpecifierValue(),

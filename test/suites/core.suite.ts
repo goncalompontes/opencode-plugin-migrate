@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test"
+import fs from "node:fs"
 import path from "node:path"
 import { analyzePlugin, convertPlugin } from "../../src/api"
 import { HOOK_RULES } from "../../src/rules/hooks"
 import { pipeline, stage } from "../../src/core/pipeline"
 import { countV1ImportFiles } from "../../src/env/imports"
+import { validateRuntime } from "../../src/validate/bundle"
 import { z } from "zod"
 
 const fixture = path.join(import.meta.dir, "..", "fixtures", "basic")
@@ -79,6 +81,8 @@ describe("convert", () => {
   test("emits a compiling V2 module and keeps unconverted bodies", async () => {
     const result = await convertPlugin(fixture, { outDir: path.join(root, "out") })
     expect(result.report.typecheck?.clean).toBe(true)
+    expect(result.report.runtime?.bundle.ok).toBe(true)
+    expect(result.report.runtime?.entry.ok).toBe(true)
     expect(result.module.emitted.sort()).toEqual([
       "dispose",
       "event",
@@ -169,6 +173,27 @@ describe("V1 client facade", () => {
     const codes = result.report.diagnostics.map((item) => item.code)
     expect(codes).toContain("client/facade")
     expect(codes).toContain("client/adapted")
+  })
+})
+
+describe("runtime validation", () => {
+  test("rejects a module with an unresolved relative import", async () => {
+    const dir = path.join(root, "broken-bundle")
+    fs.mkdirSync(dir, { recursive: true })
+    const file = path.join(dir, "entry.ts")
+    await Bun.write(file, 'import "./missing"\nexport default 1\n')
+    const result = await validateRuntime(file)
+    expect(result.bundle.ok).toBe(false)
+    expect(result.bundle.errors.length).toBeGreaterThan(0)
+  })
+
+  test("rejects a module without a V2 entry shape", async () => {
+    const dir = path.join(root, "no-entry")
+    fs.mkdirSync(dir, { recursive: true })
+    const file = path.join(dir, "entry.ts")
+    await Bun.write(file, "export const value = 1\n")
+    const result = await validateRuntime(file)
+    expect(result.entry.ok).toBe(false)
   })
 })
 

@@ -20,6 +20,7 @@ import {
 import { emitModule } from "./emit/emit"
 import { classify } from "./rules/hooks"
 import { typecheck } from "./validate/typecheck"
+import { validateRuntime } from "./validate/bundle"
 import { MigrationReport } from "./report/schema"
 
 export const PluginProjectSchema = z.object({
@@ -36,6 +37,11 @@ const ConvertInput = z.object({ dir: z.string(), outDir: z.string() })
 const EmitOutput = z.object({ ir: ClassifiedPluginIR, module: EmittedModule })
 const ValidateOutput = EmitOutput.extend({
   typecheck: z.object({ clean: z.boolean(), diagnostics: z.array(Diagnostic) }),
+  runtime: z.object({
+    bundle: z.object({ ok: z.boolean(), errors: z.array(z.string()) }),
+    entry: z.object({ ok: z.boolean(), message: z.string() }),
+    diagnostics: z.array(Diagnostic),
+  }),
 })
 
 const resolveStage = stage({
@@ -119,7 +125,13 @@ const validateStage = stage({
     if (module.shim) owned.push(module.shim)
     const projectRoot = path.join(ctx.outDir, ir.id)
     const result = typecheck(projectRoot, module.file, owned)
-    return { ir, module, typecheck: { clean: result.clean, diagnostics: result.diagnostics } }
+    const runtime = await validateRuntime(module.file)
+    return {
+      ir,
+      module,
+      typecheck: { clean: result.clean, diagnostics: result.diagnostics },
+      runtime,
+    }
   },
 })
 
@@ -221,7 +233,10 @@ export async function convertPlugin(
   const root = options.root ?? process.cwd()
   const outRoot = options.outDir ?? path.join(root, ".migrate")
   const ctx = { root, outDir: outRoot, log: () => {} }
-  const { ir, module, typecheck: check } = await convertPipeline.run({ dir, outDir: outRoot }, ctx)
+  const { ir, module, typecheck: check, runtime } = await convertPipeline.run(
+    { dir, outDir: outRoot },
+    ctx,
+  )
   const target = module.file
   // Keep diagnostics that are about the generated module or the project as a whole.
   // Type errors in untouched sibling files (Bun scripts, CLIs) are not migration findings.
@@ -238,7 +253,7 @@ export async function convertPlugin(
       converted: module.tools.length,
       review: ir.tools.length - module.tools.length,
     },
-    diagnostics: [...ir.diagnostics, ...module.diagnostics, ...relevant],
+    diagnostics: [...ir.diagnostics, ...module.diagnostics, ...relevant, ...runtime.diagnostics],
     package: {
       rewrittenFiles: module.rewrittenFiles.map((file) =>
         path.relative(path.join(outRoot, ir.id), file),
@@ -255,6 +270,7 @@ export async function convertPlugin(
       errors: relevant.filter((item) => item.severity === "error").length,
       warnings: relevant.filter((item) => item.severity === "warning").length,
     },
+    runtime: { bundle: runtime.bundle, entry: runtime.entry },
   }
 
   return { report, ir, outDir: path.join(outRoot, ir.id), module }

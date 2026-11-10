@@ -65,7 +65,8 @@ const convert = defineCommand({
         JSON.stringify(result.report, null, 2),
       )
     }
-    if (!result.report.typecheck?.clean) process.exitCode = 1
+    const runtimeOk = result.report.runtime ? result.report.runtime.bundle.ok && result.report.runtime.entry.ok : true
+    if (!result.report.typecheck?.clean || !runtimeOk) process.exitCode = 1
   },
 })
 

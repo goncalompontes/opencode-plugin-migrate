@@ -39,6 +39,7 @@ interface Row {
   review: number
   unsupported: number
   typecheck: string
+  runtime: string
   v1Before: number
   v1After: number
   toolsTotal: number
@@ -76,6 +77,12 @@ for (const entry of CORPUS) {
       review: report.counts.review,
       unsupported: report.counts.unsupported,
       typecheck: report.typecheck?.clean ? "clean" : `failed (${report.typecheck?.errors ?? "?"})`,
+      runtime:
+        report.runtime && report.runtime.bundle.ok && report.runtime.entry.ok
+          ? "ok"
+          : entry.knownRuntimeFailure
+            ? "known upstream failure"
+            : "failed",
       v1Before,
       v1After,
       toolsTotal: report.tools.length,
@@ -86,6 +93,10 @@ for (const entry of CORPUS) {
     })
     if (!report.typecheck?.clean) {
       failures.push(`${entry.name}: emitted module does not typecheck`)
+    }
+    const runtimeOk = report.runtime?.bundle.ok && report.runtime?.entry.ok
+    if (!runtimeOk && !entry.knownRuntimeFailure) {
+      failures.push(`${entry.name}: emitted module failed runtime validation`)
     }
     if (v1After !== 0) {
       failures.push(`${entry.name}: ${v1After} file(s) still import @opencode-ai/plugin`)
@@ -102,11 +113,11 @@ for (const entry of CORPUS) {
 
 function table(): string {
   const lines = [
-    "| Plugin | Hooks | Converted | Review | Unsupported | Tools | Typecheck | V1 imports |",
-    "| --- | ---: | ---: | ---: | ---: | ---: | --- | ---: |",
+    "| Plugin | Hooks | Converted | Review | Unsupported | Tools | Typecheck | Runtime | V1 imports |",
+    "| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |",
     ...rows.map(
       (row) =>
-        `| [${row.name}](https://github.com/${row.repo}) | ${row.hooks} | ${row.converted} | ${row.review} | ${row.unsupported} | ${row.toolsConverted}/${row.toolsTotal} | ${row.typecheck} | ${row.v1Before} -> ${row.v1After} |`,
+        `| [${row.name}](https://github.com/${row.repo}) | ${row.hooks} | ${row.converted} | ${row.review} | ${row.unsupported} | ${row.toolsConverted}/${row.toolsTotal} | ${row.typecheck} | ${row.runtime} | ${row.v1Before} -> ${row.v1After} |`,
     ),
   ]
   return lines.join("\n")

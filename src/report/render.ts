@@ -26,6 +26,11 @@ export function renderMarkdown(report: MigrationReport): string {
       `- Typecheck: ${report.typecheck.clean ? "**clean**" : "**failed**"} (${report.typecheck.errors} errors, ${report.typecheck.warnings} warnings)`,
     )
   }
+  if (report.runtime) {
+    lines.push(
+      `- Runtime: ${report.runtime.bundle.ok && report.runtime.entry.ok ? "**bundle + entry ok**" : "**failed**"}`,
+    )
+  }
   lines.push("")
   lines.push("## Hooks")
   lines.push("")
@@ -35,6 +40,13 @@ export function renderMarkdown(report: MigrationReport): string {
     lines.push(
       `| \`${hook.name}\` | ${ICON[hook.classification] ?? hook.classification} | ${hook.v2} | ${hook.reason ?? ""}${report.mode === "convert" && !hook.emitted ? " _(left for manual porting)_" : ""} |`,
     )
+  }
+  if (report.runtime && (!report.runtime.bundle.ok || !report.runtime.entry.ok)) {
+    lines.push("")
+    lines.push("## Runtime")
+    lines.push("")
+    lines.push(`- Bundle: ${report.runtime.bundle.ok ? "ok" : report.runtime.bundle.errors.join("; ")}`)
+    lines.push(`- Entry: ${report.runtime.entry.message}`)
   }
   if (report.package) {
     lines.push("")

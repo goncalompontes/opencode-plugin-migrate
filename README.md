@@ -9,7 +9,7 @@ bun run src/cli/index.ts analyze ./my-plugin     # report only, writes nothing
 bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck against @opencode/plugin
 ```
 
-**Status: MVP.** Across 7 real public plugins: 12/15 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+**Status: MVP.** Across 7 real public plugins: 12/15 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 ## What it produces
 
@@ -54,10 +54,10 @@ Alongside it, every other source file that imported `@opencode-ai/plugin` is red
 ## How it works
 
 ```
-resolve entry ──► extract IR ──► classify ──► emit V2 ──► typecheck ──► report
-   (package.json,      (ts-morph,    (exhaustive   (adapters,    (TypeScript
-    tsconfig,           type checker) hook table)   verbatim       program vs
-    re-export scan)                                bodies)        @opencode/plugin)
+resolve entry ──► extract IR ──► classify ──► emit V2 ──► typecheck ──► bundle/entry ──► report
+   (package.json,      (ts-morph,    (exhaustive   (adapters,    (TypeScript    (Bun.build with
+    tsconfig,           type checker) hook table)   verbatim       program vs     packages external,
+    re-export scan)                                bodies)        @opencode/plugin)  entry shape check)
 ```
 
 The pipeline is a small typed platform (`src/core/pipeline.ts`): each stage declares a Zod schema for its output, the builder carries the output type into the next stage, and a stage that changes shape fails validation instead of feeding bad data forward. Stages are independently testable and observable (`onStage`).
@@ -107,15 +107,18 @@ instead of silently changing behaviour.
 
 Seven public V1 plugins at pinned commits, converted and typechecked:
 
-| Plugin | Hooks | Converted | Review | Unsupported | Tools | Typecheck | V1 imports |
-| --- | ---: | ---: | ---: | ---: | ---: | --- | ---: |
-| [openslimedit](https://github.com/ASidorenkoCode/openslimedit) | 3 | 3 | 0 | 0 | 0/0 | clean | 1 -> 0 |
-| [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | 0/0 | clean | 1 -> 0 |
-| [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | 1 -> 0 |
-| [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 0 | 1 | 0 | 0/0 | clean | 1 -> 0 |
-| [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | 1 -> 0 |
-| [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | 0 -> 0 |
-| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | 5/5 | clean | 8 -> 0 |
+| Plugin | Hooks | Converted | Review | Unsupported | Tools | Typecheck | Runtime | V1 imports |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |
+| [openslimedit](https://github.com/ASidorenkoCode/openslimedit) | 3 | 3 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
+| [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
+| [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | known upstream failure | 1 -> 0 |
+| [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 0 | 1 | 0 | 0/0 | clean | ok | 1 -> 0 |
+| [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
+| [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 0 -> 0 |
+| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | 5/5 | clean | ok | 8 -> 0 |
+
+`opencode-notify` is a known upstream failure: its git checkout omits two generated modules,
+so it cannot bundle even before migration. The benchmark records that instead of hiding it.
 
 Reproduce:
 
@@ -132,6 +135,7 @@ The benchmark is also a test (`test/corpus.test.ts`): every corpus plugin must p
 - **Validated boundaries.** Every pipeline stage output is parsed with Zod before the next stage sees it.
 - **Verbatim carry.** Bodies are moved as source text and marked `#region carried-v1`, so behavior is preserved and review is localized.
 - **Complete output.** Skipped hooks never leave dangling syntax; the module is always whole.
+- **Two gates.** The emitted module must typecheck against the real V2 types *and* bundle with `Bun.build` (relative imports, shim, entry shape).
 - **No silent deletion.** Anything not emitted appears in the report with its original body and closest V2 API.
 - **Already-V2 detection.** Pointing the tool at a V2 plugin fails with a clear message instead of producing nonsense.
 

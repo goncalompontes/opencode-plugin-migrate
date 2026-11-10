@@ -4,6 +4,7 @@ import { defineCommand, runMain } from "citty"
 import { analyzePlugin, convertPlugin } from "../api"
 import { renderMarkdown } from "../report/render"
 import type { MigrationReport } from "../report/schema"
+import { installSkill } from "./skill"
 
 const EXIT_OK = 0
 const EXIT_FAILED = 1
@@ -157,9 +158,48 @@ const convert = defineCommand({
   },
 })
 
+const installSkillCommand = defineCommand({
+  meta: {
+    name: "install-skill",
+    description: "Copy the bundled agent skill into an OpenCode skills directory.",
+  },
+  args: {
+    global: {
+      type: "boolean",
+      description: "Install into the global OpenCode config instead of the project",
+      default: false,
+    },
+    dir: {
+      type: "string",
+      description: "Explicit skills source directory (overrides --global)",
+    },
+    force: {
+      type: "boolean",
+      description: "Replace an existing copy of the skill",
+      default: false,
+    },
+    quiet: { type: "boolean", description: "Suppress output", default: false },
+  },
+  run({ args }) {
+    try {
+      const destination = installSkill({
+        ...(args.global ? { global: true } : {}),
+        ...(args.dir ? { dir: args.dir } : {}),
+        force: args.force,
+      })
+      if (!args.quiet) {
+        console.log(`installed skill into ${destination.destination}`)
+        console.log(`source: ${destination.source}`)
+      }
+    } catch (error) {
+      fail(error)
+    }
+  },
+})
+
 runMain(
   defineCommand({
     meta: { name: "opencode-plugin-migrate", description: "Migrate OpenCode V1 plugins to V2" },
-    subCommands: { analyze, convert },
+    subCommands: { analyze, convert, "install-skill": installSkillCommand },
   }),
 )

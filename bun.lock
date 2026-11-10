@@ -5,6 +5,7 @@
     "": {
       "name": "opencode-plugin-migrate",
       "dependencies": {
+        "@opencode/plugin": "^2.2.7",
         "citty": "^0.2.2",
         "ts-morph": "^28.0.0",
         "typescript": "^5.9.3",
@@ -13,7 +14,6 @@
       "devDependencies": {
         "@biomejs/biome": "^2.6.6",
         "@opencode-ai/plugin": "1.19.5",
-        "@opencode/plugin": "^2.2.7",
         "@types/bun": "^1.4.4",
         "@types/node": "^26.6.6",
       },

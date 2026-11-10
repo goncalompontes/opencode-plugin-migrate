@@ -40,10 +40,13 @@ src/rules/      hook table and target capability probe
 src/emit/       emitter and per-hook adapters
 src/validate/   typecheck, bundle, repair, incremental merge
 src/report/     report schema and renderer
-src/cli/        CLI entrypoint
+src/cli/        CLI entrypoint and skill installer
+src/plugin/     OpenCode V2 server plugin (tools + skill registration)
+skills/         installable agent skill and HTTP catalog
 scripts/        build, pack smoke, coverage floor, capability probe
 benchmarks/     pinned corpus, runner, RESULTS.md
 test/           fixtures, suites, snapshots
+docs/           architecture, install, releasing
 ```
 
 ## Versioning
@@ -65,6 +68,22 @@ Each conversion runs in `benchmarks/worker.ts`; the parent pools workers and cac
 results in `benchmarks/.cache` keyed by `repo@commit` and a fingerprint of `src/` plus
 the installed `@opencode/plugin` version. A clean baseline regression fails the run;
 new failures are reported in `COMMUNITY.md`.
+
+## Distribution surfaces
+
+The pipeline is the product; the three install surfaces are thin adapters over it.
+
+| Surface | Entry | Contract |
+| --- | --- | --- |
+| Library | `src/index.ts` → `dist/index.js` | `analyzePlugin` / `convertPlugin` |
+| CLI | `src/cli/index.ts` → `dist/cli.js` | exit codes `0/1/2`, Markdown/JSON reports |
+| OpenCode plugin | `src/plugin/index.ts` (`./server`) | `migrate_analyze`, `migrate_convert`, skill registration |
+| Agent skill | `skills/opencode-plugin-migrate/` | workflow and review rubric as Markdown |
+
+The plugin and CLI call the same public API, so a conversion produces identical output
+and report artifacts. The skill is data; the plugin embeds it through `ctx.skill`, and
+`install-skill` copies it into a filesystem skill source for hosts that do not load this
+plugin.
 
 ## Known boundaries
 

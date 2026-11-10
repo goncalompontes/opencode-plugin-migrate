@@ -3,10 +3,11 @@ import path from "node:path"
 import { analyzePlugin, convertPlugin } from "../../src/api"
 import { HOOK_RULES } from "../../src/rules/hooks"
 import { pipeline, stage } from "../../src/core/pipeline"
+import { countV1ImportFiles } from "../../src/env/imports"
 import { z } from "zod"
 
 const fixture = path.join(import.meta.dir, "..", "fixtures", "basic")
-const root = path.join(import.meta.dir, ".tmp")
+const root = path.join(import.meta.dir, "..", ".tmp")
 
 describe("hook rule table", () => {
   test("covers every V1 hook with a V2 destination", () => {
@@ -101,6 +102,38 @@ describe("convert", () => {
     await expect(convertPlugin(first.outDir, { outDir: path.join(root, "two") })).rejects.toThrow(
       /already targets the OpenCode V2 plugin API/,
     )
+  })
+})
+
+describe("whole package", () => {
+  const mixed = path.join(import.meta.dir, "..", "fixtures", "mixed")
+
+  test("rewrites every V1 import and generates a shim", async () => {
+    const result = await convertPlugin(mixed, { outDir: path.join(root, "mixed") })
+    expect(result.report.package?.remainingV1Imports).toEqual([])
+    expect([...(result.report.package?.rewrittenFiles ?? [])].sort()).toEqual(["tools.ts", "types.ts"])
+    expect(result.report.package?.dependencySwapped).toBe(true)
+    expect(result.report.package?.shim).toBe("__opencode_v1_shim.ts")
+    const mixedManifest = await Bun.file(path.join(result.outDir, "package.json")).json()
+    expect(mixedManifest.dependencies.zod).toStartWith("^4")
+    expect(result.report.typecheck?.clean).toBe(true)
+    expect(countV1ImportFiles(result.outDir)).toBe(0)
+
+    const shim = await Bun.file(path.join(result.outDir, "__opencode_v1_shim.ts")).text()
+    expect(shim).toContain("export const tool")
+    expect(shim).toContain("export type ToolContext")
+    expect(shim).toContain("export type Plugin")
+  })
+
+  test("keeps the V1 dependency when a file cannot be rewritten", async () => {
+    const result = await convertPlugin(path.join(import.meta.dir, "..", "fixtures", "namespace"), {
+      outDir: path.join(root, "namespace"),
+    })
+    expect(result.report.package?.remainingV1Imports).toEqual(["tools.ts"])
+    expect(result.report.package?.dependencySwapped).toBe(false)
+    const manifest = await Bun.file(path.join(result.outDir, "package.json")).json()
+    expect(manifest.dependencies["@opencode-ai/plugin"]).toBe("^1.18.0")
+    expect(manifest.dependencies["@opencode/plugin"]).toBeUndefined()
   })
 })
 

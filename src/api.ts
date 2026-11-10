@@ -9,6 +9,7 @@ import { Diagnostic } from "./core/diagnostics"
 import { pipeline, stage } from "./core/pipeline"
 import { copyProject, resolveProject } from "./env/project"
 import { readTargetVersion, upgradePackageJson } from "./env/package"
+import { rewriteV1Imports } from "./env/imports"
 import { extractPlugin } from "./ir/extract"
 import {
   ClassifiedPluginIR,
@@ -89,8 +90,22 @@ const emitStage = stage({
     }
     fs.mkdirSync(path.dirname(file), { recursive: true })
     fs.writeFileSync(file, module.source)
+
+    const rewrite = rewriteV1Imports(target, [file])
+    module.diagnostics.push(...rewrite.diagnostics)
+    module.rewrittenFiles = rewrite.rewritten
+    module.remainingV1Imports = rewrite.remaining
+    if (rewrite.shim) module.shim = rewrite.shim
+
     const version = readTargetVersion(ctx.root)
-    module.diagnostics.push(...upgradePackageJson(target, version))
+    module.diagnostics.push(
+      ...upgradePackageJson(
+        target,
+        version,
+        rewrite.remaining.length === 0,
+        rewrite.rewritten.length > 0,
+      ),
+    )
     return { ir, module }
   },
 })
@@ -99,8 +114,11 @@ const validateStage = stage({
   name: "typecheck-v2",
   input: EmitOutput,
   output: ValidateOutput,
-  run: async ({ ir, module }) => {
-    const result = typecheck(path.join(path.dirname(module.file), ".."), module.file)
+  run: async ({ ir, module }, ctx) => {
+    const owned = [module.file, ...module.rewrittenFiles]
+    if (module.shim) owned.push(module.shim)
+    const projectRoot = path.join(ctx.outDir, ir.id)
+    const result = typecheck(projectRoot, module.file, owned)
     return { ir, module, typecheck: { clean: result.clean, diagnostics: result.diagnostics } }
   },
 })
@@ -206,6 +224,17 @@ export async function convertPlugin(
     generatedFile: module.file,
     hooks: hookRows(ir, module),
     diagnostics: [...ir.diagnostics, ...module.diagnostics, ...relevant],
+    package: {
+      rewrittenFiles: module.rewrittenFiles.map((file) =>
+        path.relative(path.join(outRoot, ir.id), file),
+      ),
+      remainingV1Imports: module.remainingV1Imports.map((file) =>
+        path.relative(path.join(outRoot, ir.id), file),
+      ),
+      ...(module.shim ? { shim: path.relative(path.join(outRoot, ir.id), module.shim) } : {}),
+      dependencySwapped: module.diagnostics.some((item) => item.code === "package/dependency-swap"),
+      hasManifest: !module.diagnostics.some((item) => item.code === "package/missing"),
+    },
     typecheck: {
       clean: check.clean,
       errors: relevant.filter((item) => item.severity === "error").length,

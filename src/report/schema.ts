@@ -27,6 +27,17 @@ export const TypecheckReport = z.object({
 })
 export type TypecheckReport = z.infer<typeof TypecheckReport>
 
+export const PackageReport = z.object({
+  /** Files whose V1 authoring imports were redirected to the generated shim. */
+  rewrittenFiles: z.array(z.string()),
+  /** Files that still import the V1 package; the dependency is kept when non-empty. */
+  remainingV1Imports: z.array(z.string()),
+  shim: z.string().optional(),
+  dependencySwapped: z.boolean(),
+  hasManifest: z.boolean(),
+})
+export type PackageReport = z.infer<typeof PackageReport>
+
 export const MigrationReport = z.object({
   id: z.string(),
   packageName: z.string().optional(),
@@ -38,6 +49,7 @@ export const MigrationReport = z.object({
   tools: z.array(ToolReportRow),
   diagnostics: z.array(Diagnostic),
   typecheck: TypecheckReport.optional(),
+  package: PackageReport.optional(),
   /** Original source of every hook that was not emitted, for manual porting. */
   leftovers: z.array(
     z.object({

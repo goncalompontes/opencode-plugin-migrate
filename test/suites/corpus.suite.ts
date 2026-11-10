@@ -16,7 +16,7 @@ describe.skipIf(available.length === 0)("real plugins", () => {
   for (const entry of available) {
     test(`${entry.name}: converts to a typechecking V2 module`, async () => {
       const { report } = await convertPlugin(path.join(corpus, entry.name), {
-        outDir: path.join(import.meta.dir, ".tmp", "corpus"),
+        outDir: path.join(import.meta.dir, "..", ".tmp", "corpus"),
       })
       expect(report.hooks.length).toBeGreaterThan(0)
       expect(report.typecheck?.clean).toBe(true)

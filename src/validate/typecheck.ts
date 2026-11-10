@@ -68,23 +68,47 @@ function toDiagnostic(diagnostic: ts.Diagnostic): Diagnostic {
   }
 }
 
-export function typecheck(_dir: string, emittedFile: string): TypecheckResult {
+export function typecheck(
+  _dir: string,
+  emittedFile: string,
+  ownedFiles: readonly string[] = [emittedFile],
+): TypecheckResult {
   // Start from the generated module; TypeScript pulls in only the files it imports.
   // Unrelated Bun scripts and CLI entrypoints in the plugin repository are not our gate.
   const rootNames = [emittedFile]
+  // Match the plugin's own compiler options where they exist: strictness, JSX, DOM,
+  // and allowJs belong to the package, not to this tool.
+  let fromConfig: ts.CompilerOptions = {}
+  const configPath = path.join(_dir, "tsconfig.json")
+  if (fs.existsSync(configPath)) {
+    const read = ts.readConfigFile(configPath, ts.sys.readFile)
+    if (!read.error && read.config?.compilerOptions) {
+      fromConfig = ts.convertCompilerOptionsFromJson(read.config.compilerOptions, _dir).options
+    }
+  }
+
+  // A plugin may pin flags this TypeScript version does not understand (for example a
+  // newer `ignoreDeprecations`), and editor plugins cannot run inside a program.
+  const { ignoreDeprecations: _ignored, plugins: _plugins, ...safeConfig } = fromConfig
+
   const options: ts.CompilerOptions = {
+    ...safeConfig,
     target: ts.ScriptTarget.ESNext,
     module: ts.ModuleKind.ESNext,
     moduleResolution: ts.ModuleResolutionKind.Bundler,
-    allowImportingTsExtensions: true,
     strict: true,
     noEmit: true,
     skipLibCheck: true,
     esModuleInterop: true,
     resolveJsonModule: true,
-    allowJs: false,
+    allowJs: fromConfig.allowJs ?? false,
+    allowImportingTsExtensions: true,
+    // Migration may leave imports that the V1 implementation used; that is reported,
+    // not a type error.
+    noUnusedLocals: false,
+    noUnusedParameters: false,
     types: ["node", "bun"],
-    lib: ["lib.esnext.d.ts"],
+    lib: fromConfig.lib && fromConfig.lib.length > 0 ? fromConfig.lib : ["lib.esnext.d.ts"],
   }
 
   const program = ts.createProgram({ rootNames, options, host: createCachedHost(options) })
@@ -139,8 +163,9 @@ export function typecheck(_dir: string, emittedFile: string): TypecheckResult {
       hint: "this error is inside code carried over from V1; fix the body while porting it.",
     }
   })
+  const owned = new Set(ownedFiles.map((file) => path.resolve(file)))
   const errors = diagnostics.filter(
-    (item) => item.severity === "error" && (!item.range || path.resolve(item.range.file) === target),
+    (item) => item.severity === "error" && (!item.range || owned.has(path.resolve(item.range.file))),
   )
   return { diagnostics, clean: errors.length === 0, checkedFiles: rootNames }
 }

@@ -345,5 +345,7 @@ export function emitModule(ir: ClassifiedPluginIR, outFile: string): EmittedModu
     emitted: emittedHooks.map((hook) => hook.name),
     skipped: skippedHooks.map((hook) => hook.name),
     diagnostics,
+    rewrittenFiles: [],
+    remainingV1Imports: [],
   }
 }

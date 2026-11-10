@@ -109,5 +109,10 @@ export const EmittedModule = z.object({
   /** Hook names intentionally left out of the module. */
   skipped: z.array(z.string()),
   diagnostics: z.array(Diagnostic),
+  /** Other package files whose V1 authoring imports were redirected to the shim. */
+  rewrittenFiles: z.array(z.string()),
+  /** Files that still import the V1 package (namespace/dynamic forms). */
+  remainingV1Imports: z.array(z.string()),
+  shim: z.string().optional(),
 })
 export type EmittedModule = z.infer<typeof EmittedModule>

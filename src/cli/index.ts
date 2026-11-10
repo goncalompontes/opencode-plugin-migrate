@@ -43,6 +43,11 @@ const convert = defineCommand({
     dir: { type: "positional", description: "Plugin directory", required: true },
     out: { type: "string", description: "Output root (default .migrate)" },
     json: { type: "boolean", description: "Print the report as JSON", default: false },
+    dual: {
+      type: "boolean",
+      description: "Also emit a V1 server() entrypoint for OpenCode >= 1.18.29",
+      default: false,
+    },
     report: { type: "boolean", description: "Write MIGRATION.md into the output", default: true },
   },
   async run({ args }) {
@@ -50,6 +55,7 @@ const convert = defineCommand({
     try {
       result = await convertPlugin(args.dir, {
         ...(args.out ? { outDir: path.resolve(args.out) } : {}),
+        ...(args.dual ? { dual: true } : {}),
       })
     } catch (error) {
       fail(error)

@@ -8,8 +8,8 @@ Status: design + MVP implementation (2026-11-10). Implemented: typed pipeline,
 ts-morph extraction, exhaustive hook table, six V2 adapters, typecheck gate,
 Markdown/JSON reports, corpus benchmark, whole-package V1 import rewriting via a
 generated compatibility shim, Zod custom tools registered through
-`z.toJSONSchema()`, a V1 client compatibility facade, bundle/entry runtime validation. Not yet implemented: config/layout scaffolding beyond
-package.json, bounded auto-repair loop, LLM suggestions.
+`z.toJSONSchema()`, a V1 client compatibility facade, bundle/entry runtime validation, config/layout
+scaffolding and a `--dual` V1+V2 entrypoint. Not yet implemented: provider/auth transforms, applying layout moves, bounded auto-repair loop, LLM suggestions.
 
 ## Why this is tractable
 

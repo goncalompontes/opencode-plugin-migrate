@@ -130,6 +130,35 @@ function dedentExpression(text: string): string {
   return lines.map((line, index) => (index === 0 ? line : line.slice(common))).join("\n")
 }
 
+function renderLegacy(ir: ClassifiedPluginIR): string[] {
+  const lines = [
+    "// V1 entrypoint retained for hosts on OpenCode >= 1.18.29.",
+    `const __v1: any = async (${ir.factory.paramsTyped.join(", ")}) => {`,
+  ]
+  if (ir.factory.init.trim()) lines.push(reindent(ir.factory.init, 1))
+  if (ir.tools.some((tool) => tool.kind === "inline")) {
+    lines.push(
+      `  const tool = Object.assign(`,
+      `    (definition: { description: string; args: any; execute: (args: any, context: any) => any }) => definition,`,
+      `    { schema: __z },`,
+      `  )`,
+    )
+  }
+  lines.push("  return {")
+  for (const hook of ir.hooks) {
+    lines.push(`    ${JSON.stringify(hook.name)}: async (${hook.paramsTyped.join(", ")}) => {`)
+    if (hook.body.trim()) lines.push(reindent(hook.body, 3))
+    lines.push("    },")
+  }
+  if (ir.tools.length) {
+    lines.push("    tool: {")
+    for (const tool of ir.tools) lines.push(`      ${JSON.stringify(tool.name)}: ${tool.reference},`)
+    lines.push("    },")
+  }
+  lines.push("  }", "}", "")
+  return lines
+}
+
 function renderToolRegistration(tool: ToolSite, index: number, level: number): string {
   const pad = INDENT.repeat(level)
   const inner = (depth: number) => pad + INDENT.repeat(depth)
@@ -396,7 +425,11 @@ function sanitizeInit(init: string): { text: string; diagnostics: Diagnostic[] }
   return { text, diagnostics }
 }
 
-export function emitModule(ir: ClassifiedPluginIR, outFile: string): EmittedModule {
+export function emitModule(
+  ir: ClassifiedPluginIR,
+  outFile: string,
+  options: { dual?: boolean } = {},
+): EmittedModule {
   const diagnostics: Diagnostic[] = []
   const { lines: locals, diagnostics: localDiagnostics } = factoryLocals(ir)
   diagnostics.push(...localDiagnostics)
@@ -497,6 +530,18 @@ export function emitModule(ir: ClassifiedPluginIR, outFile: string): EmittedModu
     ...ir.imports.map((item) => item.text),
   ]
 
+  const legacy = options.dual ? ["", ...renderLegacy(ir), ""] : []
+  if (options.dual) {
+    diagnostics.push({
+      code: "dual/entrypoint",
+      severity: "info",
+      message: "emitted both a V2 setup() entrypoint and a V1 server() entrypoint.",
+    })
+  }
+  const defineOpen = options.dual
+    ? [`const __v2 = Plugin.define({`]
+    : [`const ${ir.exportName && /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(ir.exportName) ? ir.exportName : "plugin"} = Plugin.define({`]
+
   const exportBase = ir.exportName ?? "plugin"
   const localName = /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(exportBase) ? exportBase : "plugin"
 
@@ -509,12 +554,14 @@ export function emitModule(ir: ClassifiedPluginIR, outFile: string): EmittedModu
     ...importLines,
     ``,
     ...(ir.moduleScope.trim() ? [carried(ir.moduleScope, 0), ``] : []),
-    `const ${localName} = Plugin.define({`,
+    ...defineOpen,
     `  id: ${JSON.stringify(ir.id)},`,
     `  async setup(__opencode) {`,
     ...blocks,
     `  },`,
     `})`,
+    ...legacy,
+    ...(options.dual ? [`const ${localName} = { ...__v2, server: __v1 }`] : []),
     ``,
     `export default ${localName}`,
     ...(ir.exportName && ir.exportName !== localName

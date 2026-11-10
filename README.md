@@ -6,7 +6,8 @@ V1 plugins do not load in V2: the entrypoint, context, hook signatures, and tool
 
 ```sh
 bun run src/cli/index.ts analyze ./my-plugin     # report only, writes nothing
-bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck against @opencode/plugin
+bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck + bundle validation
+bun run src/cli/index.ts convert ./my-plugin --dual   # also keep a V1 server() entrypoint
 ```
 
 **Status: MVP.** Across 7 real public plugins: 14/15 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
@@ -81,6 +82,18 @@ Errors inside code carried over from V1 are downgraded to review findings with a
 | **Unsupported** (no V2 equivalent) | `command.execute.before` (no global hook), `experimental.provider.small_model`, `experimental.compaction.autocontinue`, `experimental.text.complete` |
 
 The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
+
+## Scaffolding
+
+Beyond the module, `convert` normalizes the package around it:
+
+- **Config**: `opencode.json(c)` moves `plugin` to `plugins`, and tuples become `{ package, options }` objects (including local paths).
+- **Layout**: reports the required moves from `.opencode/plugin/<x>.ts` and `.opencode/plugins/<x>.ts` to `.opencode/plugins/<x>/index.ts`. It plans rather than moves, because moving a file can break its relative imports.
+- **TUI**: detects V1 TUI plugins (`@opencode-ai/plugin/tui`, `export const tui`) and tells you to port them separately, never mixing them into a server plugin.
+- **Dual mode**: `--dual` emits both the V2 `Plugin.define({ id, setup })` default export and a V1 `server()` entrypoint reconstructed from the original hooks, for hosts on OpenCode >= 1.18.29.
+- **Manifest**: swaps the authoring dependency and adds `zod` when the compatibility shim is used.
+
+Every applied or proposed change is listed in the report's **Scaffolding** section.
 
 ## V1 client compatibility
 
@@ -179,6 +192,7 @@ files each building TypeScript programs contend for CPU and trip timeouts.
 
 - Namespace/default imports and runtime subpath imports (e.g. `@opencode-ai/plugin/tui` values) cannot be represented by the shim; those files stay on V1, the report lists them, and `package.json` deliberately keeps the V1 dependency.
 - Custom tools keep their Zod shape at runtime and are registered through `z.toJSONSchema()`; plugins still on Zod 3 need a Zod 4 upgrade.
+- Layout changes are reported as a plan, not applied: automatic moves need import rewriting to stay safe.
 - V1 `client` calls are adapted, not rewritten: mapped methods preserve the `{ data }` envelope, adapted methods are reported, and unmapped methods throw at the call site so the gap is visible.
 - `chat.message` is bridged through prompt text: non-text parts and a real V1 `UserMessage` are not reconstructed, and the report says so.
 - `chat.params` maps generation options onto `event.options`; the V1 `provider` and `message` inputs have no direct V2 field and are stubbed for the body.

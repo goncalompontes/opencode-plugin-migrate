@@ -115,6 +115,15 @@ function renderStatements(body: Node | undefined): string {
   return `return ${body.getText()}`
 }
 
+function typedParameters(fn: Factory): string[] {
+  return fn.getParameters().map((parameter) => {
+    const name = parameter.getNameNode()
+    const rest = parameter.isRestParameter() ? "..." : ""
+    const optional = parameter.hasQuestionToken() ? "?" : ""
+    return `${rest}${name.getText()}${optional}: any`
+  })
+}
+
 function paramInfo(factory: Factory): { names: string[]; patterns: string[]; inputParam?: string } {
   const names: string[] = []
   const patterns: string[] = []
@@ -474,6 +483,7 @@ export function extractPlugin(project: PluginProject): PluginIR {
     hooks.push({
       name,
       params: hookParams,
+      paramsTyped: typedParameters(callback),
       body: renderStatements(callback.getBody()),
       isAsync: callback.isAsync(),
       usesAwait: callback.getDescendantsOfKind(SyntaxKind.AwaitExpression).length > 0,
@@ -541,6 +551,7 @@ export function extractPlugin(project: PluginProject): PluginIR {
     moduleScope,
     factory: {
       params: names,
+      paramsTyped: typedParameters(factory),
       ...(inputParam ? { inputParam } : {}),
       init,
       isAsync: factory.isAsync(),

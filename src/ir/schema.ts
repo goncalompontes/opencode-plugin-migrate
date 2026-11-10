@@ -16,6 +16,8 @@ export const FactoryIR = z.object({
   inputParam: z.string().optional(),
   /** Statements executed before the hooks object is returned, verbatim. */
   init: z.string(),
+  /** Factory parameters with `: any` annotations, for the --dual V1 entrypoint. */
+  paramsTyped: z.array(z.string()),
   isAsync: z.boolean(),
   /** Set when the entry is a dual-shape V1/V2 object and this was its `server` branch. */
   dualShape: z.boolean(),
@@ -27,6 +29,8 @@ export const HookSite = z.object({
   name: z.string(),
   /** Declared parameter names of the callback. */
   params: z.array(z.string()),
+  /** Callback parameters with `: any` annotations, for the --dual V1 entrypoint. */
+  paramsTyped: z.array(z.string()),
   /** Callback body as statements (no outer braces), verbatim. */
   body: z.string(),
   isAsync: z.boolean(),

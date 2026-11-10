@@ -97,7 +97,7 @@ is visible instead of silently dropped.
 - Custom tools: 5/5 registered
 - Emitted: 2 hooks, kept for manual porting: 1
 - Generated: `.out/opencode-pty/`
-- Findings: 8
+- Findings: 10
 
 - `command.execute.before` — unsupported -> ctx.command.transform() when the plugin owns the command, otherwise the prompt hook
 - `config` — converted -> ctx.command.transform()

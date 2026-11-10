@@ -58,6 +58,7 @@ export const MigrationReport = z.object({
   diagnostics: z.array(Diagnostic),
   typecheck: TypecheckReport.optional(),
   runtime: RuntimeReport.optional(),
+  scaffolding: z.array(z.object({ kind: z.string(), detail: z.string() })).optional(),
   package: PackageReport.optional(),
   /** Original source of every hook that was not emitted, for manual porting. */
   leftovers: z.array(

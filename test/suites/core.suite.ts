@@ -220,6 +220,37 @@ describe("config command transform", () => {
   })
 })
 
+describe("scaffolding", () => {
+  const scaffold = path.join(import.meta.dir, "..", "fixtures", "scaffold")
+
+  test("normalizes config, plans layout moves, and detects TUI plugins", async () => {
+    const result = await convertPlugin(scaffold, { outDir: path.join(root, "scaffold") })
+    const config = await Bun.file(path.join(result.outDir, "opencode.json")).json()
+    expect(config.plugin).toBeUndefined()
+    expect(config.plugins).toEqual([
+      "pkg-a",
+      { package: "./local", options: { enabled: true } },
+    ])
+    const codes = result.report.diagnostics.map((item) => item.code)
+    expect(codes).toContain("config/plugins")
+    expect(codes).toContain("layout/plugin-directory")
+    expect(codes).toContain("tui/detected")
+    expect(result.report.scaffolding?.length).toBeGreaterThanOrEqual(3)
+  })
+
+  test("emits a dual V1/V2 entrypoint on request", async () => {
+    const result = await convertPlugin(fixture, {
+      outDir: path.join(root, "dual"),
+      dual: true,
+    })
+    expect(result.module.source).toContain("const __v1")
+    expect(result.module.source).toContain("server: __v1")
+    expect(result.module.source).toContain("Plugin.define")
+    expect(result.report.runtime?.bundle.ok).toBe(true)
+    expect(result.report.typecheck?.clean).toBe(true)
+  })
+})
+
 describe("pipeline platform", () => {
   test("rejects a stage whose output violates its schema", async () => {
     const bad = pipeline<{ n: number }>()

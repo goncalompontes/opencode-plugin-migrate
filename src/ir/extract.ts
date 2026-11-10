@@ -344,6 +344,16 @@ export function extractPlugin(project: PluginProject): PluginIR {
   let sourceFile = tsProject.getSourceFile(project.entryFile)
   if (!sourceFile) throw new Error(`could not load ${project.entryFile}`)
 
+  const syntax = tsProject
+    .getPreEmitDiagnostics()
+    .filter((diagnostic) => diagnostic.getCategory() === 1)
+    .filter((diagnostic) => diagnostic.getCode() >= 1000 && diagnostic.getCode() < 2000)
+    // 1117 (duplicate object keys) is legal JavaScript, not a syntax error.
+    .filter((diagnostic) => diagnostic.getCode() !== 1117)
+  if (syntax.length > 0) {
+    throw new Error(`syntax errors in ${project.entryFile}: ${syntax[0]!.getMessageText()}`)
+  }
+
   const importsV1 = tsProject
     .getSourceFiles()
     .some((file) => file.getImportDeclaration("@opencode-ai/plugin") !== undefined)
@@ -354,6 +364,14 @@ export function extractPlugin(project: PluginProject): PluginIR {
         file.getImportDeclaration("@opencode/plugin") !== undefined ||
         /Plugin\.define\s*\(/.test(file.getText()),
     )
+  if (importsV1 && looksV2) {
+    diagnostics.push({
+      code: "entry/mixed",
+      severity: "warning",
+      message:
+        "the package imports both @opencode-ai/plugin and @opencode/plugin; the V1 branch is converted and the V2 branch is left in place.",
+    })
+  }
   const found = importsV1 || !looksV2 ? findFactory(tsProject, project.entryFile) : undefined
   if (!found) {
     const alreadyV2 = tsProject

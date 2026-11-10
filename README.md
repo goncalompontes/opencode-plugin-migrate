@@ -10,7 +10,7 @@ bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck + bundle val
 bun run src/cli/index.ts convert ./my-plugin --dual   # also keep a V1 server() entrypoint
 ```
 
-**Status: MVP.** Across 8 real public plugins (including a `.mjs` entry): 14/16 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+**Status: MVP.** Across 10 packages (8 public plugins, one `.mjs` entry, one local fixture): 18/22 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 ## Install
 
@@ -199,8 +199,7 @@ instead of silently changing behaviour.
 
 ## Benchmarks
 
-Eight public V1 plugins at pinned commits, converted and typechecked (one is a `.mjs`
-package):
+Ten packages at pinned commits or local fixtures, converted and typechecked:
 
 | Plugin | Hooks | Converted | Review | Unsupported | Tools | Typecheck | Runtime | V1 imports |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |
@@ -211,6 +210,8 @@ package):
 | [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 0 -> 0 |
 | [OpenCode-Image-Router-Plugin](https://github.com/adrivansoft/OpenCode-Image-Router-Plugin) | 1 | 0 | 1 | 0 | 0/0 | clean | ok | 0 -> 0 |
+| inline-tools (local fixture) | 0 | 0 | 0 | 0 | 2/2 | clean | ok | 2 -> 0 |
+| [opencode-auto-resume](https://github.com/Mte90/opencode-auto-resume) | 6 | 4 | 1 | 1 | 1/1 | clean | ok | 1 -> 0 |
 | [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 2 | 0 | 1 | 5/5 | clean | ok | 8 -> 0 |
 
 `opencode-notify` is a known upstream failure: its git checkout omits two generated modules,
@@ -276,7 +277,9 @@ shares parsed `lib.*.d.ts` / `@types` declarations across programs, and extracti
 skips loading the standard library into ts-morph, which keeps a full 7-plugin
 corpus run around 8 seconds instead of ~20.
 
-Test suites live in `test/suites/` and are imported by the single
+Suites include golden module snapshots (`test/__snapshots__/`), negative fixtures
+(syntax errors, no factory, mixed APIs, unsupported hooks) and a corpus whose per-plugin
+counts are asserted by the benchmark. Test suites live in `test/suites/` and are imported by the single
 `test/migration.test.ts` entrypoint: Bun runs test *files* concurrently, and two
 files each building TypeScript programs contend for CPU and trip timeouts.
 

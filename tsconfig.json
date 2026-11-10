@@ -22,5 +22,9 @@
     "src",
     "test",
     "benchmarks/*.ts"
+  ],
+  "exclude": [
+    "test/fixtures/broken",
+    "test/fixtures/mixed-v2"
   ]
 }

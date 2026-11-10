@@ -1,21 +1,21 @@
 /** Turn a V1 plugin module into the IR used by the rest of the pipeline. */
 import path from "node:path"
 import {
-  Node,
-  Project,
-  SyntaxKind,
-  ts,
   type ArrowFunction,
   type FunctionDeclaration,
   type FunctionExpression,
   type MethodDeclaration,
+  Node,
   type ObjectLiteralExpression,
+  Project,
   type SourceFile,
+  SyntaxKind,
+  ts,
 } from "ts-morph"
 import type { Diagnostic } from "../core/diagnostics"
-import type { HookSite, ImportIR, PluginIR, ToolSite } from "./schema"
 import type { PluginProject } from "../env/project"
 import { HOOK_RULES } from "../rules/hooks"
+import type { HookSite, ImportIR, PluginIR, ToolSite } from "./schema"
 
 function hasKnownHook(object: ObjectLiteralExpression): boolean {
   return object.getProperties().some((property) => {
@@ -24,11 +24,7 @@ function hasKnownHook(object: ObjectLiteralExpression): boolean {
   })
 }
 
-type Factory =
-  | ArrowFunction
-  | FunctionExpression
-  | FunctionDeclaration
-  | MethodDeclaration
+type Factory = ArrowFunction | FunctionExpression | FunctionDeclaration | MethodDeclaration
 
 const V1_PACKAGE = "@opencode-ai/plugin"
 
@@ -187,7 +183,9 @@ function findInSourceFile(file: SourceFile): FoundFactory | undefined {
       const server = resolved.getProperty("server")
       const serverValue =
         server && (Node.isPropertyAssignment(server) || Node.isShorthandPropertyAssignment(server))
-          ? resolveValue(Node.isPropertyAssignment(server) ? server.getInitializer() : server.getNameNode())
+          ? resolveValue(
+              Node.isPropertyAssignment(server) ? server.getInitializer() : server.getNameNode(),
+            )
           : undefined
       if (isFactoryNode(serverValue)) {
         return { factory: serverValue, dualShape: true, exportName: name }
@@ -215,7 +213,8 @@ function findFactory(project: Project, entryFile: string): FoundFactory | undefi
 function hookNameOf(property: Node): string | undefined {
   if (Node.isPropertyAssignment(property) || Node.isMethodDeclaration(property)) {
     const name = property.getNameNode()
-    if (Node.isStringLiteral(name) || Node.isNoSubstitutionTemplateLiteral(name)) return name.getLiteralText()
+    if (Node.isStringLiteral(name) || Node.isNoSubstitutionTemplateLiteral(name))
+      return name.getLiteralText()
     if (Node.isIdentifier(name)) return name.getText()
     if (Node.isComputedPropertyName(name)) return name.getExpression().getText()
   }
@@ -238,7 +237,11 @@ function stringField(config: ObjectLiteralExpression, key: string): string {
   return /^["'`]/.test(text) ? text.replace(/^["'`]|["'`]$/g, "") : text
 }
 
-function extractTools(object: ObjectLiteralExpression, file: SourceFile, diagnostics: Diagnostic[]): ToolSite[] {
+function extractTools(
+  object: ObjectLiteralExpression,
+  file: SourceFile,
+  diagnostics: Diagnostic[],
+): ToolSite[] {
   const tools: ToolSite[] = []
   for (const property of object.getProperties()) {
     const name = hookNameOf(property)
@@ -285,10 +288,17 @@ function extractTools(object: ObjectLiteralExpression, file: SourceFile, diagnos
         const declaration = resolveValue(initializer)
         if (declaration && Node.isCallExpression(declaration)) {
           const config = declaration.getArguments()[0]
-          if (config && Node.isObjectLiteralExpression(config)) description = stringField(config, "description")
+          if (config && Node.isObjectLiteralExpression(config))
+            description = stringField(config, "description")
         }
       }
-      tools.push({ name, description, reference, kind: "reference", range: rangeOf(file, property) })
+      tools.push({
+        name,
+        description,
+        reference,
+        kind: "reference",
+        range: rangeOf(file, property),
+      })
       continue
     }
 
@@ -373,7 +383,8 @@ export function extractPlugin(project: PluginProject): PluginIR {
     })
     sourceFile = factoryFile
   }
-  const preservedExport = exportName && exportName !== "default" && !dualShape ? exportName : undefined
+  const preservedExport =
+    exportName && exportName !== "default" && !dualShape ? exportName : undefined
   const { names, patterns } = paramInfo(factory)
   const inputParam = inputParamOf(factory)
   if (dualShape) {
@@ -415,7 +426,9 @@ export function extractPlugin(project: PluginProject): PluginIR {
           ? thenStatement.getStatements()[0]
           : undefined
       const expression =
-        returned && Node.isReturnStatement(returned) ? resolveValue(returned.getExpression()) : undefined
+        returned && Node.isReturnStatement(returned)
+          ? resolveValue(returned.getExpression())
+          : undefined
       if (expression && Node.isObjectLiteralExpression(expression)) {
         const condition = statement.getExpression().getText()
         conditionals.push({ condition, object: expression })
@@ -427,7 +440,9 @@ export function extractPlugin(project: PluginProject): PluginIR {
       if (returns.length > 0) {
         const hasHookMap = returns.some((item) => {
           const value = resolveValue(item.getExpression())
-          return !!value && Node.isObjectLiteralExpression(value) && value.getProperties().length > 0
+          return (
+            !!value && Node.isObjectLiteralExpression(value) && value.getProperties().length > 0
+          )
         })
         if (hasHookMap) {
           diagnostics.push({
@@ -462,7 +477,8 @@ export function extractPlugin(project: PluginProject): PluginIR {
       diagnostics.push({
         code: "factory/return",
         severity: "warning",
-        message: "last return statement in the plugin factory does not return an object literal; hooks cannot be read statically",
+        message:
+          "last return statement in the plugin factory does not return an object literal; hooks cannot be read statically",
         range: rangeOf(sourceFile, factory),
       })
     }
@@ -474,7 +490,8 @@ export function extractPlugin(project: PluginProject): PluginIR {
       diagnostics.push({
         code: "factory/return",
         severity: "warning",
-        message: "concise factory body does not return an object literal; hooks cannot be read statically",
+        message:
+          "concise factory body does not return an object literal; hooks cannot be read statically",
         range: rangeOf(sourceFile, factory),
       })
     }
@@ -489,7 +506,8 @@ export function extractPlugin(project: PluginProject): PluginIR {
         diagnostics.push({
           code: "hook/spread",
           severity: "warning",
-          message: "spread hooks are not analyzed statically and are dropped from the converted module",
+          message:
+            "spread hooks are not analyzed statically and are dropped from the converted module",
           range: rangeOf(sourceFile, property),
         })
         continue
@@ -519,7 +537,8 @@ export function extractPlugin(project: PluginProject): PluginIR {
           diagnostics.push({
             code: "tool/shape",
             severity: "warning",
-            message: "`tool` hook is not an object literal; custom tools are reported but not converted",
+            message:
+              "`tool` hook is not an object literal; custom tools are reported but not converted",
             range: rangeOf(sourceFile, property),
           })
         }
@@ -537,7 +556,7 @@ export function extractPlugin(project: PluginProject): PluginIR {
         continue
       }
 
-      const { names: hookParams, patterns: hookPatterns } = paramInfo(callback)
+      const { names: hookParams } = paramInfo(callback)
       const positional = callback
         .getParameters()
         .every((parameter) => Node.isIdentifier(parameter.getNameNode()))
@@ -592,11 +611,10 @@ export function extractPlugin(project: PluginProject): PluginIR {
     .filter((statement) => statement !== factoryStatement)
     .filter((statement) => Node.isExportAssignment(statement) === false)
     // Drop declarations that reference the factory being replaced (dual-shape entry objects).
-    .filter((statement) => !factoryReference || !factoryReference.test(statement.getText()))
+    .filter((statement) => !factoryReference?.test(statement.getText()))
     // Our emitted module defines its own setup.
     .filter(
-      (statement) =>
-        !(Node.isFunctionDeclaration(statement) && statement.getName() === "setup"),
+      (statement) => !(Node.isFunctionDeclaration(statement) && statement.getName() === "setup"),
     )
     .map((statement) => statementText(statement))
     .join("\n")

@@ -4,3 +4,4 @@ dist/
 benchmarks/corpus/
 benchmarks/.out/
 test/.tmp/
+.coverage/

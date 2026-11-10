@@ -54,7 +54,8 @@ function isSource(file: string): boolean {
 
 function walk(dir: string, found: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === "node_modules" || entry.name === "dist" || entry.name.startsWith(".")) continue
+    if (entry.name === "node_modules" || entry.name === "dist" || entry.name.startsWith("."))
+      continue
     const full = path.join(dir, entry.name)
     if (entry.isDirectory()) walk(full, found)
     else if (isSource(full)) found.push(full)
@@ -99,7 +100,12 @@ export function resolveProject(dir: string): PluginProject {
   if (pkg.main) {
     const raw = pkg.main.replace(/^\.\//, "")
     const typed = raw.replace(/\.(js|mjs|cjs|jsx)$/, raw.endsWith(".jsx") ? ".tsx" : ".ts")
-    for (const guess of [raw, typed, path.join("src", path.basename(raw)), path.join("src", path.basename(typed))]) {
+    for (const guess of [
+      raw,
+      typed,
+      path.join("src", path.basename(raw)),
+      path.join("src", path.basename(typed)),
+    ]) {
       const full = path.join(absolute, guess)
       if (fs.existsSync(full) && isSource(full)) candidates.push(full)
     }
@@ -136,7 +142,8 @@ export function copyProject(project: PluginProject, target: string): void {
     filter: (source) => {
       const name = path.basename(source)
       if (COPY_IGNORE.has(name)) return false
-      if (name.endsWith(".lock") || name === "bun.lock" || name === "package-lock.json") return false
+      if (name.endsWith(".lock") || name === "bun.lock" || name === "package-lock.json")
+        return false
       return true
     },
   })

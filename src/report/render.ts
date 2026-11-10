@@ -55,10 +55,12 @@ export function renderMarkdown(report: MigrationReport): string {
     lines.push("")
     lines.push("## Runtime")
     lines.push("")
-    lines.push(`- Bundle: ${report.runtime.bundle.ok ? "ok" : report.runtime.bundle.errors.join("; ")}`)
+    lines.push(
+      `- Bundle: ${report.runtime.bundle.ok ? "ok" : report.runtime.bundle.errors.join("; ")}`,
+    )
     lines.push(`- Entry: ${report.runtime.entry.message}`)
   }
-  if (report.repair && report.repair.fixes.length) {
+  if (report.repair?.fixes.length) {
     lines.push("")
     lines.push("## Auto-repair")
     lines.push("")
@@ -68,7 +70,7 @@ export function renderMarkdown(report: MigrationReport): string {
       )
     }
   }
-  if (report.scaffolding && report.scaffolding.length) {
+  if (report.scaffolding?.length) {
     lines.push("")
     lines.push("## Scaffolding")
     lines.push("")
@@ -110,7 +112,9 @@ export function renderMarkdown(report: MigrationReport): string {
     lines.push("## Diagnostics")
     lines.push("")
     for (const item of report.diagnostics) {
-      const where = item.range ? `${item.range.file}:${item.range.line}:${item.range.column}` : "project"
+      const where = item.range
+        ? `${item.range.file}:${item.range.line}:${item.range.column}`
+        : "project"
       lines.push(`- **${item.severity}** \`${item.code}\` (${where}): ${item.message}`)
       if (item.hint) lines.push(`  - hint: ${item.hint}`)
     }

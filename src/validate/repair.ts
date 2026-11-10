@@ -94,7 +94,9 @@ export function runRepair(options: RepairOptions): {
 
   while (fixes.length < maxPasses) {
     const current = signature(diagnostics, file)
-    const target = diagnostics.filter((item) => item.range && path.resolve(item.range.file) === file)
+    const target = diagnostics.filter(
+      (item) => item.range && path.resolve(item.range.file) === file,
+    )
     const fixer = fixers.find((candidate) =>
       target.some((item) => candidate.codes.includes(item.code)),
     )

@@ -77,7 +77,14 @@ const cache = new Map<string, TargetInfo>()
 export function findTargetPackage(root: string): string | undefined {
   const candidates = [
     path.join(root, "node_modules", "@opencode", "plugin"),
-    path.resolve(path.dirname(new URL(import.meta.url).pathname), "..", "..", "node_modules", "@opencode", "plugin"),
+    path.resolve(
+      path.dirname(new URL(import.meta.url).pathname),
+      "..",
+      "..",
+      "node_modules",
+      "@opencode",
+      "plugin",
+    ),
   ]
   return candidates.find((candidate) => fs.existsSync(path.join(candidate, "package.json")))
 }
@@ -92,7 +99,8 @@ export function probeTarget(root: string, override?: string): TargetInfo {
       missing: Object.keys(CAPABILITIES) as Capability[],
     }
   }
-  const version = JSON.parse(fs.readFileSync(path.join(packageRoot, "package.json"), "utf8")).version as string
+  const version = JSON.parse(fs.readFileSync(path.join(packageRoot, "package.json"), "utf8"))
+    .version as string
   const key = `${packageRoot}@${version}`
   const cached = cache.get(key)
   const info =
@@ -113,7 +121,9 @@ export function probeTarget(root: string, override?: string): TargetInfo {
         capabilities,
         missing,
         ...(override && override !== version
-          ? { overrideMismatch: `requested ${override}, but the installed @opencode/plugin is ${version}` }
+          ? {
+              overrideMismatch: `requested ${override}, but the installed @opencode/plugin is ${version}`,
+            }
           : {}),
       }
       cache.set(key, result)

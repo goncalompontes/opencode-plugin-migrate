@@ -6,25 +6,57 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        bun: ["1.4.4", "latest"]
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: ${{ matrix.bun }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ matrix.bun }}-${{ hashFiles('bun.lock') }}
       - run: bun install --frozen-lockfile
+      - run: bunx biome check
       - run: bun run typecheck
       - run: bun test
       - run: bun run build
       - run: node dist/cli.js --help
 
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-coverage-${{ hashFiles('bun.lock') }}
+      - run: bun install --frozen-lockfile
+      - run: bun scripts/coverage-floor.ts
+
   package:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
+      - uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-package-${{ matrix.node }}-${{ hashFiles('bun.lock') }}
       - run: bun install --frozen-lockfile
       - run: bun scripts/pack-smoke.ts
 
@@ -37,8 +69,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
       - run: bun install --frozen-lockfile
       - run: bun add -d @opencode/plugin@${{ matrix.plugin }}
       - run: bun scripts/probe.ts

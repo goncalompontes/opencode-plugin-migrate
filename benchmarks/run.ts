@@ -8,8 +8,8 @@ import fs from "node:fs"
 import path from "node:path"
 import { convertPlugin } from "../src/api"
 import { countV1ImportFiles } from "../src/env/imports"
-import { CORPUS } from "./manifest"
 import type { MigrationReport } from "../src/report/schema"
+import { CORPUS } from "./manifest"
 
 const here = import.meta.dir
 const corpusDir = path.join(here, "corpus")
@@ -80,7 +80,7 @@ for (const entry of CORPUS) {
       unsupported: report.counts.unsupported,
       typecheck: report.typecheck?.clean ? "clean" : `failed (${report.typecheck?.errors ?? "?"})`,
       runtime:
-        report.runtime && report.runtime.bundle.ok && report.runtime.entry.ok
+        report.runtime?.bundle.ok && report.runtime.entry.ok
           ? "ok"
           : entry.knownRuntimeFailure
             ? "known upstream failure"

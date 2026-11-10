@@ -32,9 +32,20 @@ if (!tarball) throw new Error("no tarball produced")
 console.log("installing into a clean project…")
 const project = path.join(work, "project")
 fs.mkdirSync(project)
-fs.writeFileSync(path.join(project, "package.json"), '{"name":"pack-smoke","private":true,"type":"module"}\n')
+fs.writeFileSync(
+  path.join(project, "package.json"),
+  '{"name":"pack-smoke","private":true,"type":"module"}\n',
+)
 run(
-  ["npm", "install", tarball, "@opencode/plugin@2.2.7", "--no-audit", "--no-fund", "--ignore-scripts"],
+  [
+    "npm",
+    "install",
+    tarball,
+    "@opencode/plugin@2.2.7",
+    "--no-audit",
+    "--no-fund",
+    "--ignore-scripts",
+  ],
   project,
 )
 
@@ -42,7 +53,10 @@ const bin = path.join(project, "node_modules", ".bin", "opencode-plugin-migrate"
 const help = run([bin, "--help"], project)
 if (!help.includes("convert")) throw new Error("CLI help did not list convert")
 
-const analyze = run([bin, "analyze", path.join(repo, "test", "fixtures", "basic"), "--format", "json"], project)
+const analyze = run(
+  [bin, "analyze", path.join(repo, "test", "fixtures", "basic"), "--format", "json"],
+  project,
+)
 const report = JSON.parse(analyze) as { counts?: { converted?: number } }
 if (!report.counts || (report.counts.converted ?? 0) < 1) {
   throw new Error("installed CLI did not analyze the fixture")

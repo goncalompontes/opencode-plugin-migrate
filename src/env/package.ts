@@ -9,7 +9,14 @@ const V2_PACKAGE = "@opencode/plugin"
 export function readTargetVersion(root: string): string {
   const candidates = [
     path.join(root, "node_modules", V2_PACKAGE, "package.json"),
-    path.join(path.dirname(new URL(import.meta.url).pathname), "..", "..", "node_modules", V2_PACKAGE, "package.json"),
+    path.join(
+      path.dirname(new URL(import.meta.url).pathname),
+      "..",
+      "..",
+      "node_modules",
+      V2_PACKAGE,
+      "package.json",
+    ),
   ]
   for (const candidate of candidates) {
     try {
@@ -105,7 +112,8 @@ export function upgradePackageJson(
     if (
       typeof manifest.exports === "object" &&
       manifest.exports !== null &&
-      normalized((manifest.exports as Record<string, unknown>)["."]) === normalized(entryRename.from)
+      normalized((manifest.exports as Record<string, unknown>)["."]) ===
+        normalized(entryRename.from)
     ) {
       ;(manifest.exports as Record<string, unknown>)["."] = to
     }

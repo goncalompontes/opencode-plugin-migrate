@@ -1,4 +1,4 @@
-import { tool, type ToolContext } from "@opencode-ai/plugin"
+import { type ToolContext, tool } from "@opencode-ai/plugin"
 
 export function greet(name: string, _directory: string): string {
   return `hello ${name}`

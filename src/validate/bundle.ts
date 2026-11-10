@@ -53,24 +53,24 @@ export async function validateRuntime(file: string): Promise<RuntimeCheck> {
       message: "bundle validation needs the Bun runtime; it was skipped under Node.",
     })
   } else
-  try {
-    const result = await Bun.build({
-      entrypoints: [file],
-      target: "bun",
-      format: "esm",
-      packages: "external",
-    })
-    if (!result.success) {
-      const errors = result.logs.map((log) => {
-        const position = log.position
-        const where = position ? `${position.file}:${position.line}:${position.column}` : "bundle"
-        return `${where}: ${log.message}`
+    try {
+      const result = await Bun.build({
+        entrypoints: [file],
+        target: "bun",
+        format: "esm",
+        packages: "external",
       })
-      bundle = { ok: false, errors }
+      if (!result.success) {
+        const errors = result.logs.map((log) => {
+          const position = log.position
+          const where = position ? `${position.file}:${position.line}:${position.column}` : "bundle"
+          return `${where}: ${log.message}`
+        })
+        bundle = { ok: false, errors }
+      }
+    } catch (error) {
+      bundle = { ok: false, errors: [error instanceof Error ? error.message : String(error)] }
     }
-  } catch (error) {
-    bundle = { ok: false, errors: [error instanceof Error ? error.message : String(error)] }
-  }
 
   if (!bundle.ok) {
     diagnostics.push({

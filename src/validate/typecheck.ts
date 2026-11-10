@@ -16,8 +16,7 @@ const declarationCache = new Map<string, ts.SourceFile>()
 
 function isImmutableDeclaration(fileName: string): boolean {
   return (
-    fileName.includes("/node_modules/typescript/lib/") ||
-    fileName.includes("/node_modules/@types/")
+    fileName.includes("/node_modules/typescript/lib/") || fileName.includes("/node_modules/@types/")
   )
 }
 
@@ -130,44 +129,53 @@ export function typecheck(
   }
 
   const suggestions: Record<string, string> = {
-    "ts/2304": "the identifier disappeared during migration; check whether it came from the V1 package import or module scope.",
-    "ts/2339": "this member does not exist on the V2 type; the event or payload shape changed in V2.",
+    "ts/2304":
+      "the identifier disappeared during migration; check whether it came from the V1 package import or module scope.",
+    "ts/2339":
+      "this member does not exist on the V2 type; the event or payload shape changed in V2.",
     "ts/2322": "V2 expects a different value shape here.",
     "ts/2345": "the V2 callback or API takes a different argument shape.",
     "ts/2554": "the V2 callback signature differs from V1; check the event object.",
     "ts/2741": "the value is missing fields required by the V2 or runtime type.",
   }
 
-  const diagnostics = ts.getPreEmitDiagnostics(program).map(toDiagnostic).map((item) => {
-    // A missing third-party package is an environment problem, not a migration defect.
-    const missing = /Cannot find module '([^']+)'/.exec(item.message)
-    if (item.code === "ts/2307" && missing) {
+  const diagnostics = ts
+    .getPreEmitDiagnostics(program)
+    .map(toDiagnostic)
+    .map((item) => {
+      // A missing third-party package is an environment problem, not a migration defect.
+      const missing = /Cannot find module '([^']+)'/.exec(item.message)
+      if (item.code === "ts/2307" && missing) {
+        return {
+          ...item,
+          severity: "warning" as const,
+          hint: missing[1]?.startsWith(".")
+            ? "pre-existing missing module in the plugin source tree; relative imports are copied unchanged."
+            : "third-party package is not installed in the migration sandbox.",
+        }
+      }
+      return item.hint
+        ? item
+        : { ...item, ...(suggestions[item.code] ? { hint: suggestions[item.code] } : {}) }
+    })
+    .map((item) => {
+      const inCarried =
+        item.range !== undefined &&
+        path.resolve(item.range.file) === target &&
+        carried.has(item.range.line) &&
+        !item.code.startsWith("ts/1")
+      if (!inCarried) return item
       return {
         ...item,
         severity: "warning" as const,
-        hint: missing[1]?.startsWith(".")
-          ? "pre-existing missing module in the plugin source tree; relative imports are copied unchanged."
-          : "third-party package is not installed in the migration sandbox.",
+        origin: item.range ? carried.get(item.range.line) : undefined,
+        hint: "this error is inside code carried over from V1; fix the body while porting it.",
       }
-    }
-    return item.hint ? item : { ...item, ...(suggestions[item.code] ? { hint: suggestions[item.code] } : {}) }
-  }).map((item) => {
-    const inCarried =
-      item.range !== undefined &&
-      path.resolve(item.range.file) === target &&
-      carried.has(item.range.line) &&
-      !item.code.startsWith("ts/1")
-    if (!inCarried) return item
-    return {
-      ...item,
-      severity: "warning" as const,
-      origin: item.range ? carried.get(item.range.line) : undefined,
-      hint: "this error is inside code carried over from V1; fix the body while porting it.",
-    }
-  })
+    })
   const owned = new Set(ownedFiles.map((file) => path.resolve(file)))
   const errors = diagnostics.filter(
-    (item) => item.severity === "error" && (!item.range || owned.has(path.resolve(item.range.file))),
+    (item) =>
+      item.severity === "error" && (!item.range || owned.has(path.resolve(item.range.file))),
   )
   return { diagnostics, clean: errors.length === 0, checkedFiles: rootNames }
 }

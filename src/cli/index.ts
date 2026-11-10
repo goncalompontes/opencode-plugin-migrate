@@ -50,6 +50,11 @@ const convert = defineCommand({
       default: false,
     },
     target: { type: "string", description: "Expected @opencode/plugin version" },
+    force: {
+      type: "boolean",
+      description: "Regenerate from scratch and discard preserved manual edits",
+      default: false,
+    },
     report: { type: "boolean", description: "Write MIGRATION.md into the output", default: true },
   },
   async run({ args }) {
@@ -59,6 +64,7 @@ const convert = defineCommand({
         ...(args.out ? { outDir: path.resolve(args.out) } : {}),
         ...(args.dual ? { dual: true } : {}),
         ...(args.target ? { target: args.target } : {}),
+        ...(args.force ? { force: true } : {}),
       })
     } catch (error) {
       fail(error)

@@ -9,7 +9,7 @@ import { Diagnostic } from "./core/diagnostics"
 import { pipeline, stage } from "./core/pipeline"
 import { copyProject, resolveProject } from "./env/project"
 import { readTargetVersion, upgradePackageJson } from "./env/package"
-import { rewriteV1Imports } from "./env/imports"
+import { findV1Imports, rewriteV1Imports } from "./env/imports"
 import { detectLayout, upgradeConfigFiles } from "./env/config"
 import { extractPlugin } from "./ir/extract"
 import {
@@ -24,6 +24,7 @@ import { applyTarget, probeTarget } from "./rules/compat"
 import { typecheck } from "./validate/typecheck"
 import { validateRuntime } from "./validate/bundle"
 import { implicitAnyParameter, runRepair } from "./validate/repair"
+import { buildState, mergeManualEdits, type MergeState } from "./validate/merge"
 import { MigrationReport } from "./report/schema"
 
 export const PluginProjectSchema = z.object({
@@ -39,6 +40,7 @@ const ConvertInput = z.object({
   dir: z.string(),
   outDir: z.string(),
   dual: z.boolean().default(false),
+  force: z.boolean().default(false),
 })
 
 const EmitOutput = z.object({ ir: ClassifiedPluginIR, module: EmittedModule })
@@ -122,6 +124,24 @@ const emitStage = stage({
   output: EmitOutput,
   run: async (ir, ctx) => {
     const target = path.join(ctx.outDir, ir.id)
+    const relativeRaw = path.relative(ir.sourceDir, ir.entryFile)
+    const isJavaScript = !/\.[cm]?tsx?$/.test(relativeRaw)
+    const relative = isJavaScript
+      ? relativeRaw.replace(/\.[cm]?jsx?$/, relativeRaw.endsWith(".jsx") ? ".tsx" : ".ts")
+      : relativeRaw
+    const file = path.join(target, relative)
+    const statePath = path.join(target, "migration-state.json")
+    const force = ctx.options?.force === true
+    const priorSource = !force && fs.existsSync(file) ? fs.readFileSync(file, "utf8") : undefined
+    let priorState: MergeState | undefined
+    if (!force && fs.existsSync(statePath)) {
+      try {
+        priorState = JSON.parse(fs.readFileSync(statePath, "utf8")) as MergeState
+      } catch {
+        priorState = undefined
+      }
+    }
+
     copyProject(
       {
         dir: ir.sourceDir,
@@ -132,18 +152,32 @@ const emitStage = stage({
       },
       target,
     )
-    const relativeRaw = path.relative(ir.sourceDir, ir.entryFile)
-    const isJavaScript = !/\.[cm]?tsx?$/.test(relativeRaw)
-    const relative = isJavaScript
-      ? relativeRaw.replace(/\.[cm]?jsx?$/, relativeRaw.endsWith(".jsx") ? ".tsx" : ".ts")
-      : relativeRaw
-    const file = path.join(target, relative)
     const module = emitModule(ir, file, { dual: ctx.options?.dual === true })
     if (!module.source.includes("Plugin.define")) {
       throw new Error("emitter produced no Plugin.define call")
     }
     fs.mkdirSync(path.dirname(file), { recursive: true })
+    const generated = module.source
+    if (priorSource) {
+      const merged = mergeManualEdits(generated, priorSource, priorState, { force })
+      module.source = merged.source
+      if (merged.preserved.length) {
+        module.diagnostics.push({
+          code: "incremental/preserved",
+          severity: "info",
+          message: `preserved manual edits in ${merged.preserved.length} carried region(s): ${[...new Set(merged.preserved)].join(", ")}.`,
+        })
+      }
+      for (const origin of merged.conflicts) {
+        module.diagnostics.push({
+          code: "incremental/conflict",
+          severity: "warning",
+          message: `manual edits and regenerated code both changed ${origin}; the manual body was kept. Review it against the V1 source.`,
+        })
+      }
+    }
     fs.writeFileSync(file, module.source)
+    fs.writeFileSync(statePath, `${JSON.stringify(buildState(generated), null, 2)}\n`)
     if (isJavaScript) {
       fs.rmSync(path.join(target, relativeRaw), { force: true })
       module.diagnostics.push({
@@ -288,7 +322,7 @@ const analyzePipeline = pipeline<{ dir: string }>()
   .pipe(classifyStage)
   .build()
 
-const convertPipeline = pipeline<{ dir: string; outDir: string; dual: boolean }>()
+const convertPipeline = pipeline<{ dir: string; outDir: string; dual: boolean; force: boolean }>()
   .onStage((event) => {
     if (process.env.OC_MIGRATE_DEBUG && event.type !== "start") {
       console.error(`[pipeline] ${event.stage} ${event.type}`)
@@ -329,14 +363,52 @@ export async function analyzePlugin(
 
 export async function convertPlugin(
   dir: string,
-  options: { outDir?: string; root?: string; dual?: boolean; target?: string } = {},
+  options: { outDir?: string; root?: string; dual?: boolean; target?: string; force?: boolean } = {},
 ): Promise<ConvertResult> {
   const root = options.root ?? process.cwd()
   const outRoot = options.outDir ?? path.join(root, ".migrate")
+
+  // Re-running against an already converted package is a no-op, not an error.
+  const preview = resolveProject(dir)
+  const entryText = fs.readFileSync(preview.entryFile, "utf8")
+  if (/Plugin\.define\s*\(/.test(entryText) && findV1Imports(dir).length === 0) {
+    const id = (preview.packageName ?? path.basename(preview.dir)).replace(/^@[^/]+\//, "")
+    const module: EmittedModule = {
+      file: preview.entryFile,
+      source: entryText,
+      emitted: [],
+      skipped: [],
+      diagnostics: [],
+      tools: [],
+      rewrittenFiles: [],
+      remainingV1Imports: [],
+    }
+    const report: MigrationReport = {
+      id,
+      mode: "convert",
+      sourceDir: preview.dir,
+      entryFile: preview.entryFile,
+      hooks: [],
+      tools: [],
+      diagnostics: [
+        {
+          code: "already/converted",
+          severity: "info",
+          message: "this package already targets the V2 plugin API; nothing was regenerated.",
+        },
+      ],
+      leftovers: [],
+      counts: { converted: 0, review: 0, unsupported: 0 },
+      toolCounts: { converted: 0, review: 0 },
+      ...(preview.packageName ? { packageName: preview.packageName } : {}),
+    }
+    return { report, ir: undefined as unknown as ClassifiedPluginIR, outDir: preview.dir, module }
+  }
+
   const dual = options.dual === true
   const ctx = { root, outDir: outRoot, log: () => {}, options: { dual } }
   const { ir, module, typecheck: check, runtime, repair } = await convertPipeline.run(
-    { dir, outDir: outRoot, dual },
+    { dir, outDir: outRoot, dual, force: options.force === true },
     ctx,
   )
   const target = module.file

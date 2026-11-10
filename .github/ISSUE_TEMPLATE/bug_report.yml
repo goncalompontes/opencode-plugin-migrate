@@ -1,0 +1,49 @@
+name: Bug report
+description: A plugin converts incorrectly, crashes, or fails to typecheck.
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please redact secrets and private code.
+  - type: input
+    id: command
+    attributes:
+      label: Command
+      placeholder: bun src/cli/index.ts convert ./plugin
+    validations:
+      required: true
+  - type: textarea
+    id: plugin
+    attributes:
+      label: Plugin under test
+      description: Public repo URL + commit, or a minimal fixture.
+      placeholder: https://github.com/owner/repo @ abc1234
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual
+      description: Paste `MIGRATION.md`, `migration-report.json`, or the CLI error.
+      render: shell
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - extraction / IR
+        - hook adapter
+        - emitter
+        - typecheck / validation
+        - CLI
+        - benchmark / corpus
+        - docs

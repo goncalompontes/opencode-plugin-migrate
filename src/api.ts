@@ -363,10 +363,20 @@ export async function analyzePlugin(
 
 export async function convertPlugin(
   dir: string,
-  options: { outDir?: string; root?: string; dual?: boolean; target?: string; force?: boolean } = {},
+  options: {
+    outDir?: string
+    root?: string
+    dual?: boolean
+    target?: string
+    force?: boolean
+    dryRun?: boolean
+  } = {},
 ): Promise<ConvertResult> {
   const root = options.root ?? process.cwd()
-  const outRoot = options.outDir ?? path.join(root, ".migrate")
+  const dryRun = options.dryRun === true
+  const outRoot = dryRun
+    ? path.join(root, ".migrate", ".dry-run")
+    : (options.outDir ?? path.join(root, ".migrate"))
 
   // Re-running against an already converted package is a no-op, not an error.
   const preview = resolveProject(dir)
@@ -408,7 +418,7 @@ export async function convertPlugin(
   const dual = options.dual === true
   const ctx = { root, outDir: outRoot, log: () => {}, options: { dual } }
   const { ir, module, typecheck: check, runtime, repair } = await convertPipeline.run(
-    { dir, outDir: outRoot, dual, force: options.force === true },
+    { dir, outDir: outRoot, dual, force: options.force === true || dryRun },
     ctx,
   )
   const target = module.file
@@ -418,9 +428,10 @@ export async function convertPlugin(
     (item) => !item.range || path.resolve(item.range.file) === path.resolve(target),
   )
 
+  const generatedFile = dryRun ? undefined : module.file
   const report: MigrationReport = {
     ...baseReport(ir, "convert"),
-    generatedFile: module.file,
+    ...(generatedFile ? { generatedFile } : {}),
     hooks: hookRows(ir, module),
     tools: toolRows(ir, module),
     toolCounts: {
@@ -451,5 +462,15 @@ export async function convertPlugin(
       .map((item) => ({ kind: item.code, detail: item.message })),
   }
 
+  if (dryRun) {
+    const source = fs.readFileSync(module.file, "utf8")
+    fs.rmSync(outRoot, { recursive: true, force: true })
+    return {
+      report,
+      ir,
+      outDir: path.join(outRoot, ir.id),
+      module: { ...module, source, file: module.file },
+    }
+  }
   return { report, ir, outDir: path.join(outRoot, ir.id), module }
 }

@@ -7,6 +7,7 @@
  *    a report block, so a partial migration still parses and typechecks.
  */
 import path from "node:path"
+import { clientDiagnostics, renderClientFacade, scanClientCalls } from "../env/client"
 import type { Diagnostic } from "../core/diagnostics"
 import type { ClassifiedHook, ClassifiedPluginIR, EmittedModule, ToolSite } from "../ir/schema"
 
@@ -54,18 +55,24 @@ function uses(ir: ClassifiedPluginIR, name: string): boolean {
 function factoryLocals(ir: ClassifiedPluginIR): { lines: string[]; diagnostics: Diagnostic[] } {
   const lines: string[] = []
   const diagnostics: Diagnostic[] = []
+  const bodies = [ir.factory.init, ...ir.hooks.map((hook) => hook.body)]
+  const clientCalls = scanClientCalls(bodies)
+  const usesClient = uses(ir, "client")
   if (ir.factory.inputParam) {
-    // The V1 factory took the whole PluginInput object. Rebuild the parts plugins read,
-    // and expose the V2 context as `client` for code that still calls the old client API.
-    lines.push(`// TODO(v2): the V1 PluginInput is reconstructed from ctx; port client calls to ctx domains.`)
+    // The V1 factory took the whole PluginInput object. Rebuild the parts plugins read.
+    if (usesClient) {
+      lines.push(...renderClientFacade("__v1client"))
+      diagnostics.push(...clientDiagnostics(clientCalls))
+    }
+    lines.push(`// TODO(v2): the V1 PluginInput is reconstructed from ctx.`)
     lines.push(
-      `const ${ir.factory.inputParam}: any = { ...__opencode, client: __opencode, directory: __opencode.location.directory, project: __opencode.location.project, worktree: __opencode.location.directory }`,
+      `const ${ir.factory.inputParam}: any = { ...__opencode, client: ${usesClient ? "__v1client" : "__opencode"}, directory: __opencode.location.directory, project: __opencode.location.project, worktree: __opencode.location.directory }`,
     )
     diagnostics.push({
       code: "context/input-object",
       severity: "warning",
       message:
-        "the V1 factory received the whole PluginInput; it is reconstructed from ctx, and `client` calls must be ported to ctx domains.",
+        "the V1 factory received the whole PluginInput; it is reconstructed from ctx, and client calls go through the generated facade.",
     })
     return { lines, diagnostics }
   }
@@ -88,14 +95,8 @@ function factoryLocals(ir: ClassifiedPluginIR): { lines: string[]; diagnostics: 
         })
         break
       case "client":
-        lines.push("// TODO(v2): the V1 client API moved onto ctx domains (ctx.session, ctx.tool, ...).")
-        lines.push("const client: any = __opencode")
-        diagnostics.push({
-          code: "context/client",
-          severity: "warning",
-          message:
-            "plugin uses the V1 `client`; it is bound to the V2 context as `any` so the module compiles, but calls must be ported to ctx domains.",
-        })
+        lines.push(...renderClientFacade("client"))
+        diagnostics.push(...clientDiagnostics(clientCalls))
         break
       case "$":
         lines.push("// TODO(v2): V2 does not pass the Bun $ helper; fall back to the host global and review.")

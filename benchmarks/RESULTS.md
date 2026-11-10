@@ -43,7 +43,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-smartsnip/`
-- Findings: 3
+- Findings: 4
 
 - `tool.execute.before` — converted -> ctx.tool.hook('execute.before')
 - `event` — converted -> ctx.event.subscribe()
@@ -86,7 +86,7 @@ is visible instead of silently dropped.
 - Custom tools: 0/0 registered
 - Emitted: 2 hooks, kept for manual porting: 0
 - Generated: `.out/opencode-smart-voice-notify/`
-- Findings: 5
+- Findings: 8
 
 - `dispose` — converted -> cleanup returned from setup()
 - `event` — converted -> ctx.event.subscribe()
@@ -97,7 +97,7 @@ is visible instead of silently dropped.
 - Custom tools: 5/5 registered
 - Emitted: 1 hooks, kept for manual porting: 2
 - Generated: `.out/opencode-pty/`
-- Findings: 5
+- Findings: 7
 
 - `command.execute.before` — unsupported -> ctx.command.transform() when the plugin owns the command, otherwise the prompt hook
 - `config` — review -> domain transforms (ctx.agent/provider/model/command/mcp/... transform)

@@ -16,12 +16,22 @@ TypeScript and has no native dependencies.
 
 ### From a GitHub release
 
-Every release publishes the packed tarball:
+Every release publishes the packed tarball. Download it and install the local file:
 
 ```sh
-npm install --global https://github.com/goncalompontes/opencode-plugin-migrate/releases/download/v0.2.0/opencode-plugin-migrate-0.2.0.tgz
+gh release download v0.2.0 --pattern '*.tgz'
+npm install --global ./opencode-plugin-migrate-0.2.0.tgz
 opencode-plugin-migrate --help
 ```
+
+npm 12+ refuses remote tarballs unless you opt in. Either install the downloaded file
+above, or use:
+
+```sh
+npm install --global --allow-remote=root https://github.com/goncalompontes/opencode-plugin-migrate/releases/download/v0.2.0/opencode-plugin-migrate-0.2.0.tgz
+```
+
+Bun works too: `bun add --global https://github.com/goncalompontes/opencode-plugin-migrate/releases/download/v0.2.0/opencode-plugin-migrate-0.2.0.tgz`.
 
 The tarball contains `dist/` (library and Node CLI) plus the plugin and skill sources.
 
@@ -87,6 +97,9 @@ npm install --save-dev opencode-plugin-migrate@0.2.0
 
 The server part is exported as TypeScript (`./server` → `src/plugin/index.ts`), so a Git
 install does not need a build step. The npm tarball also ships `dist/`.
+
+A Git install contains the plugin and skill sources but not the built `dist/`; use the
+release tarball or npm when you also want the `opencode-plugin-migrate` CLI.
 
 The plugin registers the bundled skill as well, so you do not need a second install if you
 only use OpenCode.

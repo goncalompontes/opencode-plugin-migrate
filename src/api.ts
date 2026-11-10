@@ -10,6 +10,7 @@ import { pipeline, stage } from "./core/pipeline"
 import { copyProject, resolveProject } from "./env/project"
 import { readTargetVersion, upgradePackageJson } from "./env/package"
 import { rewriteV1Imports } from "./env/imports"
+import { detectLayout, upgradeConfigFiles } from "./env/config"
 import { extractPlugin } from "./ir/extract"
 import {
   ClassifiedPluginIR,
@@ -32,7 +33,11 @@ export const PluginProjectSchema = z.object({
 })
 
 const AnalyzeInput = z.object({ dir: z.string() })
-const ConvertInput = z.object({ dir: z.string(), outDir: z.string() })
+const ConvertInput = z.object({
+  dir: z.string(),
+  outDir: z.string(),
+  dual: z.boolean().default(false),
+})
 
 const EmitOutput = z.object({ ir: ClassifiedPluginIR, module: EmittedModule })
 const ValidateOutput = EmitOutput.extend({
@@ -90,13 +95,14 @@ const emitStage = stage({
     )
     const relative = path.relative(ir.sourceDir, ir.entryFile)
     const file = path.join(target, relative)
-    const module = emitModule(ir, file)
+    const module = emitModule(ir, file, { dual: ctx.options?.dual === true })
     if (!module.source.includes("Plugin.define")) {
       throw new Error("emitter produced no Plugin.define call")
     }
     fs.mkdirSync(path.dirname(file), { recursive: true })
     fs.writeFileSync(file, module.source)
 
+    module.diagnostics.push(...upgradeConfigFiles(target), ...detectLayout(target))
     const rewrite = rewriteV1Imports(target, [file])
     module.diagnostics.push(...rewrite.diagnostics)
     module.rewrittenFiles = rewrite.rewritten
@@ -197,7 +203,7 @@ const analyzePipeline = pipeline<{ dir: string }>()
   .pipe(classifyStage)
   .build()
 
-const convertPipeline = pipeline<{ dir: string; outDir: string }>()
+const convertPipeline = pipeline<{ dir: string; outDir: string; dual: boolean }>()
   .onStage((event) => {
     if (process.env.OC_MIGRATE_DEBUG && event.type !== "start") {
       console.error(`[pipeline] ${event.stage} ${event.type}`)
@@ -228,13 +234,14 @@ export async function analyzePlugin(dir: string, root = process.cwd()): Promise<
 
 export async function convertPlugin(
   dir: string,
-  options: { outDir?: string; root?: string } = {},
+  options: { outDir?: string; root?: string; dual?: boolean } = {},
 ): Promise<ConvertResult> {
   const root = options.root ?? process.cwd()
   const outRoot = options.outDir ?? path.join(root, ".migrate")
-  const ctx = { root, outDir: outRoot, log: () => {} }
+  const dual = options.dual === true
+  const ctx = { root, outDir: outRoot, log: () => {}, options: { dual } }
   const { ir, module, typecheck: check, runtime } = await convertPipeline.run(
-    { dir, outDir: outRoot },
+    { dir, outDir: outRoot, dual },
     ctx,
   )
   const target = module.file
@@ -271,6 +278,9 @@ export async function convertPlugin(
       warnings: relevant.filter((item) => item.severity === "warning").length,
     },
     runtime: { bundle: runtime.bundle, entry: runtime.entry },
+    scaffolding: module.diagnostics
+      .filter((item) => /^(config|layout|tui|dual)\//.test(item.code))
+      .map((item) => ({ kind: item.code, detail: item.message })),
   }
 
   return { report, ir, outDir: path.join(outRoot, ir.id), module }

@@ -12,6 +12,8 @@ export interface RunContext {
   /** Where generated output is written. */
   readonly outDir: string
   readonly log: (message: string) => void
+  /** Tool-level switches available to stages (for example `dual`). */
+  readonly options?: Readonly<Record<string, unknown>>
 }
 
 export interface Stage<I, O> {

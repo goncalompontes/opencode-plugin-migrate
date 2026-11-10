@@ -48,6 +48,12 @@ export function renderMarkdown(report: MigrationReport): string {
     lines.push(`- Bundle: ${report.runtime.bundle.ok ? "ok" : report.runtime.bundle.errors.join("; ")}`)
     lines.push(`- Entry: ${report.runtime.entry.message}`)
   }
+  if (report.scaffolding && report.scaffolding.length) {
+    lines.push("")
+    lines.push("## Scaffolding")
+    lines.push("")
+    for (const item of report.scaffolding) lines.push(`- \`${item.kind}\`: ${item.detail}`)
+  }
   if (report.package) {
     lines.push("")
     lines.push("## Package")

@@ -477,10 +477,43 @@ export function emitModule(
     })
   }
 
-  emittedHooks.forEach((hook, index) => {
-    const rendered = adapterBody(hook, ir.id, index, 2)
-    if (rendered) blocks.push(rendered)
-  })
+  const groups = new Map<string, ClassifiedHook[]>()
+  const unconditional: ClassifiedHook[] = []
+  for (const hook of emittedHooks) {
+    if (hook.condition) {
+      const group = groups.get(hook.condition) ?? []
+      group.push(hook)
+      groups.set(hook.condition, group)
+    } else {
+      unconditional.push(hook)
+    }
+  }
+  const renderHooks = (hooks: ClassifiedHook[], level: number) => {
+    for (const hook of hooks) {
+      const rendered = adapterBody(hook, ir.id, emittedHooks.indexOf(hook), level)
+      if (rendered) blocks.push(rendered)
+    }
+  }
+
+  const conditionOrder = [...new Set([...ir.conditions, ...groups.keys()])]
+  if (conditionOrder.length) {
+    let first = true
+    for (const condition of conditionOrder) {
+      const hooks = groups.get(condition) ?? []
+      blocks.push(`  ${first ? "if" : "else if"} (${condition}) {`)
+      if (hooks.length === 0) blocks.push(`    return`)
+      else renderHooks(hooks, 3)
+      blocks.push(`  }`)
+      first = false
+    }
+    if (unconditional.length) {
+      blocks.push(`  else {`)
+      renderHooks(unconditional, 3)
+      blocks.push(`  }`)
+    }
+  } else {
+    renderHooks(unconditional, 2)
+  }
 
   if (ir.tools.length) {
     const inline = ir.tools.some((tool) => tool.kind === "inline")
@@ -513,7 +546,8 @@ export function emitModule(
   if (skippedHooks.length) {
     const notes = skippedHooks.map((hook) => {
       const why = hook.reason ? `\n//   ${hook.reason}` : ""
-      return `//\n// "${hook.name}" -> ${hook.v2} [${hook.classification}]${why}\n//\n${comment(hook.body)}`
+      const when = hook.condition ? ` (when ${hook.condition})` : ""
+      return `//\n// "${hook.name}"${when} -> ${hook.v2} [${hook.classification}]${why}\n//\n${comment(hook.body)}`
     })
     blocks.push(
       reindent(
@@ -536,6 +570,14 @@ export function emitModule(
   ]
 
   const legacy = options.dual ? ["", ...renderLegacy(ir), ""] : []
+  if (options.dual && ir.conditions.length) {
+    diagnostics.push({
+      code: "dual/conditionals",
+      severity: "warning",
+      message:
+        "conditional hook maps are emitted in the V2 setup, but the reconstructed V1 server() registers only unconditional hooks.",
+    })
+  }
   if (options.dual) {
     diagnostics.push({
       code: "dual/entrypoint",

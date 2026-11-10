@@ -31,6 +31,8 @@ export const HookSite = z.object({
   params: z.array(z.string()),
   /** Callback parameters with `: any` annotations, for the --dual V1 entrypoint. */
   paramsTyped: z.array(z.string()),
+  /** Registration condition when the V1 factory returned early for this hook map. */
+  condition: z.string().optional(),
   /** Callback body as statements (no outer braces), verbatim. */
   body: z.string(),
   isAsync: z.boolean(),
@@ -68,6 +70,8 @@ export const PluginIR = z.object({
   factory: FactoryIR,
   imports: z.array(ImportIR),
   hooks: z.array(HookSite),
+  /** Every condition that returned early from the factory, including empty hook maps. */
+  conditions: z.array(z.string()),
   tools: z.array(ToolSite),
   /** Findings produced during extraction (unsupported syntax, ambiguous entrypoints, ...). */
   diagnostics: z.array(Diagnostic),

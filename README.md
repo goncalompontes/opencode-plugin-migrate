@@ -83,6 +83,22 @@ Errors inside code carried over from V1 are downgraded to review findings with a
 
 The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
 
+## Conditional hook maps
+
+Some V1 factories return an early hook map:
+
+```ts
+if (!enabled) return { event: async ({ event }) => { ... } }
+return { "tool.execute.before": ... }
+```
+
+The converter models these conditions instead of flattening them:
+
+- hooks from an early return are registered inside `if (<condition>) { ... }`, with the main map in `else`;
+- early returns with no hooks are kept in `setup` as an early return, preserving the V1 behaviour;
+- conditions that depend on statements inside the branch, or custom tools inside a conditional map, are reported rather than guessed;
+- `--dual` keeps the V2 conditional registrations but registers only unconditional hooks in the reconstructed V1 `server()` (with a warning).
+
 ## Incremental re-runs
 
 `convert` can run again on the same output:
@@ -225,6 +241,7 @@ files each building TypeScript programs contend for CPU and trip timeouts.
 - Namespace/default imports and runtime subpath imports (e.g. `@opencode-ai/plugin/tui` values) cannot be represented by the shim; those files stay on V1, the report lists them, and `package.json` deliberately keeps the V1 dependency.
 - Custom tools keep their Zod shape at runtime and are registered through `z.toJSONSchema()`; plugins still on Zod 3 need a Zod 4 upgrade.
 - JavaScript/JSX sources are converted structurally: hooks and tool definitions are read from the AST, but there is no type information, and the emitted module is TypeScript.
+- Conditional custom tools and complex branch bodies are reported, not converted.
 - Layout changes are reported as a plan, not applied: automatic moves need import rewriting to stay safe.
 - V1 `client` calls are adapted, not rewritten: mapped methods preserve the `{ data }` envelope, adapted methods are reported, and unmapped methods throw at the call site so the gap is visible.
 - `chat.message` is bridged through prompt text: non-text parts and a real V1 `UserMessage` are not reconstructed, and the report says so.

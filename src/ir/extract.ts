@@ -396,19 +396,68 @@ export function extractPlugin(project: PluginProject): PluginIR {
   const factoryBody = factory.getBody()
   let hookObject: ObjectLiteralExpression | undefined
   let init = ""
+  const conditionals: Array<{ condition: string; object: ObjectLiteralExpression }> = []
+  const conditions: string[] = []
 
   if (factoryBody && Node.isBlock(factoryBody)) {
     const statements = factoryBody.getStatements()
     const returnStatement = [...statements].reverse().find(Node.isReturnStatement)
+    const consumed = new Set<Node>()
+    if (returnStatement) consumed.add(returnStatement)
+
+    for (const statement of statements) {
+      if (statement === returnStatement) continue
+      if (!Node.isIfStatement(statement)) continue
+      const thenStatement = statement.getThenStatement()
+      const returned = Node.isReturnStatement(thenStatement)
+        ? thenStatement
+        : Node.isBlock(thenStatement) && thenStatement.getStatements().length === 1
+          ? thenStatement.getStatements()[0]
+          : undefined
+      const expression =
+        returned && Node.isReturnStatement(returned) ? resolveValue(returned.getExpression()) : undefined
+      if (expression && Node.isObjectLiteralExpression(expression)) {
+        const condition = statement.getExpression().getText()
+        conditionals.push({ condition, object: expression })
+        conditions.push(condition)
+        consumed.add(statement)
+        continue
+      }
+      const returns = statement.getDescendantsOfKind(SyntaxKind.ReturnStatement)
+      if (returns.length > 0) {
+        const hasHookMap = returns.some((item) => {
+          const value = resolveValue(item.getExpression())
+          return !!value && Node.isObjectLiteralExpression(value) && value.getProperties().length > 0
+        })
+        if (hasHookMap) {
+          diagnostics.push({
+            code: "conditionals/unsupported",
+            severity: "warning",
+            message:
+              "a conditional hook map in the factory is too complex to model; its hooks were not converted.",
+            range: rangeOf(sourceFile, statement),
+          })
+          consumed.add(statement)
+        } else {
+          diagnostics.push({
+            code: "conditionals/early-exit",
+            severity: "info",
+            message:
+              "an early return with no hooks is kept in setup as an early return, matching the V1 behaviour.",
+            range: rangeOf(sourceFile, statement),
+          })
+        }
+      }
+    }
+
     if (returnStatement) {
       const returned = resolveValue(returnStatement.getExpression())
       if (returned && Node.isObjectLiteralExpression(returned)) hookObject = returned
-      const index = statements.indexOf(returnStatement)
-      init = statements
-        .slice(0, index)
-        .map((statement) => statementText(statement))
-        .join("\n")
     }
+    init = statements
+      .filter((statement) => !consumed.has(statement))
+      .map((statement) => statementText(statement))
+      .join("\n")
     if (!hookObject) {
       diagnostics.push({
         code: "factory/return",
@@ -434,67 +483,82 @@ export function extractPlugin(project: PluginProject): PluginIR {
   const hooks: HookSite[] = []
   const tools: ToolSite[] = []
 
-  for (const property of hookObject?.getProperties() ?? []) {
-    if (Node.isSpreadAssignment(property)) {
-      diagnostics.push({
-        code: "hook/spread",
-        severity: "warning",
-        message: "spread hooks are not analyzed statically and are dropped from the converted module",
-        range: rangeOf(sourceFile, property),
-      })
-      continue
-    }
-    const name = hookNameOf(property)
-    if (!name) {
-      diagnostics.push({
-        code: "hook/name",
-        severity: "warning",
-        message: "computed hook name could not be resolved",
-        range: rangeOf(sourceFile, property),
-      })
-      continue
-    }
-    if (name === "tool") {
-      const value = callbackOf(property)
-      const object = value && Node.isObjectLiteralExpression(value) ? value : undefined
-      if (object) tools.push(...extractTools(object, sourceFile, diagnostics))
-      else {
+  const readProperties = (object: ObjectLiteralExpression | undefined, condition?: string) => {
+    for (const property of object?.getProperties() ?? []) {
+      if (Node.isSpreadAssignment(property)) {
         diagnostics.push({
-          code: "tool/shape",
+          code: "hook/spread",
           severity: "warning",
-          message: "`tool` hook is not an object literal; custom tools are reported but not converted",
+          message: "spread hooks are not analyzed statically and are dropped from the converted module",
           range: rangeOf(sourceFile, property),
         })
+        continue
       }
-      continue
-    }
+      const name = hookNameOf(property)
+      if (!name) {
+        diagnostics.push({
+          code: "hook/name",
+          severity: "warning",
+          message: "computed hook name could not be resolved",
+          range: rangeOf(sourceFile, property),
+        })
+        continue
+      }
+      if (name === "tool") {
+        const value = callbackOf(property)
+        const object = value && Node.isObjectLiteralExpression(value) ? value : undefined
+        if (object && condition) {
+          diagnostics.push({
+            code: "conditionals/tool",
+            severity: "warning",
+            message: `custom tools inside a conditional hook map are not converted; register "${condition}" tools manually.`,
+            range: rangeOf(sourceFile, property),
+          })
+        } else if (object) tools.push(...extractTools(object, sourceFile, diagnostics))
+        else {
+          diagnostics.push({
+            code: "tool/shape",
+            severity: "warning",
+            message: "`tool` hook is not an object literal; custom tools are reported but not converted",
+            range: rangeOf(sourceFile, property),
+          })
+        }
+        continue
+      }
 
-    const callback = callbackOf(property)
-    if (!isFunctionNode(callback)) {
-      diagnostics.push({
-        code: "hook/shape",
-        severity: "warning",
-        message: `hook "${name}" is not a function literal and is dropped from the converted module`,
+      const callback = callbackOf(property)
+      if (!isFunctionNode(callback)) {
+        diagnostics.push({
+          code: "hook/shape",
+          severity: "warning",
+          message: `hook "${name}" is not a function literal and is dropped from the converted module`,
+          range: rangeOf(sourceFile, property),
+        })
+        continue
+      }
+
+      const { names: hookParams, patterns: hookPatterns } = paramInfo(callback)
+      const positional = callback
+        .getParameters()
+        .every((parameter) => Node.isIdentifier(parameter.getNameNode()))
+      hooks.push({
+        name,
+        params: hookParams,
+        paramsTyped: typedParameters(callback),
+        body: renderStatements(callback.getBody()),
+        isAsync: callback.isAsync(),
+        usesAwait: callback.getDescendantsOfKind(SyntaxKind.AwaitExpression).length > 0,
+        usesPatternParams: !positional,
         range: rangeOf(sourceFile, property),
+        typeText: callback.getParameters()[1]?.getType().getText(callback),
+        ...(condition ? { condition } : {}),
       })
-      continue
     }
+  }
 
-    const { names: hookParams, patterns: hookPatterns } = paramInfo(callback)
-    const positional = callback
-      .getParameters()
-      .every((parameter) => Node.isIdentifier(parameter.getNameNode()))
-    hooks.push({
-      name,
-      params: hookParams,
-      paramsTyped: typedParameters(callback),
-      body: renderStatements(callback.getBody()),
-      isAsync: callback.isAsync(),
-      usesAwait: callback.getDescendantsOfKind(SyntaxKind.AwaitExpression).length > 0,
-      usesPatternParams: !positional,
-      range: rangeOf(sourceFile, property),
-      typeText: callback.getParameters()[1]?.getType().getText(callback),
-    })
+  readProperties(hookObject)
+  for (const conditional of conditionals) {
+    readProperties(conditional.object, conditional.condition)
   }
 
   const imports: ImportIR[] = sourceFile
@@ -563,6 +627,7 @@ export function extractPlugin(project: PluginProject): PluginIR {
     },
     imports,
     hooks,
+    conditions,
     tools,
     diagnostics,
   }

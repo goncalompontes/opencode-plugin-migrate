@@ -1,8 +1,0 @@
-{
-  "name": "basic-v1-plugin",
-  "version": "1.0.0",
-  "type": "module",
-  "dependencies": {
-    "@opencode/plugin": "^2.2.7"
-  }
-}

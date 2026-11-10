@@ -31,6 +31,27 @@ export function renderMarkdown(report: MigrationReport): string {
       `| \`${hook.name}\` | ${ICON[hook.classification] ?? hook.classification} | ${hook.v2} | ${hook.reason ?? ""}${report.mode === "convert" && !hook.emitted ? " _(left for manual porting)_" : ""} |`,
     )
   }
+  if (report.package) {
+    lines.push("")
+    lines.push("## Package")
+    lines.push("")
+    lines.push(
+      `- Rewritten files: ${report.package.rewrittenFiles.length}${report.package.shim ? ` (shim: \`${report.package.shim}\`)` : ""}`,
+    )
+    lines.push(
+      `- package.json dependency: ${
+        !report.package.hasManifest
+          ? "no manifest in this tree"
+          : report.package.dependencySwapped
+            ? "moved to `@opencode/plugin`"
+            : "kept on `@opencode-ai/plugin`"
+      }`,
+    )
+    if (report.package.remainingV1Imports.length) {
+      lines.push("- Remaining V1 imports:")
+      for (const file of report.package.remainingV1Imports) lines.push(`  - \`${file}\``)
+    }
+  }
   if (report.tools.length) {
     lines.push("")
     lines.push("## Custom tools")

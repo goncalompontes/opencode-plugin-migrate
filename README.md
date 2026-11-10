@@ -9,7 +9,7 @@ bun run src/cli/index.ts analyze ./my-plugin     # report only, writes nothing
 bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck against @opencode/plugin
 ```
 
-**Status: MVP.** 12 of 15 hooks across 7 real public plugins convert automatically, and every generated module typechecks. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+**Status: MVP.** 12 of 15 hooks across 7 real public plugins convert automatically, every generated module typechecks, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 ## What it produces
 
@@ -45,7 +45,7 @@ export default Plugin.define({
 })
 ```
 
-Alongside it, `package.json` is moved from `@opencode-ai/plugin` to `@opencode/plugin`, and:
+Alongside it, every other source file that imported `@opencode-ai/plugin` is redirected to a generated `__opencode_v1_shim.ts` (a typed `tool()` + type surface backed by Zod), `package.json` moves from `@opencode-ai/plugin` to `@opencode/plugin` (plus `zod` when the shim is used), and:
 
 - `MIGRATION.md` — per-hook status, V2 destination, diagnostics, and the original body of everything that was not converted.
 - `migration-report.json` — the same, machine-readable.
@@ -86,15 +86,15 @@ The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding 
 
 Seven public V1 plugins at pinned commits, converted and typechecked:
 
-| Plugin | Hooks | Converted | Review | Unsupported | Typecheck |
-| --- | ---: | ---: | ---: | ---: | --- |
-| [openslimedit](https://github.com/ASidorenkoCode/openslimedit) | 3 | 3 | 0 | 0 | clean |
-| [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | clean |
-| [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | clean |
-| [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 0 | 1 | 0 | clean |
-| [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | clean |
-| [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | clean |
-| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | clean |
+| Plugin | Hooks | Converted | Review | Unsupported | Typecheck | V1 imports |
+| --- | ---: | ---: | ---: | ---: | --- | ---: |
+| [openslimedit](https://github.com/ASidorenkoCode/openslimedit) | 3 | 3 | 0 | 0 | clean | 1 -> 0 |
+| [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | clean | 1 -> 0 |
+| [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | clean | 1 -> 0 |
+| [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 0 | 1 | 0 | clean | 1 -> 0 |
+| [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | clean | 1 -> 0 |
+| [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | clean | 0 -> 0 |
+| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | clean | 8 -> 0 |
 
 Reproduce:
 
@@ -152,6 +152,7 @@ files each building TypeScript programs contend for CPU and trip timeouts.
 
 ## Known limits (deliberately reported, not hidden)
 
+- Namespace/default imports and runtime subpath imports (e.g. `@opencode-ai/plugin/tui` values) cannot be represented by the shim; those files stay on V1, the report lists them, and `package.json` deliberately keeps the V1 dependency.
 - Custom tools use Zod in V1 and JSON Schema in V2; the tool reports each tool and its Zod shape for manual porting.
 - `ctx.client.*` calls are the second migration axis. They are bound to the V2 context as `any` so the module compiles, and flagged for porting to `ctx.session`, `ctx.permission`, and friends.
 - `chat.params` / `chat.message` split into different V2 hooks with different event shapes; static analysis can only propose a destination.

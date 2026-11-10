@@ -33,9 +33,31 @@ interface Manifest {
  * Move the plugin package from the V1 authoring package to the V2 one, preserving the
  * section that already declared it. Does nothing when the manifest already targets V2.
  */
-export function upgradePackageJson(dir: string, version: string): Diagnostic[] {
+export function upgradePackageJson(
+  dir: string,
+  version: string,
+  canUpgrade = true,
+  needsZod = false,
+): Diagnostic[] {
   const file = path.join(dir, "package.json")
-  if (!fs.existsSync(file)) return []
+  if (!fs.existsSync(file)) {
+    return [
+      {
+        code: "package/missing",
+        severity: "info",
+        message: "no package.json in the plugin tree; there is no manifest to update.",
+      },
+    ]
+  }
+  if (!canUpgrade) {
+    return [
+      {
+        code: "package/v1-imports-remain",
+        severity: "warning",
+        message: `${V1_PACKAGE} was kept in package.json because some files still import it; see the remaining V1 imports in the report.`,
+      },
+    ]
+  }
 
   let manifest: Manifest
   try {
@@ -52,17 +74,32 @@ export function upgradePackageJson(dir: string, version: string): Diagnostic[] {
 
   const sections = ["dependencies", "devDependencies", "peerDependencies"] as const
   let changed = false
+  let zodAdded = false
   for (const section of sections) {
     const deps = manifest[section]
     if (!deps || deps[V1_PACKAGE] === undefined) continue
     delete deps[V1_PACKAGE]
     if (deps[V2_PACKAGE] === undefined) deps[V2_PACKAGE] = `^${version}`
+    // The compatibility shim keeps Zod schemas alive for tool definitions.
+    if (needsZod && deps.zod === undefined) {
+      deps.zod = "^4.0.0"
+      zodAdded = true
+    }
     changed = true
   }
 
   if (!changed) return []
   fs.writeFileSync(file, `${JSON.stringify(manifest, null, 2)}\n`)
   return [
+    ...(zodAdded
+      ? [
+          {
+            code: "package/zod",
+            severity: "info" as const,
+            message: "added zod to package.json for the V1 compatibility shim.",
+          },
+        ]
+      : []),
     {
       code: "package/dependency-swap",
       severity: "info",

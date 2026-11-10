@@ -7,6 +7,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { convertPlugin } from "../src/api"
+import { countV1ImportFiles } from "../src/env/imports"
 import { CORPUS } from "./manifest"
 import type { MigrationReport } from "../src/report/schema"
 
@@ -38,6 +39,8 @@ interface Row {
   review: number
   unsupported: number
   typecheck: string
+  v1Before: number
+  v1After: number
   emitted: number
   skipped: number
   report: MigrationReport
@@ -60,7 +63,9 @@ for (const entry of CORPUS) {
   }
 
   try {
+    const v1Before = countV1ImportFiles(checkout)
     const { report } = await convertPlugin(checkout, { outDir: outRoot })
+    const v1After = countV1ImportFiles(path.join(outRoot, report.id))
     rows.push({
       name: entry.name,
       repo: entry.repo,
@@ -69,12 +74,17 @@ for (const entry of CORPUS) {
       review: report.counts.review,
       unsupported: report.counts.unsupported,
       typecheck: report.typecheck?.clean ? "clean" : `failed (${report.typecheck?.errors ?? "?"})`,
+      v1Before,
+      v1After,
       emitted: report.hooks.filter((hook) => hook.emitted).length,
       skipped: report.hooks.filter((hook) => !hook.emitted).length,
       report,
     })
     if (!report.typecheck?.clean) {
       failures.push(`${entry.name}: emitted module does not typecheck`)
+    }
+    if (v1After !== 0) {
+      failures.push(`${entry.name}: ${v1After} file(s) still import @opencode-ai/plugin`)
     }
   } catch (error) {
     failures.push(`${entry.name}: ${String(error)}`)
@@ -83,11 +93,11 @@ for (const entry of CORPUS) {
 
 function table(): string {
   const lines = [
-    "| Plugin | Hooks | Converted | Review | Unsupported | Typecheck |",
-    "| --- | ---: | ---: | ---: | ---: | --- |",
+    "| Plugin | Hooks | Converted | Review | Unsupported | Typecheck | V1 imports |",
+    "| --- | ---: | ---: | ---: | ---: | --- | ---: |",
     ...rows.map(
       (row) =>
-        `| [${row.name}](https://github.com/${row.repo}) | ${row.hooks} | ${row.converted} | ${row.review} | ${row.unsupported} | ${row.typecheck} |`,
+        `| [${row.name}](https://github.com/${row.repo}) | ${row.hooks} | ${row.converted} | ${row.review} | ${row.unsupported} | ${row.typecheck} | ${row.v1Before} -> ${row.v1After} |`,
     ),
   ]
   return lines.join("\n")
@@ -126,6 +136,7 @@ ${rows
   .map(
     (row) => `### ${row.name}
 
+- V1 authoring imports: ${row.v1Before} file(s) -> ${row.v1After}
 - Emitted: ${row.emitted} hooks, kept for manual porting: ${row.skipped}
 - Generated: \`.out/${row.name}/\`
 - Findings: ${row.report.diagnostics.length}

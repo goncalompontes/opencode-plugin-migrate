@@ -12,6 +12,19 @@ bun run src/cli/index.ts convert ./my-plugin --dual   # also keep a V1 server() 
 
 **Status: MVP.** Across 8 real public plugins (including a `.mjs` entry): 14/16 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
+## CLI
+
+```sh
+opencode-plugin-migrate analyze ./plugin --format md|json|both
+opencode-plugin-migrate convert ./plugin [--out DIR] [--dual] [--target 2.2.7]
+opencode-plugin-migrate convert ./plugin --dry-run      # full pipeline, prints the module
+opencode-plugin-migrate convert ./plugin --check        # CI gate: non-zero on review/unsupported
+opencode-plugin-migrate convert ./plugin --quiet        # exit code only
+```
+
+Exit codes: `0` success, `1` validation or `--check` findings, `2` usage error.
+`--format both` prints machine-readable JSON followed by Markdown.
+
 ## What it produces
 
 `convert` writes a complete V2 module, not a patch:

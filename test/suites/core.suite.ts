@@ -400,6 +400,36 @@ describe("target compatibility", () => {
   })
 })
 
+describe("CLI", () => {
+  const repo = path.join(import.meta.dir, "..", "..")
+  const run = (...args: string[]) =>
+    Bun.spawnSync(["bun", "src/cli/index.ts", ...args], { cwd: repo, stdout: "pipe", stderr: "pipe" })
+
+  test("help lists the conversion flags", () => {
+    const result = run("convert", "--help")
+    const output = result.stdout.toString()
+    expect(output).toContain("--dry-run")
+    expect(output).toContain("--check")
+    expect(output).toContain("--format")
+    expect(output).toContain("--quiet")
+  })
+
+  test("--check exits 1 for review findings and 0 for a clean conversion", () => {
+    const clean = run("convert", path.join(import.meta.dir, "..", "fixtures", "basic"), "--check", "--quiet")
+    expect(clean.exitCode).toBe(0)
+    const review = run("convert", path.join(import.meta.dir, "..", "fixtures", "review"), "--check", "--quiet")
+    expect(review.exitCode).toBe(1)
+  })
+
+  test("--dry-run writes nothing", () => {
+    const dryRunDir = path.join(repo, ".migrate", ".dry-run")
+    fs.rmSync(dryRunDir, { recursive: true, force: true })
+    const result = run("convert", path.join(import.meta.dir, "..", "fixtures", "basic"), "--dry-run", "--format", "json")
+    expect(result.exitCode).toBe(0)
+    expect(fs.existsSync(dryRunDir)).toBe(false)
+  })
+})
+
 describe("pipeline platform", () => {
   test("rejects a stage whose output violates its schema", async () => {
     const bad = pipeline<{ n: number }>()

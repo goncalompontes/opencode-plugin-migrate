@@ -9,7 +9,7 @@ bun run src/cli/index.ts analyze ./my-plugin     # report only, writes nothing
 bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck against @opencode/plugin
 ```
 
-**Status: MVP.** Across 7 real public plugins: 13/15 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+**Status: MVP.** Across 7 real public plugins: 14/15 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 ## What it produces
 
@@ -76,8 +76,8 @@ Errors inside code carried over from V1 are downgraded to review findings with a
 
 | Status | V1 hooks |
 | --- | --- |
-| **Converted** | `dispose`, `event`, `tool.execute.before`, `tool.execute.after`, `tool.definition`, `shell.env`, `permission.ask`, `chat.message`, `chat.params`, `chat.headers`, `experimental.chat.system.transform`, custom `tool` maps |
-| **Review** (reported, body preserved) | `config`, `provider`, `auth`, `experimental.chat.messages.transform`, `experimental.session.compacting` |
+| **Converted** | `dispose`, `event`, `tool.execute.before`, `tool.execute.after`, `tool.definition`, `shell.env`, `permission.ask`, `chat.message`, `chat.params`, `chat.headers`, `experimental.chat.system.transform`, `config.command`, custom `tool` maps |
+| **Review** (reported, body preserved) | `provider`, `auth`, other `config` domains, `experimental.chat.messages.transform`, `experimental.session.compacting` |
 | **Unsupported** (no V2 equivalent) | `command.execute.before` (no global hook), `experimental.provider.small_model`, `experimental.compaction.autocontinue`, `experimental.text.complete` |
 
 The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
@@ -115,7 +115,7 @@ Seven public V1 plugins at pinned commits, converted and typechecked:
 | [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 1 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 0 -> 0 |
-| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | 5/5 | clean | ok | 8 -> 0 |
+| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 2 | 0 | 1 | 5/5 | clean | ok | 8 -> 0 |
 
 `opencode-notify` is a known upstream failure: its git checkout omits two generated modules,
 so it cannot bundle even before migration. The benchmark records that instead of hiding it.
@@ -184,5 +184,7 @@ files each building TypeScript programs contend for CPU and trip timeouts.
 - `chat.params` maps generation options onto `event.options`; the V1 `provider` and `message` inputs have no direct V2 field and are stubbed for the body.
 - `chat.headers` maps onto the `model.request` event; plugins that need the raw HTTP exchange should use `http.request`.
 - `experimental.chat.system.transform` exposes string entries; existing `SystemPart` cache/metadata are preserved by position, but new entries are plain text parts.
+- `config.command` becomes a V2 command definition, but V1 template text is sent as prompt text and `$ARGUMENTS` placeholders are not substituted.
+- Other `config` domains, `provider`, and `auth` remain in review; see issue #26.
 - `command.execute.before` has no one-to-one V2 hook; the correct destination depends on whether the plugin owns the command.
 - The tool validates types, not behavior. A converted plugin still needs a smoke test in a real V2 session.

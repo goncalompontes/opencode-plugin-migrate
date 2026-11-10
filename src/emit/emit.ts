@@ -330,6 +330,33 @@ function adapterBody(hook: ClassifiedHook, id: string, index: number, level: num
         `${pad}})`,
       ].join("\n")
 
+    case "config-command":
+      return [
+        `${pad}await __opencode.command.transform((editor) => {`,
+        `${pad}${INDENT}const input: any = {`,
+        `${pad}${INDENT}${INDENT}command: new Proxy({}, {`,
+        `${pad}${INDENT}${INDENT}  set: (_target, name, value: any) => {`,
+        `${pad}${INDENT}${INDENT}    editor.add({`,
+        `${pad}${INDENT}${INDENT}      name: String(name),`,
+        `${pad}${INDENT}${INDENT}      description: value?.description,`,
+        `${pad}${INDENT}${INDENT}      execute: async (invocation: any) => {`,
+        `${pad}${INDENT}${INDENT}        const text = String(value?.template ?? "")`,
+        `${pad}${INDENT}${INDENT}        if (!text) return`,
+        `${pad}${INDENT}${INDENT}        await __opencode.session.prompt({ sessionID: invocation.sessionID, text })`,
+        `${pad}${INDENT}${INDENT}      },`,
+        `${pad}${INDENT}${INDENT}    })`,
+        `${pad}${INDENT}${INDENT}    return true`,
+        `${pad}${INDENT}${INDENT}  },`,
+        `${pad}${INDENT}${INDENT}}),`,
+        `${pad}${INDENT}}`,
+        `${pad}${INDENT}try {`,
+        inner2,
+        `${pad}${INDENT}} catch (error) {`,
+        `${pad}${INDENT}${INDENT}console.error("[opencode-plugin-migrate] config command registration failed", error)`,
+        `${pad}${INDENT}}`,
+        `${pad}})`,
+      ].join("\n")
+
     case "shell-env":
       return [
         `${pad}await __opencode.shell.hook("create.before", async (event) => {`,
@@ -402,6 +429,15 @@ export function emitModule(ir: ClassifiedPluginIR, outFile: string): EmittedModu
   if (locals.length) blocks.push(reindent(locals.join("\n"), 2))
   if (init.text.trim()) blocks.push(carried(init.text, 2))
   if (needsCleanups) blocks.push(`  const __cleanups: Array<() => void | Promise<void>> = []`)
+
+  if (emittedHooks.some((hook) => hook.adapter === "config-command")) {
+    diagnostics.push({
+      code: "config/command-template",
+      severity: "warning",
+      message:
+        "config.command maps to ctx.command.transform(); V1 template text is sent as prompt text, and $ARGUMENTS placeholders are not substituted.",
+    })
+  }
 
   emittedHooks.forEach((hook, index) => {
     const rendered = adapterBody(hook, ir.id, index, 2)

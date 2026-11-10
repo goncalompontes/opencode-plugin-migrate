@@ -12,9 +12,9 @@ typechecked against `@opencode/plugin`.
 | [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 1 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 0 -> 0 |
-| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 1 | 1 | 1 | 5/5 | clean | ok | 8 -> 0 |
+| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 2 | 0 | 1 | 5/5 | clean | ok | 8 -> 0 |
 
-**Totals:** 15 hooks, 13 converted (87%), 1 need review, 1 unsupported.
+**Totals:** 15 hooks, 14 converted (93%), 0 need review, 1 unsupported.
 
 ## What "converted" means
 
@@ -95,11 +95,11 @@ is visible instead of silently dropped.
 
 - V1 authoring imports: 8 file(s) -> 0
 - Custom tools: 5/5 registered
-- Emitted: 1 hooks, kept for manual porting: 2
+- Emitted: 2 hooks, kept for manual porting: 1
 - Generated: `.out/opencode-pty/`
-- Findings: 7
+- Findings: 8
 
 - `command.execute.before` — unsupported -> ctx.command.transform() when the plugin owns the command, otherwise the prompt hook
-- `config` — review -> domain transforms (ctx.agent/provider/model/command/mcp/... transform)
+- `config` — converted -> ctx.command.transform()
 - `event` — converted -> ctx.event.subscribe()
 

@@ -17,6 +17,12 @@ const ENTRY_CANDIDATES = [
   "plugin.ts",
   "src/plugin.ts",
   "src/server.ts",
+  "src/index.mjs",
+  "index.mjs",
+  "src/index.js",
+  "index.js",
+  "src/index.tsx",
+  "index.tsx",
   ".opencode/plugins/index.ts",
 ]
 
@@ -91,8 +97,9 @@ export function resolveProject(dir: string): PluginProject {
 
   const candidates: string[] = []
   if (pkg.main) {
-    const raw = pkg.main.replace(/^\.\//, "").replace(/\.(js|mjs|cjs)$/, ".ts")
-    for (const guess of [raw, path.join("src", path.basename(raw))]) {
+    const raw = pkg.main.replace(/^\.\//, "")
+    const typed = raw.replace(/\.(js|mjs|cjs|jsx)$/, raw.endsWith(".jsx") ? ".tsx" : ".ts")
+    for (const guess of [raw, typed, path.join("src", path.basename(raw)), path.join("src", path.basename(typed))]) {
       const full = path.join(absolute, guess)
       if (fs.existsSync(full) && isSource(full)) candidates.push(full)
     }

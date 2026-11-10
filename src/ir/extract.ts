@@ -303,12 +303,14 @@ function extractTools(object: ObjectLiteralExpression, file: SourceFile, diagnos
 }
 
 export function extractPlugin(project: PluginProject): PluginIR {
-  if (!/\.[cm]?tsx?$/.test(project.entryFile)) {
-    throw new Error(
-      `${project.entryFile} is JavaScript. V1 -> V2 conversion currently needs TypeScript sources so hook signatures and tool schemas can be typed.`,
-    )
-  }
   const diagnostics: Diagnostic[] = []
+  if (!/\.[cm]?tsx?$/.test(project.entryFile)) {
+    diagnostics.push({
+      code: "js/entry",
+      severity: "info",
+      message: `${project.entryFile} is JavaScript; hooks are read structurally and type information is unavailable.`,
+    })
+  }
   const options: ConstructorParameters<typeof Project>[0] = {
     compilerOptions: {
       target: ts.ScriptTarget.ESNext,
@@ -316,7 +318,9 @@ export function extractPlugin(project: PluginProject): PluginIR {
       moduleResolution: ts.ModuleResolutionKind.Bundler,
       strict: true,
       skipLibCheck: true,
-      allowJs: false,
+      // JavaScript plugins are supported with structural extraction only.
+      allowJs: true,
+      checkJs: false,
     },
     skipAddingFilesFromTsConfig: true,
     // We only need symbols/return types from the plugin itself; skip parsing the

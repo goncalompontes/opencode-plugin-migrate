@@ -1,0 +1,9 @@
+{
+  "name": "js-v1-plugin",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./index.mjs",
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.18.0"
+  }
+}

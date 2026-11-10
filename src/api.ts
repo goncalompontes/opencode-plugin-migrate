@@ -93,7 +93,11 @@ const emitStage = stage({
       },
       target,
     )
-    const relative = path.relative(ir.sourceDir, ir.entryFile)
+    const relativeRaw = path.relative(ir.sourceDir, ir.entryFile)
+    const isJavaScript = !/\.[cm]?tsx?$/.test(relativeRaw)
+    const relative = isJavaScript
+      ? relativeRaw.replace(/\.[cm]?jsx?$/, relativeRaw.endsWith(".jsx") ? ".tsx" : ".ts")
+      : relativeRaw
     const file = path.join(target, relative)
     const module = emitModule(ir, file, { dual: ctx.options?.dual === true })
     if (!module.source.includes("Plugin.define")) {
@@ -101,6 +105,14 @@ const emitStage = stage({
     }
     fs.mkdirSync(path.dirname(file), { recursive: true })
     fs.writeFileSync(file, module.source)
+    if (isJavaScript) {
+      fs.rmSync(path.join(target, relativeRaw), { force: true })
+      module.diagnostics.push({
+        code: "js/emitted",
+        severity: "info",
+        message: `JavaScript entry ${relativeRaw} was converted to ${relative}.`,
+      })
+    }
 
     module.diagnostics.push(...upgradeConfigFiles(target), ...detectLayout(target))
     const rewrite = rewriteV1Imports(target, [file])
@@ -116,6 +128,7 @@ const emitStage = stage({
         version,
         rewrite.remaining.length === 0,
         rewrite.rewritten.length > 0,
+        isJavaScript ? { from: relativeRaw, to: relative } : undefined,
       ),
     )
     return { ir, module }

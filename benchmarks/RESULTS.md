@@ -12,9 +12,10 @@ typechecked against `@opencode/plugin`.
 | [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 1 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 0 -> 0 |
+| [OpenCode-Image-Router-Plugin](https://github.com/adrivansoft/OpenCode-Image-Router-Plugin) | 1 | 0 | 1 | 0 | 0/0 | clean | ok | 0 -> 0 |
 | [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 2 | 0 | 1 | 5/5 | clean | ok | 8 -> 0 |
 
-**Totals:** 15 hooks, 14 converted (93%), 0 need review, 1 unsupported.
+**Totals:** 16 hooks, 14 converted (88%), 1 need review, 1 unsupported.
 
 ## What "converted" means
 
@@ -90,6 +91,16 @@ is visible instead of silently dropped.
 
 - `dispose` — converted -> cleanup returned from setup()
 - `event` — converted -> ctx.event.subscribe()
+
+### OpenCode-Image-Router-Plugin
+
+- V1 authoring imports: 0 file(s) -> 0
+- Custom tools: 0/0 registered
+- Emitted: 0 hooks, kept for manual porting: 1
+- Generated: `.out/OpenCode-Image-Router-Plugin/`
+- Findings: 5
+
+- `chat.message` — review -> ctx.session.hook('context') or ctx.provider.transform()
 
 ### opencode-pty
 

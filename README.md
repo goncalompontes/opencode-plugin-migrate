@@ -10,7 +10,7 @@ bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck + bundle val
 bun run src/cli/index.ts convert ./my-plugin --dual   # also keep a V1 server() entrypoint
 ```
 
-**Status: MVP.** Across 7 real public plugins: 14/15 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+**Status: MVP.** Across 8 real public plugins (including a `.mjs` entry): 14/16 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 ## What it produces
 
@@ -118,7 +118,8 @@ instead of silently changing behaviour.
 
 ## Benchmarks
 
-Seven public V1 plugins at pinned commits, converted and typechecked:
+Eight public V1 plugins at pinned commits, converted and typechecked (one is a `.mjs`
+package):
 
 | Plugin | Hooks | Converted | Review | Unsupported | Tools | Typecheck | Runtime | V1 imports |
 | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |
@@ -128,6 +129,7 @@ Seven public V1 plugins at pinned commits, converted and typechecked:
 | [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 1 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
 | [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 0 -> 0 |
+| [OpenCode-Image-Router-Plugin](https://github.com/adrivansoft/OpenCode-Image-Router-Plugin) | 1 | 0 | 1 | 0 | 0/0 | clean | ok | 0 -> 0 |
 | [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 2 | 0 | 1 | 5/5 | clean | ok | 8 -> 0 |
 
 `opencode-notify` is a known upstream failure: its git checkout omits two generated modules,
@@ -192,9 +194,11 @@ files each building TypeScript programs contend for CPU and trip timeouts.
 
 - Namespace/default imports and runtime subpath imports (e.g. `@opencode-ai/plugin/tui` values) cannot be represented by the shim; those files stay on V1, the report lists them, and `package.json` deliberately keeps the V1 dependency.
 - Custom tools keep their Zod shape at runtime and are registered through `z.toJSONSchema()`; plugins still on Zod 3 need a Zod 4 upgrade.
+- JavaScript/JSX sources are converted structurally: hooks and tool definitions are read from the AST, but there is no type information, and the emitted module is TypeScript.
 - Layout changes are reported as a plan, not applied: automatic moves need import rewriting to stay safe.
 - V1 `client` calls are adapted, not rewritten: mapped methods preserve the `{ data }` envelope, adapted methods are reported, and unmapped methods throw at the call site so the gap is visible.
 - `chat.message` is bridged through prompt text: non-text parts and a real V1 `UserMessage` are not reconstructed, and the report says so.
+- `chat.message` bodies that mutate `output.message.model` stay in review, because the V2 prompt hook has no message model; model choice belongs to the context/provider hooks.
 - `chat.params` maps generation options onto `event.options`; the V1 `provider` and `message` inputs have no direct V2 field and are stubbed for the body.
 - `chat.headers` maps onto the `model.request` event; plugins that need the raw HTTP exchange should use `http.request`.
 - `experimental.chat.system.transform` exposes string entries; existing `SystemPart` cache/metadata are preserved by position, but new entries are plain text parts.

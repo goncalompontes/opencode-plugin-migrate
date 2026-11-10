@@ -158,6 +158,20 @@ describe("custom tools", () => {
   })
 })
 
+describe("V1 client facade", () => {
+  const clientFixture = path.join(import.meta.dir, "..", "fixtures", "client")
+
+  test("routes V1 calls through a typed facade and reports adapted methods", async () => {
+    const result = await convertPlugin(clientFixture, { outDir: path.join(root, "client") })
+    expect(result.report.typecheck?.clean).toBe(true)
+    expect(result.module.source).toContain("v1-client-facade")
+    expect(result.module.source).toContain("__clientEnvelope")
+    const codes = result.report.diagnostics.map((item) => item.code)
+    expect(codes).toContain("client/facade")
+    expect(codes).toContain("client/adapted")
+  })
+})
+
 describe("pipeline platform", () => {
   test("rejects a stage whose output violates its schema", async () => {
     const bad = pipeline<{ n: number }>()

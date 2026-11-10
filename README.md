@@ -9,7 +9,7 @@ bun run src/cli/index.ts analyze ./my-plugin     # report only, writes nothing
 bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck against @opencode/plugin
 ```
 
-**Status: MVP.** Across 7 real public plugins: 12/15 hooks converted, **5/5 custom tools registered**, every generated module typechecks, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+**Status: MVP.** Across 7 real public plugins: 12/15 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 ## What it produces
 
@@ -81,6 +81,27 @@ Errors inside code carried over from V1 are downgraded to review findings with a
 | **Unsupported** (no V2 equivalent) | `command.execute.before` (no global hook), `experimental.provider.small_model`, `experimental.compaction.autocontinue`, `experimental.text.complete` |
 
 The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
+
+## V1 client compatibility
+
+V1 plugins call `client.<domain>.<method>({ path, body })` and read `{ data }`. V2
+exposes flat domain methods on the context with no envelope. The emitter generates a
+facade that preserves the V1 call shape:
+
+| V1 call | V2 destination |
+| --- | --- |
+| `session.get({ path: { id } })` | `session.get({ sessionID })` + `{ data }` |
+| `session.list({ query })` | `session.list(query)` + `{ data }` |
+| `session.messages({ path: { id } })` | `session.context({ sessionID })` + `{ data }` |
+| `session.abort({ path: { id } })` | `session.interrupt({ sessionID })` + `{ data }` |
+| `session.summarize({ path: { id } })` | `session.compact({ sessionID })` + `{ data }` |
+| `tool.ids()` | `tool.list().map(tool => tool.id)` + `{ data }` |
+| `app.log({ body })` | `console.log(body.message)` |
+| `tui.showToast({ body })` | logged, because V2 server plugins have no TUI (reported as adapted) |
+
+`session.prompt`/`promptAsync`/`command`/`status` and `config.get` have no compatible
+V2 shape; the facade throws a descriptive error and the report marks them **unmapped**
+instead of silently changing behaviour.
 
 ## Benchmarks
 
@@ -154,7 +175,7 @@ files each building TypeScript programs contend for CPU and trip timeouts.
 
 - Namespace/default imports and runtime subpath imports (e.g. `@opencode-ai/plugin/tui` values) cannot be represented by the shim; those files stay on V1, the report lists them, and `package.json` deliberately keeps the V1 dependency.
 - Custom tools keep their Zod shape at runtime and are registered through `z.toJSONSchema()`; plugins still on Zod 3 need a Zod 4 upgrade.
-- `ctx.client.*` calls are the second migration axis. They are bound to the V2 context as `any` so the module compiles, and flagged for porting to `ctx.session`, `ctx.permission`, and friends.
+- V1 `client` calls are adapted, not rewritten: mapped methods preserve the `{ data }` envelope, adapted methods are reported, and unmapped methods throw at the call site so the gap is visible.
 - `chat.params` / `chat.message` split into different V2 hooks with different event shapes; static analysis can only propose a destination.
 - `command.execute.before` has no one-to-one V2 hook; the correct destination depends on whether the plugin owns the command.
 - The tool validates types, not behavior. A converted plugin still needs a smoke test in a real V2 session.

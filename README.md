@@ -83,6 +83,17 @@ Errors inside code carried over from V1 are downgraded to review findings with a
 
 The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
 
+## Auto-repair
+
+Generated modules are checked, and fixable findings are repaired in bounded passes:
+
+- diagnostics inside carried code are labelled with their origin hook (`#region carried-v1 <hook>`);
+- a fixer registry is keyed by TypeScript error code;
+- each pass applies one fix, re-checks, and stops on clean, no applicable fixer, repeated source, or max passes;
+- fixers may only add annotations — never delete or comment out code. Anything left over stays in the report as a review finding.
+
+Current fixers: missing parameter annotations (`TS7006`) inside carried V1 bodies. Unresolved errors remain visible with their hook origin.
+
 ## Scaffolding
 
 Beyond the module, `convert` normalizes the package around it:

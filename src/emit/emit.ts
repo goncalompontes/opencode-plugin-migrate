@@ -29,9 +29,14 @@ function reindent(text: string, level: number): string {
     .join("\n")
 }
 
-function carried(text: string, level: number): string {
+function carried(text: string, level: number, origin?: string): string {
   const pad = INDENT.repeat(level)
-  return [`${pad}// #region carried-v1`, reindent(text, level), `${pad}// #endregion carried-v1`].join("\n")
+  const label = origin ? ` ${origin}` : ""
+  return [
+    `${pad}// #region carried-v1${label}`,
+    reindent(text, level),
+    `${pad}// #endregion carried-v1`,
+  ].join("\n")
 }
 
 function comment(text: string): string {
@@ -193,8 +198,8 @@ function renderToolRegistration(tool: ToolSite, index: number, level: number): s
 function adapterBody(hook: ClassifiedHook, id: string, index: number, level: number): string {
   const body = hook.body.trim()
   const pad = INDENT.repeat(level)
-  const inner = carried(body, level + 1)
-  const inner2 = carried(body, level + 2)
+  const inner = carried(body, level + 1, hook.name)
+  const inner2 = carried(body, level + 2, hook.name)
   switch (hook.adapter) {
     case "tool-execute-before":
       return [
@@ -237,7 +242,7 @@ function adapterBody(hook: ClassifiedHook, id: string, index: number, level: num
         `${pad}${INDENT}${INDENT}for await (const __event of __opencode.event.subscribe({ signal: abort${index}.signal })) {`,
         `${pad}${INDENT}${INDENT}${INDENT}const event: any = __event`,
         `${pad}${INDENT}${INDENT}${INDENT}try {`,
-        carried(body, level + 4),
+        carried(body, level + 4, hook.name),
         `${pad}${INDENT}${INDENT}${INDENT}} catch (error) {`,
         `${pad}${INDENT}${INDENT}${INDENT}${INDENT}console.error(${JSON.stringify(`[${id}] event handler failed`)}, error)`,
         `${pad}${INDENT}${INDENT}${INDENT}}`,
@@ -255,7 +260,7 @@ function adapterBody(hook: ClassifiedHook, id: string, index: number, level: num
         `${pad}${INDENT}${INDENT}const input: any = { toolID: current.id }`,
         `${pad}${INDENT}${INDENT}const output: any = { description: current.description, parameters: current.input }`,
         `${pad}${INDENT}${INDENT}try {`,
-        carried(body, level + 3),
+        carried(body, level + 3, hook.name),
         `${pad}${INDENT}${INDENT}} finally {`,
         `${pad}${INDENT}${INDENT}${INDENT}editor.update(current.id, (tool) => {`,
         `${pad}${INDENT}${INDENT}${INDENT}${INDENT}tool.description = output.description`,
@@ -460,7 +465,7 @@ export function emitModule(
 
   const blocks: string[] = []
   if (locals.length) blocks.push(reindent(locals.join("\n"), 2))
-  if (init.text.trim()) blocks.push(carried(init.text, 2))
+  if (init.text.trim()) blocks.push(carried(init.text, 2, "setup.init"))
   if (needsCleanups) blocks.push(`  const __cleanups: Array<() => void | Promise<void>> = []`)
 
   if (emittedHooks.some((hook) => hook.adapter === "config-command")) {
@@ -553,7 +558,7 @@ export function emitModule(
     ` */`,
     ...importLines,
     ``,
-    ...(ir.moduleScope.trim() ? [carried(ir.moduleScope, 0), ``] : []),
+    ...(ir.moduleScope.trim() ? [carried(ir.moduleScope, 0, "module"), ``] : []),
     ...defineOpen,
     `  id: ${JSON.stringify(ir.id)},`,
     `  async setup(__opencode) {`,

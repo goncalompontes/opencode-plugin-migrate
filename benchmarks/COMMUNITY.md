@@ -13,7 +13,7 @@
 | [blueberrycongee/Lumina-Note](https://github.com/blueberrycongee/Lumina-Note) | 912 | crashed | 0 | 0 | 0 | 0 | 0/0 | could not find a plugin entrypoint in <repo>. Looked for package.json main/exports, src/index.ts, index.ts, plugin.ts, src/plugin.ts, src/server.ts, src/index.mjs, index.mjs, src/index.js, index.js, src/index.tsx, index.tsx, .opencode/plugins/index.ts and files importing @opencode-ai/plugin. |
 | [mohak34/opencode-notifier](https://github.com/mohak34/opencode-notifier) | 864 | clean | 4 | 4 | 0 | 0 | 0/0 |  |
 | [Dong90/oh-my-taiyiforge](https://github.com/Dong90/oh-my-taiyiforge) | 855 | clean | 0 | 0 | 0 | 0 | 41/41 |  |
-| [Nomadcxx/opencode-cursor](https://github.com/Nomadcxx/opencode-cursor) | 723 | issues | 2 | 2 | 0 | 0 | 0/0 | Could not find a declaration file for module 'cross-spawn'. '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/node_modules/cross-spawn/index.js' implicitly has an 'any' type. |
+| [Nomadcxx/opencode-cursor](https://github.com/Nomadcxx/opencode-cursor) | 723 | issues | 2 | 2 | 0 | 0 | 0/0 | Could not find a declaration file for module 'cross-spawn'. '<repo>/node_modules/cross-spawn/index.js' implicitly has an 'any' type. |
 | [different-ai/opencode-browser](https://github.com/different-ai/opencode-browser) | 612 | crashed | 0 | 0 | 0 | 0 | 0/0 | <repo> only ships compiled output (dist/plugin.js); a source tree is required for migration. |
 | [ex-machina-co/opencode-anthropic-auth](https://github.com/ex-machina-co/opencode-anthropic-auth) | 562 | clean | 0 | 0 | 0 | 0 | 0/0 |  |
 | [me2resh/apexyard](https://github.com/me2resh/apexyard) | 544 | clean | 0 | 0 | 0 | 0 | 0/0 |  |
@@ -43,7 +43,7 @@
 | [MrgSub/opencode-debug](https://github.com/MrgSub/opencode-debug) | 179 | clean | 1 | 1 | 0 | 0 | 5/5 |  |
 | [tickernelz/opencode-kiro-auth](https://github.com/tickernelz/opencode-kiro-auth) | 178 | clean | 0 | 0 | 0 | 0 | 0/0 |  |
 | [iHildy/opencode-synced](https://github.com/iHildy/opencode-synced) | 168 | issues | 2 | 1 | 1 | 0 | 1/1 | typecheck or runtime failed |
-| [Octane0411/opencode-plugin-openspec](https://github.com/Octane0411/opencode-plugin-openspec) | 167 | issues | 0 | 0 | 0 | 0 | 0/0 | File '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/opencode-plugin-openspec/src/config.ts' is not listed within the file list of project ''. Projects must list all files or use an 'include' pattern. |
+| [Octane0411/opencode-plugin-openspec](https://github.com/Octane0411/opencode-plugin-openspec) | 167 | issues | 0 | 0 | 0 | 0 | 0/0 | File '<out>/opencode-plugin-openspec/src/config.ts' is not listed within the file list of project ''. Projects must list all files or use an 'include' pattern. |
 | [psinetron/echoes-vault-opencode](https://github.com/psinetron/echoes-vault-opencode) | 159 | clean | 2 | 1 | 0 | 1 | 9/9 |  |
 | [agustif/opencode-lmstudio](https://github.com/agustif/opencode-lmstudio) | 158 | issues | 0 | 0 | 0 | 0 | 0/0 | typecheck or runtime failed |
 | [marco-jardim/opencode-model-router](https://github.com/marco-jardim/opencode-model-router) | 155 | issues | 10 | 7 | 1 | 2 | 0/0 | typecheck or runtime failed |
@@ -72,7 +72,7 @@
 | [firecrawl/opencode-firecrawl](https://github.com/firecrawl/opencode-firecrawl) | 103 | clean | 2 | 1 | 1 | 0 | 1/1 |  |
 | [ndom91/open-plan-annotator](https://github.com/ndom91/open-plan-annotator) | 100 | clean | 1 | 1 | 0 | 0 | 1/1 |  |
 | [dantesCode/caveman-opencode-plugin](https://github.com/dantesCode/caveman-opencode-plugin) | 95 | clean | 3 | 1 | 1 | 1 | 0/0 |  |
-| [FrancoStino/opencode-skills-collection](https://github.com/FrancoStino/opencode-skills-collection) | 92 | issues | 0 | 0 | 0 | 0 | 0/0 | File '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/opencode-skills-collection/bundled-skills/electron-drive-skill/scripts/lib.ts' is not under 'rootDir' '/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/opencode-skills-collection/src'. 'rootDir' is expected to contain all source files. |
+| [FrancoStino/opencode-skills-collection](https://github.com/FrancoStino/opencode-skills-collection) | 92 | issues | 0 | 0 | 0 | 0 | 0/0 | File '<out>/opencode-skills-collection/bundled-skills/electron-drive-skill/scripts/lib.ts' is not under 'rootDir' '<out>/opencode-skills-collection/src'. 'rootDir' is expected to contain all source files. |
 | [crisogray/claudius](https://github.com/crisogray/claudius) | 91 | clean | 0 | 0 | 0 | 0 | 1/1 |  |
 | [morphllm/opencode-morph-plugin](https://github.com/morphllm/opencode-morph-plugin) | 91 | clean | 0 | 0 | 0 | 0 | 0/0 |  |
 | [anomalyco/oc-plugin-rainbow](https://github.com/anomalyco/oc-plugin-rainbow) | 90 | crashed | 0 | 0 | 0 | 0 | 0/0 | could not find a plugin entrypoint in <repo>. Looked for package.json main/exports, src/index.ts, index.ts, plugin.ts, src/plugin.ts, src/server.ts, src/index.mjs, index.mjs, src/index.js, index.js, src/index.tsx, index.tsx, .opencode/plugins/index.ts and files importing @opencode-ai/plugin. |
@@ -111,7 +111,7 @@
 | [FredySandoval/showsignature](https://github.com/FredySandoval/showsignature) | 44 | clean | 0 | 0 | 0 | 0 | 2/2 |  |
 | [JungHoonGhae/opencode-kilo-auth](https://github.com/JungHoonGhae/opencode-kilo-auth) | 43 | issues | 0 | 0 | 0 | 0 | 0/0 | typecheck or runtime failed |
 | [grepleaks/grepleaks](https://github.com/grepleaks/grepleaks) | 43 | crashed | 0 | 0 | 0 | 0 | 0/0 | syntax errors in <repo>/engine/packages/plugin/src/example-workspace.ts: 'await' expressions are only allowed at the top level of a file when that file is a module, but this file has no imports or exports. Consider adding an empty 'export {}' to make this file a module. |
-| [jordienr/fixseo](https://github.com/jordienr/fixseo) | 43 | issues | 0 | 0 | 0 | 0 | 1/1 | Module '"/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/fixseo/src/index"' has no default export. Did you mean to use 'import { execute } from "/home/pontes/.t3/scratch/2026-11-10-has-anyone-made-a-tool-ac62e657/benchmarks/.out/fixseo/src/index"' instead? |
+| [jordienr/fixseo](https://github.com/jordienr/fixseo) | 43 | issues | 0 | 0 | 0 | 0 | 1/1 | Module '"<out>/fixseo/src/index"' has no default export. Did you mean to use 'import { execute } from "<out>/fixseo/src/index"' instead? |
 | [DVNghiem/FlowDeck](https://github.com/DVNghiem/FlowDeck) | 42 | issues | 4 | 3 | 1 | 0 | 25/25 | typecheck or runtime failed |
 | [altalt-org/opencode-anthropic-multi-auth](https://github.com/altalt-org/opencode-anthropic-multi-auth) | 42 | clean | 0 | 0 | 0 | 0 | 0/0 |  |
 | [Hona/temple-oc](https://github.com/Hona/temple-oc) | 40 | clean | 1 | 1 | 0 | 0 | 0/0 |  |

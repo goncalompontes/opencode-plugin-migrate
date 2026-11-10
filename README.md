@@ -3,6 +3,7 @@
 **Convert OpenCode V1 plugins to V2 — with a typed AST pass, verbatim body carry, and a compile + runtime gate.**
 
 [![CI](https://github.com/goncalompontes/opencode-plugin-migrate/actions/workflows/ci.yml/badge.svg)](https://github.com/goncalompontes/opencode-plugin-migrate/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/goncalompontes/opencode-plugin-migrate)](https://github.com/goncalompontes/opencode-plugin-migrate/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-unit%20%2B%20corpus-brightgreen)](test/migration.test.ts)
 [![Corpus](https://img.shields.io/badge/corpus-10%20curated%20%C2%B7%20150%20community-informational)](benchmarks/RESULTS.md)
@@ -294,6 +295,7 @@ community corpus.
 
 - [Installation](docs/INSTALL.md)
 - [Architecture](docs/ARCHITECTURE.md)
+- [Releasing](docs/RELEASING.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 - [Code of conduct](CODE_OF_CONDUCT.md)

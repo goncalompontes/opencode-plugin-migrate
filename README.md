@@ -1,263 +1,190 @@
 # opencode-plugin-migrate
 
-Convert OpenCode **V1** plugins (`@opencode-ai/plugin`) to **V2** plugins (`@opencode/plugin`) using a typed AST pass, then prove the result compiles.
+**Convert OpenCode V1 plugins to V2 — with a typed AST pass, verbatim body carry, and a compile + runtime gate.**
 
-V1 plugins do not load in V2: the entrypoint, context, hook signatures, and tool schema all changed. This tool does the mechanical part, preserves every body it touches byte-for-byte, and reports the parts that need a human decision instead of dropping them silently.
+[![CI](https://github.com/goncalompontes/opencode-plugin-migrate/actions/workflows/ci.yml/badge.svg)](https://github.com/goncalompontes/opencode-plugin-migrate/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-48%20passing-brightgreen)](test/migration.test.ts)
+[![Corpus](https://img.shields.io/badge/corpus-10%20packages%20%C2%B7%2022%20hooks-informational)](benchmarks/RESULTS.md)
+
+V1 plugins do not load in V2: the entrypoint, context, hook signatures, client API,
+and tool schema all changed. This tool performs the mechanical conversion, keeps every
+body it touches byte-for-byte, and reports the parts that need a human decision instead
+of dropping them.
 
 ```sh
-bun run src/cli/index.ts analyze ./my-plugin     # report only, writes nothing
-bun run src/cli/index.ts convert ./my-plugin     # emit + typecheck + bundle validation
-bun run src/cli/index.ts convert ./my-plugin --dual   # also keep a V1 server() entrypoint
+bun run src/cli/index.ts analyze ./my-plugin   # report only, writes nothing
+bun run src/cli/index.ts convert ./my-plugin   # emit + typecheck + bundle
 ```
 
-**Status: MVP.** Across 10 packages (8 public plugins, one `.mjs` entry, one local fixture): 18/22 hooks converted, **5/5 custom tools registered**, **V1 client calls routed through a generated facade**, every generated module typechecks and bundles, and **all 7 packages end with zero `@opencode-ai/plugin` imports** — including `opencode-pty`, whose factory pulls tools from 8 other files. See [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
+- [Why](#why)
+- [What it converts](#what-it-converts)
+- [Install](#install)
+- [Quick start](#quick-start)
+- [Benchmark](#benchmark)
+- [How it works](#how-it-works)
+- [Safety model](#safety-model)
+- [CLI](#cli)
+- [Scaffolding and re-runs](#scaffolding-and-re-runs)
+- [Repository layout](#repository-layout)
+- [Development](#development)
+- [Limitations](#limitations)
+
+## Why
+
+OpenCode V1 plugins are functions that return a hook map. V2 plugins default-export a
+definition with an `id` and `setup(ctx)`, and hooks are registered on domains. The types
+changed, the client moved onto the context, tools take JSON Schema, and some experimental
+hooks no longer exist.
+
+A text search-and-replace cannot do this safely. This project uses the TypeScript
+compiler to understand the original plugin, emits a complete V2 module, and refuses to
+call anything "converted" until the result typechecks and bundles.
+
+## What it converts
+
+| Area | V1 | V2 |
+| --- | --- | --- |
+| Entrypoint | `export const plugin: Plugin = async (input) => ({ ... })` | `Plugin.define({ id, setup(ctx) })` |
+| Hooks | returned hook map | `ctx.tool.hook`, `ctx.session.hook`, `ctx.event.subscribe`, ... |
+| Custom tools | `tool({ args: zod })` | `ctx.tool.transform` + `z.toJSONSchema` |
+| Client | `client.session.get({ path })` | V2 domains through a generated compatibility facade |
+| Package imports | every `@opencode-ai/plugin` import | generated typed shim, V1 dependency removed |
+| Conditional maps | `if (x) return { ... }` | `if (x) { ... } else { ... }` registration |
+| Scaffolding | `plugin` config, layout files, TUI | normalized config, move plans, TUI detection, `--dual` |
+
+Coverage from the real-plugin corpus: **18/22 hooks converted**, **9/9 tools registered**,
+**10/10 modules typecheck**, **9/10 bundle** (the tenth is a known upstream checkout gap).
 
 ## Install
 
 ```sh
-npm install -g opencode-plugin-migrate    # or: bun install -g opencode-plugin-migrate
-opencode-plugin-migrate --help
+npm install -g opencode-plugin-migrate
+# or
+bun install -g opencode-plugin-migrate
+# or from source
+git clone https://github.com/goncalompontes/opencode-plugin-migrate.git
+cd opencode-plugin-migrate && bun install && bun run build
 ```
 
-The published CLI runs under Node 20+ and Bun. Bundle validation uses `Bun.build`; under
+The published CLI runs on Node 20+ and Bun. Bundle validation uses `Bun.build`; under
 Node it is skipped and reported as `bundle skipped (Node)`. Type checking, conversion,
 reports and repair work on both runtimes.
 
-## Packaging
+## Quick start
 
 ```sh
-bun run build          # dist/index.js (library) + dist/cli.js (CLI, node shebang)
-bun run smoke:pack     # build, pack, install the tarball in a temp project, run the CLI
+# 1. See what will happen. No writes.
+opencode-plugin-migrate analyze ./plugin
+
+# 2. Convert into .migrate/<plugin>/. Writes MIGRATION.md + JSON.
+opencode-plugin-migrate convert ./plugin
+
+# 3. Review the report, then typecheck the result in its project.
+opencode-plugin-migrate convert ./plugin --check --quiet
 ```
 
-The release workflow (`.github/workflows/release.yml`) bumps the version, runs tests and
-the pack smoke test, tags `v<version>`, uploads the tarball to a GitHub release, and
-publishes to npm when `NPM_TOKEN` is configured. MIT licensed.
+`convert` copies the package, rewrites every V1 authoring import, emits the V2 module,
+upgrades `package.json`, typechecks against `@opencode/plugin`, bundles it, and repairs
+fixable parameter annotations. Every skipped hook keeps its original body in
+`MIGRATION.md` and `migration-report.json`.
 
-## CLI
+## Benchmark
+
+The benchmark runs against pinned public V1 plugins plus two local fixtures. Each entry
+carries expected counts, so a regression fails with `expected X, got Y`.
+
+| Package | Hooks | Converted | Review | Unsupported | Tools | Typecheck | Runtime | V1 imports |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |
+| [openslimedit](https://github.com/ASidorenkoCode/openslimedit) | 3 | 3 | 0 | 0 | 0/0 | clean | ok | 1 → 0 |
+| [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 → 0 |
+| [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | upstream gap | 1 → 0 |
+| [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 1 | 0 | 0 | 0/0 | clean | ok | 1 → 0 |
+| [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 → 0 |
+| [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 0 → 0 |
+| [OpenCode-Image-Router](https://github.com/adrivansoft/OpenCode-Image-Router-Plugin) | 1 | 0 | 1 | 0 | 0/0 | clean | ok | 0 → 0 |
+| inline-tools *(fixture)* | 0 | 0 | 0 | 0 | 2/2 | clean | ok | 2 → 0 |
+| [opencode-auto-resume](https://github.com/Mte90/opencode-auto-resume) | 6 | 4 | 1 | 1 | 1/1 | clean | ok | 1 → 0 |
+| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 2 | 0 | 1 | 5/5 | clean | ok | 8 → 0 |
 
 ```sh
-opencode-plugin-migrate analyze ./plugin --format md|json|both
-opencode-plugin-migrate convert ./plugin [--out DIR] [--dual] [--target 2.2.7]
-opencode-plugin-migrate convert ./plugin --dry-run      # full pipeline, prints the module
-opencode-plugin-migrate convert ./plugin --check        # CI gate: non-zero on review/unsupported
-opencode-plugin-migrate convert ./plugin --quiet        # exit code only
+bun benchmarks/run.ts --fetch   # clone pinned commits into benchmarks/corpus
+bun benchmarks/run.ts           # writes benchmarks/RESULTS.md, exits 1 on regressions
 ```
 
-Exit codes: `0` success, `1` validation or `--check` findings, `2` usage error.
-`--format both` prints machine-readable JSON followed by Markdown.
-
-## What it produces
-
-`convert` writes a complete V2 module, not a patch:
-
-```ts
-import { Plugin } from "@opencode/plugin"
-
-export default Plugin.define({
-  id: "openslimedit",
-  async setup(__opencode) {
-    const directory = __opencode.location.directory
-    // #region carried-v1
-    function resolvePath(filePath: string): string {
-      if (path.isAbsolute(filePath)) return path.resolve(directory, filePath)
-      return path.normalize(filePath)
-    }
-    // #endregion carried-v1
-
-    await __opencode.tool.hook("execute.before", async (event) => {
-      const input: any = { tool: event.tool, sessionID: event.sessionID, callID: event.id }
-      const output: any = { args: event.input }
-      try {
-        // #region carried-v1
-        const args = output.args
-        args.oldString = lines.slice(startLine - 1, endLine).join("\n")
-        // #endregion carried-v1
-      } finally {
-        event.input = output.args
-      }
-    })
-  },
-})
-```
-
-Alongside it, every other source file that imported `@opencode-ai/plugin` is redirected to a generated `__opencode_v1_shim.ts` (a typed `tool()` + type surface backed by Zod), `package.json` moves from `@opencode-ai/plugin` to `@opencode/plugin` (plus `zod` when the shim is used), and:
-
-- `MIGRATION.md` — per-hook status, V2 destination, diagnostics, and the original body of everything that was not converted.
-- `migration-report.json` — the same, machine-readable.
-- `MIGRATION.md` includes a **manual porting queue** so the remaining work is explicit.
+The full result and per-plugin notes live in [benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 ## How it works
 
 ```
-resolve entry ──► extract IR ──► classify ──► emit V2 ──► typecheck ──► bundle/entry ──► report
-   (package.json,      (ts-morph,    (exhaustive   (adapters,    (TypeScript    (Bun.build with
-    tsconfig,           type checker) hook table)   verbatim       program vs     packages external,
-    re-export scan)                                bodies)        @opencode/plugin)  entry shape check)
+resolve ─► extract IR ─► classify ─► emit V2 ─► repair ─► typecheck ─► bundle/entry ─► report
 ```
 
-The pipeline is a small typed platform (`src/core/pipeline.ts`): each stage declares a Zod schema for its output, the builder carries the output type into the next stage, and a stage that changes shape fails validation instead of feeding bad data forward. Stages are independently testable and observable (`onStage`).
+1. **Resolve** the entrypoint using `package.json`, tsconfig, and V1 importers.
+2. **Extract** a typed IR with ts-morph: factory, hooks, tools, providers, auth, imports.
+3. **Classify** every hook against an exhaustive `Record<keyof Hooks, Rule>`, then probe
+   the installed `@opencode/plugin` for the capabilities each adapter needs.
+4. **Emit** a complete V2 module; carried bodies stay verbatim inside
+   `#region carried-v1 <hook>` markers.
+5. **Repair** fixable diagnostics in bounded passes (annotations only, never deletion).
+6. **Typecheck** with the real compiler and the plugin's own tsconfig.
+7. **Bundle** with `Bun.build` and verify the `Plugin.define({ id, setup })` shape.
+8. **Report** what converted, what needs review, and what was preserved.
 
-### Why re-emit instead of rewriting in place
-
-Unconvertible hooks are simply not emitted. The module still parses and typechecks, so a partial migration is still a working module, and the original body is preserved in the report instead of being commented into a syntax error.
-
-### Why the typecheck is the gate
-
-The V2 package ships complete `.d.ts`. After emitting, the tool builds a real TypeScript program rooted at the generated file, using the generated project's own imports and the installed `@opencode/plugin`. A hook is only marked `converted` when an adapter exists **and** the result has no scaffold errors.
-
-Errors inside code carried over from V1 are downgraded to review findings with a hint, because they describe the old body, not the generated scaffolding. Missing third-party packages (and missing files that were already missing in the source repo) are warnings, not migration failures.
-
-## Hook coverage
-
-| Status | V1 hooks |
-| --- | --- |
-| **Converted** | `dispose`, `event`, `tool.execute.before`, `tool.execute.after`, `tool.definition`, `shell.env`, `permission.ask`, `chat.message`, `chat.params`, `chat.headers`, `experimental.chat.system.transform`, `config.command`, custom `tool` maps |
-| **Review** (reported, body preserved) | `provider`, `auth`, other `config` domains, `experimental.chat.messages.transform`, `experimental.session.compacting` |
-| **Unsupported** (no V2 equivalent) | `command.execute.before` (no global hook), `experimental.provider.small_model`, `experimental.compaction.autocontinue`, `experimental.text.complete` |
-
-The table is `Record<keyof Hooks, Rule>` over the V1 package's own type: adding a hook to V1 makes the tool fail to compile until it is classified. See `src/rules/hooks.ts`.
-
-## Conditional hook maps
-
-Some V1 factories return an early hook map:
-
-```ts
-if (!enabled) return { event: async ({ event }) => { ... } }
-return { "tool.execute.before": ... }
-```
-
-The converter models these conditions instead of flattening them:
-
-- hooks from an early return are registered inside `if (<condition>) { ... }`, with the main map in `else`;
-- early returns with no hooks are kept in `setup` as an early return, preserving the V1 behaviour;
-- conditions that depend on statements inside the branch, or custom tools inside a conditional map, are reported rather than guessed;
-- `--dual` keeps the V2 conditional registrations but registers only unconditional hooks in the reconstructed V1 `server()` (with a warning).
-
-## Incremental re-runs
-
-`convert` can run again on the same output:
-
-- The generated module and `migration-state.json` record the base hash of every carried region.
-- On a re-run, manual edits to a carried region are kept; if the V1 source changed too, the tool reports `incremental/conflict` and keeps the manual body for review.
-- Re-running with no changes is byte-identical.
-- `--force` regenerates from scratch and discards preserved edits.
-- Pointing `convert` at an already-converted V2 package is a no-op (`already/converted`) instead of an error.
-
-## Target compatibility
-
-Rules are only valid for the target API they were checked against:
-
-- On every run the tool probes the installed `@opencode/plugin` and records its version and capabilities (`session.hook("prompt")`, `tool.transform`, `command.transform`, ...).
-- If the installed target lacks a capability an adapter needs, that hook is **downgraded to review** with the reason instead of emitting code that cannot load.
-- `--target <version>` records an expected version and warns when it differs from the installed package; the report always names the version actually probed.
-- CI has a `compat` matrix that probes `@opencode/plugin@2.2.7` and `2.1.4`.
-
-## Auto-repair
-
-Generated modules are checked, and fixable findings are repaired in bounded passes:
-
-- diagnostics inside carried code are labelled with their origin hook (`#region carried-v1 <hook>`);
-- a fixer registry is keyed by TypeScript error code;
-- each pass applies one fix, re-checks, and stops on clean, no applicable fixer, repeated source, or max passes;
-- fixers may only add annotations — never delete or comment out code. Anything left over stays in the report as a review finding.
-
-Current fixers: missing parameter annotations (`TS7006`) inside carried V1 bodies. Unresolved errors remain visible with their hook origin.
-
-## Providers and auth
-
-- `provider` hooks convert to `ctx.provider.transform`: the V1 `models` function is resolved once at setup and its entries are installed with `editor.models.set(...)`.
-- `auth` hooks register API-key and OAuth methods through `ctx.integration.transform`; OAuth results are mapped to `Credential.OAuth`. V1 `loader` and `prompts` have no direct V2 equivalent and are reported for review.
-- `config` supports `command` today; other domains are reported with the exact keys that were written.
-
-## Scaffolding
-
-Beyond the module, `convert` normalizes the package around it:
-
-- **Config**: `opencode.json(c)` moves `plugin` to `plugins`, and tuples become `{ package, options }` objects (including local paths).
-- **Layout**: reports the required moves from `.opencode/plugin/<x>.ts` and `.opencode/plugins/<x>.ts` to `.opencode/plugins/<x>/index.ts`. It plans rather than moves, because moving a file can break its relative imports.
-- **TUI**: detects V1 TUI plugins (`@opencode-ai/plugin/tui`, `export const tui`) and tells you to port them separately, never mixing them into a server plugin.
-- **Dual mode**: `--dual` emits both the V2 `Plugin.define({ id, setup })` default export and a V1 `server()` entrypoint reconstructed from the original hooks, for hosts on OpenCode >= 1.18.29.
-- **Manifest**: swaps the authoring dependency and adds `zod` when the compatibility shim is used.
-
-Every applied or proposed change is listed in the report's **Scaffolding** section.
-
-## V1 client compatibility
-
-V1 plugins call `client.<domain>.<method>({ path, body })` and read `{ data }`. V2
-exposes flat domain methods on the context with no envelope. The emitter generates a
-facade that preserves the V1 call shape:
-
-| V1 call | V2 destination |
-| --- | --- |
-| `session.get({ path: { id } })` | `session.get({ sessionID })` + `{ data }` |
-| `session.list({ query })` | `session.list(query)` + `{ data }` |
-| `session.messages({ path: { id } })` | `session.context({ sessionID })` + `{ data }` |
-| `session.abort({ path: { id } })` | `session.interrupt({ sessionID })` + `{ data }` |
-| `session.summarize({ path: { id } })` | `session.compact({ sessionID })` + `{ data }` |
-| `tool.ids()` | `tool.list().map(tool => tool.id)` + `{ data }` |
-| `app.log({ body })` | `console.log(body.message)` |
-| `tui.showToast({ body })` | logged, because V2 server plugins have no TUI (reported as adapted) |
-
-`session.prompt`/`promptAsync`/`command`/`status` and `config.get` have no compatible
-V2 shape; the facade throws a descriptive error and the report marks them **unmapped**
-instead of silently changing behaviour.
-
-## Benchmarks
-
-Ten packages at pinned commits or local fixtures, converted and typechecked:
-
-| Plugin | Hooks | Converted | Review | Unsupported | Tools | Typecheck | Runtime | V1 imports |
-| --- | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: |
-| [openslimedit](https://github.com/ASidorenkoCode/openslimedit) | 3 | 3 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
-| [opencode-smartsnip](https://github.com/carson2222/opencode-smartsnip) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
-| [opencode-notify](https://github.com/kdcokenny/opencode-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | known upstream failure | 1 -> 0 |
-| [opencode-request-logger](https://github.com/Opencode-DCP/opencode-request-logger) | 1 | 1 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
-| [opencode-message-notify](https://github.com/Decade-qiu/opencode-message-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 1 -> 0 |
-| [opencode-smart-voice-notify](https://github.com/MasuRii/opencode-smart-voice-notify) | 2 | 2 | 0 | 0 | 0/0 | clean | ok | 0 -> 0 |
-| [OpenCode-Image-Router-Plugin](https://github.com/adrivansoft/OpenCode-Image-Router-Plugin) | 1 | 0 | 1 | 0 | 0/0 | clean | ok | 0 -> 0 |
-| inline-tools (local fixture) | 0 | 0 | 0 | 0 | 2/2 | clean | ok | 2 -> 0 |
-| [opencode-auto-resume](https://github.com/Mte90/opencode-auto-resume) | 6 | 4 | 1 | 1 | 1/1 | clean | ok | 1 -> 0 |
-| [opencode-pty](https://github.com/shekohex/opencode-pty) | 3 | 2 | 0 | 1 | 5/5 | clean | ok | 8 -> 0 |
-
-`opencode-notify` is a known upstream failure: its git checkout omits two generated modules,
-so it cannot bundle even before migration. The benchmark records that instead of hiding it.
-
-Reproduce:
-
-```sh
-bun benchmarks/run.ts --fetch   # clones pinned commits into benchmarks/corpus
-bun benchmarks/run.ts           # writes benchmarks/RESULTS.md, exits 1 on regressions
-```
-
-The benchmark is also a test (`test/corpus.test.ts`): every corpus plugin must produce a typechecking module.
+More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [DESIGN.md](DESIGN.md).
 
 ## Safety model
 
-- **Exhaustive rules.** Hook classification is total over `keyof Hooks`; unknown hooks fall back to `unsupported`, never to a guess.
-- **Validated boundaries.** Every pipeline stage output is parsed with Zod before the next stage sees it.
-- **Verbatim carry.** Bodies are moved as source text and marked `#region carried-v1`, so behavior is preserved and review is localized.
-- **Complete output.** Skipped hooks never leave dangling syntax; the module is always whole.
-- **Two gates.** The emitted module must typecheck against the real V2 types *and* bundle with `Bun.build` (relative imports, shim, entry shape).
-- **No silent deletion.** Anything not emitted appears in the report with its original body and closest V2 API.
-- **Already-V2 detection.** Pointing the tool at a V2 plugin fails with a clear message instead of producing nonsense.
+- **Exhaustive rules.** Hook classification is total over the V1 hook type; unknown
+  hooks fall back to `unsupported`, never a guess.
+- **Validated boundaries.** Every pipeline stage output is parsed with Zod.
+- **Verbatim carry.** Bodies are moved as source text and labelled with their origin.
+- **Complete output.** Skipped hooks never leave dangling syntax; the module is whole.
+- **Two gates.** Typecheck against real V2 types, then bundle + entry-shape check.
+- **No silent deletion.** Anything not emitted is in the report with its original body.
+- **Deterministic repair.** Fixers only add annotations; unresolved errors stay visible.
+
+## CLI
+
+| Flag | Meaning |
+| --- | --- |
+| `--out DIR` | Output root (default `.migrate`) |
+| `--dry-run` | Run everything, print the module, write nothing |
+| `--check` | Exit 1 on review/unsupported hooks, leftover V1 imports, or validation failure |
+| `--format md\|json\|both` | Report format (`--json` is a shorthand) |
+| `--quiet` | Exit code only |
+| `--dual` | Emit a V1 `server()` next to the V2 `setup()` |
+| `--target VERSION` | Expected `@opencode/plugin` version; warns on mismatch |
+| `--force` | Regenerate and discard preserved manual edits |
+
+Exit codes: `0` success, `1` validation or `--check` findings, `2` usage error.
+
+## Scaffolding and re-runs
+
+- `opencode.json(c)`: `plugin` → `plugins`, tuples → `{ package, options }`.
+- Layout: reports the moves required by V2 (`.opencode/plugins/<name>/index.ts`).
+- TUI: detects V1 TUI plugins and keeps them out of the server conversion.
+- Manifest: swaps `@opencode-ai/plugin` for `@opencode/plugin`, adds `zod` when the shim
+  is used.
+- Incremental: `migration-state.json` stores base hashes; manual edits survive re-runs,
+  conflicts are reported, unchanged input is byte-identical.
+- `--dual`: keeps a V1 `server()` entrypoint for hosts on OpenCode ≥ 1.18.29.
 
 ## Repository layout
 
 ```
-src/
-  core/         typed pipeline + diagnostics
-  env/          entrypoint resolution, package/tsconfig detection, project copy
-  ir/           IR schema (Zod) and ts-morph extraction
-  rules/        exhaustive V1 -> V2 hook table
-  emit/         V2 module emitter and per-hook adapters
-  validate/     TypeScript program + diagnostic mapping
-  report/       report schema and Markdown renderer
-  api.ts        analyze / convert pipelines
-  cli/          CLI (citty)
-benchmarks/     corpus manifest, runner, pinned results
-test/           unit + corpus tests
-DESIGN.md       design notes and known limits
+src/core/       typed pipeline and diagnostics
+src/env/        project/config/import/client/package scaffolding
+src/ir/         Zod IR and ts-morph extraction
+src/rules/      hook table and target capability probe
+src/emit/       emitter and per-hook adapters
+src/validate/   typecheck, bundle, repair, incremental merge
+src/report/     report schema and Markdown/JSON renderer
+src/cli/        CLI entrypoint
+scripts/        build, pack smoke, coverage floor, capability probe
+benchmarks/     pinned corpus, runner, RESULTS.md
+test/           fixtures, suites, snapshots
+docs/           architecture
 ```
 
 ## Development
@@ -266,46 +193,30 @@ DESIGN.md       design notes and known limits
 bun install
 bun run lint              # Biome
 bun run typecheck
-bun test                  # one entrypoint (test/migration.test.ts), 60s per-test budget
+bun test                  # one entrypoint, 60s per-test budget
 bun run coverage:check    # floors for src/rules and src/emit
-bun run build             # dist/library + dist/cli.js
+bun run build             # dist library + Node CLI
 bun run smoke:pack        # packed-tarball install smoke test
 bun run bench
 ```
 
-CI runs Biome, typecheck, tests and the Node CLI on Bun `1.4.4` and `latest`; coverage
-floors; the pack smoke test on Node 20 and 22; a compatibility matrix for two
-`@opencode/plugin` versions; and a PR benchmark job that caches the corpus and posts the
-results table as a PR comment.
+CI runs Biome, typecheck, tests and the Node CLI on Bun `1.4.4` and `latest`, coverage
+floors, pack smoke on Node 20/22, a compatibility matrix for two `@opencode/plugin`
+versions, and a PR benchmark that posts the results table as a comment.
 
-Both `analyze` and `convert` run a TypeScript program per plugin. The typechecker
-shares parsed `lib.*.d.ts` / `@types` declarations across programs, and extraction
-skips loading the standard library into ts-morph, which keeps a full 7-plugin
-corpus run around 8 seconds instead of ~20.
+## Limitations
 
-Suites include golden module snapshots (`test/__snapshots__/`), negative fixtures
-(syntax errors, no factory, mixed APIs, unsupported hooks) and a corpus whose per-plugin
-counts are asserted by the benchmark. Test suites live in `test/suites/` and are imported by the single
-`test/migration.test.ts` entrypoint: Bun runs test *files* concurrently, and two
-files each building TypeScript programs contend for CPU and trip timeouts.
-
-## Known limits (deliberately reported, not hidden)
-
-- Namespace/default imports and runtime subpath imports (e.g. `@opencode-ai/plugin/tui` values) cannot be represented by the shim; those files stay on V1, the report lists them, and `package.json` deliberately keeps the V1 dependency.
-- Custom tools keep their Zod shape at runtime and are registered through `z.toJSONSchema()`; plugins still on Zod 3 need a Zod 4 upgrade.
-- JavaScript/JSX sources are converted structurally: hooks and tool definitions are read from the AST, but there is no type information, and the emitted module is TypeScript.
-- Provider models are resolved once at setup, so dynamically changing model inventories need a manual provider transform.
-- V1 auth `loader` and prompt validation are reported, not converted; OAuth results without refresh/access throw a descriptive error at runtime.
-- Auth method IDs are derived from the V1 method id/label (`oauth` fallback); confirm them against the integration's V2 expectations.
+- `chat.message` is bridged through prompt text; non-text parts and a full `UserMessage`
+  are not reconstructed. Bodies that mutate `output.message.model` stay in review.
+- V1 `client` calls are adapted, not rewritten: mapped methods keep the `{ data }`
+  envelope, adapted methods are reported, unmapped methods throw at the call site.
+- Provider models are resolved once at setup; dynamic inventories need manual work.
+- Auth `loader` and prompt validation are reported; OAuth results without refresh/access
+  throw a descriptive error.
 - Conditional custom tools and complex branch bodies are reported, not converted.
-- Layout changes are reported as a plan, not applied: automatic moves need import rewriting to stay safe.
-- V1 `client` calls are adapted, not rewritten: mapped methods preserve the `{ data }` envelope, adapted methods are reported, and unmapped methods throw at the call site so the gap is visible.
-- `chat.message` is bridged through prompt text: non-text parts and a real V1 `UserMessage` are not reconstructed, and the report says so.
-- `chat.message` bodies that mutate `output.message.model` stay in review, because the V2 prompt hook has no message model; model choice belongs to the context/provider hooks.
-- `chat.params` maps generation options onto `event.options`; the V1 `provider` and `message` inputs have no direct V2 field and are stubbed for the body.
-- `chat.headers` maps onto the `model.request` event; plugins that need the raw HTTP exchange should use `http.request`.
-- `experimental.chat.system.transform` exposes string entries; existing `SystemPart` cache/metadata are preserved by position, but new entries are plain text parts.
-- `config.command` becomes a V2 command definition, but V1 template text is sent as prompt text and `$ARGUMENTS` placeholders are not substituted.
-- Other `config` domains, `provider`, and `auth` remain in review; see issue #26.
-- `command.execute.before` has no one-to-one V2 hook; the correct destination depends on whether the plugin owns the command.
-- The tool validates types, not behavior. A converted plugin still needs a smoke test in a real V2 session.
+- Layout changes are a plan, not applied.
+- Validation proves types and loading, not behavior. Run a smoke test in a real V2 session.
+
+## License
+
+[MIT](LICENSE) © 2026 goncalompontes

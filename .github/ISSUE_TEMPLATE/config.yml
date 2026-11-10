@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Security report
+    url: https://github.com/goncalompontes/opencode-plugin-migrate/security/advisories/new
+    about: Report vulnerabilities privately, not in a public issue.
+  - name: OpenCode plugin migration guide
+    url: https://opencode.ai/v2/docs/build/plugins/migrate-v1
+    about: Official V1 to V2 plugin migration reference.
